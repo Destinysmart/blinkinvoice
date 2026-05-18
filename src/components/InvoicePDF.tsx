@@ -116,12 +116,28 @@ export function InvoicePDF({ invoice, settings, qrCodeDataURL }: { invoice: Invo
 
         {/* Lightning */}
         {invoice.paymentRequest ? (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>⚡ Pay via Bitcoin Lightning</Text>
-            <Text style={styles.bolt11}>{invoice.paymentRequest}</Text>
-            <Text style={{ color: MUTED, fontSize: 9, marginTop: 6 }}>
-              Scan the payment request in any Lightning wallet — Zeus, Phoenix, Muun, Blink, or any BOLT11-compatible wallet.
-            </Text>
+          <View style={styles.lightningSection}>
+            <Text style={styles.lightningTitle}>⚡  PAY VIA BITCOIN LIGHTNING</Text>
+            <View style={styles.lightningBody}>
+              {qrCodeDataURL ? (
+                <View style={styles.qrBox}>
+                  <Image src={qrCodeDataURL} style={styles.qrImage} />
+                  <Text style={styles.qrCaption}>Scan to pay instantly</Text>
+                </View>
+              ) : null}
+              <View style={styles.lightningInfo}>
+                {invoice.satoshis ? (
+                  <Text style={styles.lightningAmount}>{invoice.satoshis.toLocaleString()} sats</Text>
+                ) : null}
+                <Text style={styles.lightningInstructions}>
+                  Open any Lightning wallet, tap Scan or Pay Invoice, then scan this QR code.
+                </Text>
+                <Text style={styles.walletList}>
+                  Works with: Blink · Zeus · Phoenix · Muun · Blue Wallet · Wallet of Satoshi
+                </Text>
+              </View>
+            </View>
+            <Text style={[styles.bolt11, { marginTop: 10 }]}>{invoice.paymentRequest}</Text>
           </View>
         ) : null}
 
