@@ -128,11 +128,13 @@ function InvoiceDetailPage() {
             <p className="text-sm text-muted-foreground whitespace-pre-line">{invoice.client.address}</p>
           </div>
           <div className="text-right">
+            {settings.logo && <img src={settings.logo} alt="logo" className="ml-auto mb-2 h-12 rounded bg-white p-1 object-contain" />}
             <p className="font-display text-2xl font-bold">{settings.businessName || "Your business"}</p>
             <p className="text-sm text-muted-foreground">{settings.businessEmail}</p>
             <p className="text-sm text-muted-foreground whitespace-pre-line">{settings.businessAddress}</p>
             <div className="mt-4 font-mono text-sm">{invoice.number}</div>
-            <div className="text-xs text-muted-foreground">{new Date(invoice.createdAt).toLocaleDateString()}</div>
+            <div className="text-xs text-muted-foreground">Issued {new Date(invoice.issueDate ?? invoice.createdAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}</div>
+            {invoice.dueDate && <div className="text-xs text-muted-foreground">Due {new Date(invoice.dueDate).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}</div>}
           </div>
         </div>
 
@@ -170,6 +172,9 @@ function InvoiceDetailPage() {
             <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Memo</p>
             <p className="mt-1 text-sm whitespace-pre-line">{invoice.memo}</p>
           </div>
+        )}
+        {settings.invoiceFooter && (
+          <p className="mt-6 border-t border-border pt-4 text-xs text-muted-foreground">{settings.invoiceFooter}</p>
         )}
       </div>
 

@@ -95,6 +95,60 @@ function SettingsPage() {
         </div>
       </Card>
 
+      <Card title="Invoice defaults">
+        <div className="grid gap-4 md:grid-cols-2">
+          <Field label="Invoice prefix">
+            <Input value={form.invoicePrefix ?? ""} placeholder="INV"
+              onChange={(e) => setForm({ ...form, invoicePrefix: e.target.value.toUpperCase() })} />
+          </Field>
+          <Field label="Next invoice number">
+            <Input type="number" min={1} value={form.nextInvoiceNumber ?? 1}
+              onChange={(e) => setForm({ ...form, nextInvoiceNumber: Number(e.target.value) })} className="font-mono" />
+          </Field>
+          <Field label="Default payment terms">
+            <select
+              value={form.defaultPaymentTermsDays ?? 14}
+              onChange={(e) => setForm({ ...form, defaultPaymentTermsDays: Number(e.target.value) })}
+              className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+            >
+              {[7, 14, 30, 60].map((d) => <option key={d} value={d}>Net {d}</option>)}
+            </select>
+          </Field>
+          <Field label="Default tax rate (%)">
+            <Input type="number" min={0} value={form.defaultTaxRate ?? 0}
+              onChange={(e) => setForm({ ...form, defaultTaxRate: Number(e.target.value) })} />
+          </Field>
+        </div>
+        <Field label="Invoice footer">
+          <Textarea rows={2} value={form.invoiceFooter ?? ""}
+            onChange={(e) => setForm({ ...form, invoiceFooter: e.target.value })} />
+        </Field>
+        <Field label="Business logo">
+          <div className="flex items-center gap-4">
+            {form.logo ? (
+              <img src={form.logo} alt="logo" className="h-14 w-14 rounded-md border border-border object-contain bg-white p-1" />
+            ) : (
+              <div className="h-14 w-14 rounded-md border border-dashed border-border" />
+            )}
+            <div className="flex gap-2">
+              <label className="cursor-pointer rounded-md border border-input bg-background px-3 py-1.5 text-xs font-medium hover:bg-accent">
+                Upload
+                <input type="file" accept="image/*" className="hidden"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0]; if (!f) return;
+                    const r = new FileReader();
+                    r.onload = () => setForm({ ...form, logo: String(r.result) });
+                    r.readAsDataURL(f);
+                  }} />
+              </label>
+              {form.logo && (
+                <Button type="button" variant="ghost" size="sm" onClick={() => setForm({ ...form, logo: "" })}>Remove</Button>
+              )}
+            </div>
+          </div>
+        </Field>
+      </Card>
+
       <Card title="Preferences">
         <Field label="Default currency">
           <div className="inline-flex rounded-md border border-border p-0.5">

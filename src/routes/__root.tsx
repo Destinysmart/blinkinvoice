@@ -10,7 +10,7 @@ import {
 import { Toaster } from "sonner";
 
 import appCss from "../styles.css?url";
-import { Nav } from "../components/Nav";
+import { Sidebar, MobileBar } from "../components/Sidebar";
 
 function NotFoundComponent() {
   return (
@@ -85,12 +85,17 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="min-h-screen bg-background text-foreground">
-        <Nav />
-        <main className="mx-auto max-w-6xl px-6 py-10">
-          <Outlet />
-        </main>
-        <Toaster theme="dark" position="top-right" />
+      <div className="min-h-screen bg-background text-foreground flex">
+        <Sidebar />
+        <div className="flex-1 min-w-0 flex flex-col">
+          <MobileBar />
+          <main className="flex-1 px-6 py-8 md:px-10 md:py-10 animate-in fade-in duration-200">
+            <div className="mx-auto max-w-6xl">
+              <Outlet />
+            </div>
+          </main>
+        </div>
+        <Toaster theme="dark" position="bottom-right" richColors />
       </div>
     </QueryClientProvider>
   );

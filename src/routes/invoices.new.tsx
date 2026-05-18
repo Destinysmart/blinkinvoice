@@ -22,31 +22,44 @@ function NewInvoicePage() {
   const settings = useAppStore((s) => s.settings);
   const invoices = useAppStore((s) => s.invoices);
   const addInvoice = useAppStore((s) => s.addInvoice);
+  const saveSettings = useAppStore((s) => s.saveSettings);
+
+  const termsDays = settings.defaultPaymentTermsDays ?? 14;
+  const today = new Date();
+  const defaultDue = new Date(today); defaultDue.setDate(defaultDue.getDate() + termsDays);
 
   const [client, setClient] = useState({ name: "", email: "", address: "" });
   const [currency, setCurrency] = useState<Currency>(settings.defaultCurrency);
   const [items, setItems] = useState<LineItem[]>([newItem()]);
-  const [tax, setTax] = useState(0);
+  const [tax, setTax] = useState(settings.defaultTaxRate ?? 0);
   const [memo, setMemo] = useState("");
+  const [issueDate, setIssueDate] = useState(today.toISOString().slice(0, 10));
+  const [dueDate, setDueDate] = useState(defaultDue.toISOString().slice(0, 10));
 
   const { subtotal, tax: taxAmt, total } = invoiceTotal({ items, tax });
 
   const updateItem = (id: string, patch: Partial<LineItem>) =>
     setItems((arr) => arr.map((it) => (it.id === id ? { ...it, ...patch } : it)));
 
+  const setNet = (days: number) => {
+    const d = new Date(issueDate); d.setDate(d.getDate() + days);
+    setDueDate(d.toISOString().slice(0, 10));
+  };
+
   const save = (status: "draft" | "pending") => {
-    if (!client.name.trim()) {
-      toast.error("Client name is required");
-      return;
-    }
+    if (!client.name.trim()) { toast.error("Client name is required"); return; }
+    const next = settings.nextInvoiceNumber ?? 1;
     const inv: Invoice = {
       id: crypto.randomUUID(),
-      number: genInvoiceNumber(invoices.map((i) => i.number)),
+      number: genInvoiceNumber(invoices.map((i) => i.number), settings.invoicePrefix ?? "INV", next),
       client, items, currency, tax, memo, status,
+      issueDate: new Date(issueDate).toISOString(),
+      dueDate: new Date(dueDate).toISOString(),
       paymentRequest: null, paymentHash: null, satoshis: null, expiresAt: null,
       createdAt: new Date().toISOString(),
     };
     addInvoice(inv);
+    saveSettings({ nextInvoiceNumber: next + 1 });
     toast.success(status === "draft" ? "Draft saved" : "Invoice created");
     navigate({ to: "/invoices/$id", params: { id: inv.id } });
   };
@@ -74,7 +87,26 @@ function NewInvoicePage() {
       </div>
 
       <Section title="Details">
-        <div className="flex items-center gap-2">
+        <div className="grid gap-4 md:grid-cols-3">
+          <Field label="Issue date">
+            <Input type="date" value={issueDate} onChange={(e) => setIssueDate(e.target.value)} />
+          </Field>
+          <Field label="Due date">
+            <Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+          </Field>
+          <Field label="Payment terms">
+            <div className="flex flex-wrap gap-1">
+              {[7, 14, 30, 60].map((d) => (
+                <button key={d} type="button" onClick={() => setNet(d)}
+                  className="rounded-md border border-border px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:border-primary hover:text-primary">
+                  Net {d}
+                </button>
+              ))}
+            </div>
+          </Field>
+        </div>
+
+        <div className="mt-6 flex items-center gap-2">
           <Label className="text-sm">Currency</Label>
           <div className="inline-flex rounded-md border border-border p-0.5">
             {(["USD", "BTC"] as const).map((c) => (
