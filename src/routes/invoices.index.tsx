@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Plus, Search, Zap, MoreHorizontal, FileText } from "lucide-react";
+import { Plus, Search, Zap, MoreHorizontal, FileText, Download } from "lucide-react";
+import { downloadInvoicePDF } from "@/components/InvoicePDF";
 import { useAppStore, invoiceTotal } from "@/lib/store";
 import { fmtUsd, fmtDate, isOverdue } from "@/lib/format";
 import { StatusBadge } from "@/components/StatusBadge";
