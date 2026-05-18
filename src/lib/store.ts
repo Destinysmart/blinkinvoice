@@ -20,12 +20,23 @@ const defaultSettings: Settings = {
   apiKey: "",
   walletId: "",
   defaultCurrency: "USD",
+  invoicePrefix: "INV",
+  nextInvoiceNumber: 1,
+  defaultPaymentTermsDays: 14,
+  defaultTaxRate: 0,
+  invoiceFooter: "Thank you for your business.",
+  logo: "",
 };
+
+function addDays(d: Date, days: number) {
+  const c = new Date(d); c.setDate(c.getDate() + days); return c;
+}
 
 function demoInvoices(): Invoice[] {
   const now = new Date();
   const d1 = new Date(now.getTime() - 1000 * 60 * 60 * 24 * 3);
   const d2 = new Date(now.getTime() - 1000 * 60 * 60 * 24 * 10);
+  const d3 = new Date(now.getTime() - 1000 * 60 * 60 * 24 * 35);
   return [
     {
       id: crypto.randomUUID(),
@@ -34,6 +45,8 @@ function demoInvoices(): Invoice[] {
       items: [{ id: crypto.randomUUID(), desc: "Brand identity design", qty: 1, price: 2400 }],
       currency: "USD", tax: 0, memo: "Phase 1 deliverable",
       status: "pending",
+      issueDate: d1.toISOString(),
+      dueDate: addDays(d1, 14).toISOString(),
       paymentRequest: null, paymentHash: null, satoshis: null, expiresAt: null,
       createdAt: d1.toISOString(),
     },
@@ -47,8 +60,22 @@ function demoInvoices(): Invoice[] {
       ],
       currency: "USD", tax: 10, memo: "Q1 engagement",
       status: "paid",
+      issueDate: d2.toISOString(),
+      dueDate: addDays(d2, 14).toISOString(),
       paymentRequest: null, paymentHash: null, satoshis: null, expiresAt: null,
       createdAt: d2.toISOString(),
+    },
+    {
+      id: crypto.randomUUID(),
+      number: `INV-${d3.toISOString().slice(0,10).replace(/-/g,"")}-0003`,
+      client: { name: "Mempool Labs", email: "billing@mempool.io", address: "Berlin, DE" },
+      items: [{ id: crypto.randomUUID(), desc: "Monthly retainer — March", qty: 1, price: 1800 }],
+      currency: "USD", tax: 0, memo: "",
+      status: "pending",
+      issueDate: d3.toISOString(),
+      dueDate: addDays(d3, 14).toISOString(),
+      paymentRequest: null, paymentHash: null, satoshis: null, expiresAt: null,
+      createdAt: d3.toISOString(),
     },
   ];
 }
@@ -70,7 +97,14 @@ export const useAppStore = create<AppState>()(
         set({ invoices: [...demoInvoices(), ...get().invoices], seeded: true });
       },
     }),
-    { name: "blinkpay-store" }
+    {
+      name: "blinkpay-store",
+      merge: (persisted: any, current) => ({
+        ...current,
+        ...(persisted ?? {}),
+        settings: { ...defaultSettings, ...(persisted?.settings ?? {}) },
+      }),
+    }
   )
 );
 
@@ -80,13 +114,14 @@ export function invoiceTotal(inv: { items: { qty: number; price: number }[]; tax
   return { subtotal, tax, total: subtotal + tax };
 }
 
-export function genInvoiceNumber(existing: string[]) {
+export function genInvoiceNumber(existing: string[], prefix = "INV", next?: number) {
   const today = new Date().toISOString().slice(0, 10).replace(/-/g, "");
-  const prefix = `INV-${today}-`;
+  const fullPrefix = `${prefix}-${today}-`;
+  if (next && next > 0) return `${fullPrefix}${String(next).padStart(4, "0")}`;
   const nums = existing
-    .filter((n) => n.startsWith(prefix))
-    .map((n) => parseInt(n.slice(prefix.length), 10))
+    .filter((n) => n.startsWith(fullPrefix))
+    .map((n) => parseInt(n.slice(fullPrefix.length), 10))
     .filter((n) => !isNaN(n));
-  const next = (nums.length ? Math.max(...nums) : 0) + 1;
-  return `${prefix}${String(next).padStart(4, "0")}`;
+  const nextN = (nums.length ? Math.max(...nums) : 0) + 1;
+  return `${fullPrefix}${String(nextN).padStart(4, "0")}`;
 }
