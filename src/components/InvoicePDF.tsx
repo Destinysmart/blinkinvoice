@@ -161,7 +161,7 @@ export function InvoicePDF({
   const businessInitial = (settings.businessName || "B").trim().charAt(0).toUpperCase();
 
   return (
-    <Document title={invoice.number} author={settings.businessName || "BlinkPay"}>
+    <Document title={invoice.number} author={settings.businessName || "BlinkInvoice"}>
       <Page size="A4" style={styles.page}>
 
         {/* Header: logo (left)  |  From (right, label/value with divider) */}
@@ -312,7 +312,7 @@ export function InvoicePDF({
         {/* Footer */}
         <View style={styles.footerBar} fixed>
           <Text style={styles.footerText}>
-            {settings.invoiceFooter || `Thank you for your business — ${settings.businessName || "BlinkPay"}`}
+            {settings.invoiceFooter || `Thank you for your business — ${settings.businessName || "BlinkInvoice"}`}
           </Text>
           <Text style={styles.footerText} render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`} />
         </View>

@@ -30,7 +30,7 @@ function applyVars(s: string, inv: Invoice, settings: Settings) {
   const dueDate = inv.dueDate ? new Date(inv.dueDate).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "—";
   return s
     .replaceAll("{number}", inv.number)
-    .replaceAll("{businessName}", settings.businessName || "BlinkPay")
+    .replaceAll("{businessName}", settings.businessName || "BlinkInvoice")
     .replaceAll("{clientName}", inv.client.name || "")
     .replaceAll("{amount}", fmtAmount(inv))
     .replaceAll("{dueDate}", dueDate);
@@ -60,7 +60,7 @@ function buildHtml(message: string, inv: Invoice, settings: Settings) {
     <p style="color:#888;font-size:13px;margin:16px 0 0">The full invoice with a Lightning QR code is attached as a PDF.</p>
   </td></tr>
   <tr><td style="padding:18px 28px;border-top:1px solid #2a2a2a;color:#666;font-size:11px;text-align:center">
-    ${escapeHtml(settings.businessName || "BlinkPay")} · Bitcoin-native invoicing
+    ${escapeHtml(settings.businessName || "BlinkInvoice")} · Bitcoin-native invoicing
   </td></tr>
 </table>
 </td></tr></table></body></html>`;
@@ -71,7 +71,7 @@ function escapeHtml(s: string) {
 }
 
 export function SendInvoiceDialog({ open, onOpenChange, invoice, settings, onSent }: Props) {
-  const defaultSubject = `Invoice ${invoice.number} from ${settings.businessName || "BlinkPay"}`;
+  const defaultSubject = `Invoice ${invoice.number} from ${settings.businessName || "BlinkInvoice"}`;
   const defaultMessage = `Hi ${invoice.client.name},\n\nPlease find your invoice ${invoice.number} for ${fmtAmount(invoice)} attached.\n\nYou can pay instantly via Bitcoin Lightning — the QR code is included in the attached PDF.\n\nThank you for your business.\n${settings.businessName || ""}`;
 
   const [to, setTo] = useState(invoice.client.email || "");

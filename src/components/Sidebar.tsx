@@ -58,7 +58,7 @@ export function Sidebar() {
             <Zap className="h-4 w-4 fill-current" />
           </span>
           <div>
-            <div className="font-display text-[15px] font-semibold leading-none tracking-tight">BlinkPay</div>
+            <div className="font-display text-[15px] font-semibold leading-none tracking-tight">BlinkInvoice</div>
             <div className="mt-1 text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Bitcoin Invoicing</div>
           </div>
         </Link>
@@ -118,7 +118,7 @@ export function Sidebar() {
                 {user.email}
               </div>
             </div>
-            <HintWrap hint="Sign out of BlinkPay" side="top">
+            <HintWrap hint="Sign out of BlinkInvoice" side="top">
               <button
                 onClick={handleSignOut}
                 className="rounded p-1.5 text-muted-foreground transition hover:bg-white/[0.05] hover:text-foreground"
@@ -171,7 +171,7 @@ export function MobileBar() {
                     <Zap className="h-4 w-4 fill-current" />
                   </span>
                   <div>
-                    <div className="font-display text-[15px] font-semibold leading-none tracking-tight">BlinkPay</div>
+                    <div className="font-display text-[15px] font-semibold leading-none tracking-tight">BlinkInvoice</div>
                     <div className="mt-1 text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Bitcoin Invoicing</div>
                   </div>
                 </Link>
@@ -228,7 +228,7 @@ export function MobileBar() {
           <span className="grid h-7 w-7 place-items-center rounded bg-primary text-primary-foreground">
             <Zap className="h-3.5 w-3.5 fill-current" />
           </span>
-          <span className="font-display text-base font-semibold">BlinkPay</span>
+          <span className="font-display text-base font-semibold">BlinkInvoice</span>
         </Link>
       </div>
 

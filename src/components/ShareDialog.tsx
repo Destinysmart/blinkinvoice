@@ -47,7 +47,7 @@ export function ShareDialog({ open, onOpenChange, invoice, settings, onShared }:
   };
 
   const email = () => {
-    const subject = encodeURIComponent(`Invoice ${invoice.number} from ${settings.businessName || "BlinkPay"}`);
+    const subject = encodeURIComponent(`Invoice ${invoice.number} from ${settings.businessName || "BlinkInvoice"}`);
     const body = encodeURIComponent(
       `Hi ${invoice.client.name},\n\nPlease find attached your invoice ${invoice.number} for ${amount}${dueDate ? ` due on ${dueDate}` : ""}.\n\nYou can pay instantly via Bitcoin Lightning Network.\n\nThank you for your business.\n\n${settings.businessName || ""}`
     );

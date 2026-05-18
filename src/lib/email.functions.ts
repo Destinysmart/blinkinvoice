@@ -24,7 +24,7 @@ export const sendInvoiceEmail = createServerFn({ method: "POST" })
     if (!lovableKey) throw new Error("LOVABLE_API_KEY is not configured");
     if (!resendKey) throw new Error("RESEND_API_KEY is not configured");
 
-    const fromName = (data.fromName || "BlinkPay").replace(/[<>"]/g, "");
+    const fromName = (data.fromName || "BlinkInvoice").replace(/[<>"]/g, "");
     const from = `${fromName} <onboarding@resend.dev>`;
 
     const res = await fetch(`${GATEWAY_URL}/emails`, {
