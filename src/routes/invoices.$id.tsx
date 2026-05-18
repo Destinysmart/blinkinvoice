@@ -129,8 +129,11 @@ function InvoiceDetailPage() {
           <Button size="sm" variant="outline" onClick={() => setPreviewOpen(true)}>
             <Eye className="mr-1.5 h-3.5 w-3.5" /> Preview
           </Button>
-          <Button size="sm" onClick={download} disabled={downloading}>
-            <Download className="mr-1.5 h-3.5 w-3.5" /> {downloading ? "Generating…" : "Download PDF"}
+          <Button size="sm" onClick={() => setSendOpen(true)}>
+            <Mail className="mr-1.5 h-3.5 w-3.5" /> Send
+          </Button>
+          <Button size="sm" variant="outline" onClick={download} disabled={downloading}>
+            <Download className="mr-1.5 h-3.5 w-3.5" /> {downloading ? "Generating…" : "Download"}
           </Button>
           <Button size="sm" variant="outline" onClick={() => setShareOpen(true)}>
             <Share2 className="mr-1.5 h-3.5 w-3.5" /> Share
