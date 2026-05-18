@@ -246,21 +246,38 @@ function Dashboard() {
           title="Revenue"
           subtitle="Last 6 months · paid invoices"
           className="lg:col-span-2"
-          hint="Sum of paid USD invoices per month, based on the invoice issue date."
+          hint="Sum of paid invoices per month, by currency. USD on the left axis, sats on the right."
         >
           <div className="h-60 -mx-2">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData} margin={{ top: 10, right: 10, bottom: 0, left: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#262626" vertical={false} />
                 <XAxis dataKey="name" stroke="#6b6b6b" fontSize={11} tickLine={false} axisLine={false} />
-                <YAxis stroke="#6b6b6b" fontSize={11} tickLine={false} axisLine={false}
-                  tickFormatter={(v) => `$${v >= 1000 ? `${(v/1000).toFixed(0)}k` : v}`} />
+                {hasUsdRevenue && (
+                  <YAxis yAxisId="usd" stroke="#6b6b6b" fontSize={11} tickLine={false} axisLine={false}
+                    tickFormatter={(v) => `$${v >= 1000 ? `${(v/1000).toFixed(0)}k` : v}`} />
+                )}
+                {hasBtcRevenue && (
+                  <YAxis yAxisId="btc" orientation="right" stroke="#F7931A" fontSize={11} tickLine={false} axisLine={false}
+                    tickFormatter={(v) => v >= 1000 ? `${(v/1000).toFixed(0)}k` : `${v}`} />
+                )}
+                {!hasUsdRevenue && !hasBtcRevenue && (
+                  <YAxis yAxisId="usd" stroke="#6b6b6b" fontSize={11} tickLine={false} axisLine={false} />
+                )}
                 <Tooltip
                   cursor={{ fill: "rgba(232,93,58,0.08)" }}
                   contentStyle={{ background: "#181818", border: "1px solid #262626", borderRadius: 8, fontSize: 12 }}
-                  formatter={(v: number) => fmtUsd(v)}
+                  formatter={(v: number, name) => name === "btc" ? fmtSats(v) : fmtUsd(v)}
                 />
-                <Bar dataKey="total" fill="var(--primary)" radius={[4, 4, 0, 0]} />
+                {hasUsdRevenue && (
+                  <Bar yAxisId="usd" dataKey="usd" name="USD" fill="var(--primary)" radius={[4, 4, 0, 0]} />
+                )}
+                {hasBtcRevenue && (
+                  <Bar yAxisId={hasUsdRevenue ? "btc" : "usd"} dataKey="btc" name="btc" fill="#F7931A" radius={[4, 4, 0, 0]} />
+                )}
+                {!hasUsdRevenue && !hasBtcRevenue && (
+                  <Bar yAxisId="usd" dataKey="usd" fill="var(--primary)" radius={[4, 4, 0, 0]} />
+                )}
               </BarChart>
             </ResponsiveContainer>
           </div>
