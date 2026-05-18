@@ -95,8 +95,21 @@ function NewInvoicePage() {
   const unit = currency === "USD" ? "$" : "sats";
 
   return (
-    <div className="space-y-8">
-      <h1 className="font-display text-4xl font-bold">New invoice</h1>
+    <div className="space-y-6">
+      <Link to="/invoices" className="inline-flex items-center gap-1.5 text-xs text-muted-foreground transition hover:text-foreground">
+        <ArrowLeft className="h-3 w-3" /> Back to invoices
+      </Link>
+      <PageHeader
+        title="New invoice"
+        subtitle="Fill in who you're billing, what you're billing for, and when it's due."
+        hint="Save as a draft to keep working on it, or create the invoice to send it to your client."
+        actions={
+          <>
+            <Button variant="outline" size="sm" onClick={() => save("draft")}>Save as draft</Button>
+            <Button size="sm" onClick={() => save("pending")}>Create invoice</Button>
+          </>
+        }
+      />
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Section title="From">
