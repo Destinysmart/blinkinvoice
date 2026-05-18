@@ -82,6 +82,7 @@ function InvoiceDetailPage() {
   const missingKeys = !settings.apiKey || !settings.walletId;
 
   const [shareOpen, setShareOpen] = useState(false);
+  const [sendOpen, setSendOpen] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [downloading, setDownloading] = useState(false);
 
