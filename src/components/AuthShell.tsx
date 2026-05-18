@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Zap } from "lucide-react";
+import logoUrl from "@/assets/blinkinvoice-logo.png";
 
 export function AuthShell({ children, title, subtitle, footer }: {
   children: React.ReactNode;
