@@ -13,7 +13,7 @@ const groups = [
     items: [
       { to: "/", icon: LayoutDashboard, label: "Dashboard", exact: true },
       { to: "/invoices", icon: FileText, label: "Invoices" },
-      { to: "/quotes", icon: MessageSquareQuote, label: "Quotes" },
+      
       { to: "/clients", icon: Users, label: "Clients" },
     ],
   },
