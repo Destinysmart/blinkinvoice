@@ -22,31 +22,44 @@ function NewInvoicePage() {
   const settings = useAppStore((s) => s.settings);
   const invoices = useAppStore((s) => s.invoices);
   const addInvoice = useAppStore((s) => s.addInvoice);
+  const saveSettings = useAppStore((s) => s.saveSettings);
+
+  const termsDays = settings.defaultPaymentTermsDays ?? 14;
+  const today = new Date();
+  const defaultDue = new Date(today); defaultDue.setDate(defaultDue.getDate() + termsDays);
 
   const [client, setClient] = useState({ name: "", email: "", address: "" });
   const [currency, setCurrency] = useState<Currency>(settings.defaultCurrency);
   const [items, setItems] = useState<LineItem[]>([newItem()]);
-  const [tax, setTax] = useState(0);
+  const [tax, setTax] = useState(settings.defaultTaxRate ?? 0);
   const [memo, setMemo] = useState("");
+  const [issueDate, setIssueDate] = useState(today.toISOString().slice(0, 10));
+  const [dueDate, setDueDate] = useState(defaultDue.toISOString().slice(0, 10));
 
   const { subtotal, tax: taxAmt, total } = invoiceTotal({ items, tax });
 
   const updateItem = (id: string, patch: Partial<LineItem>) =>
     setItems((arr) => arr.map((it) => (it.id === id ? { ...it, ...patch } : it)));
 
+  const setNet = (days: number) => {
+    const d = new Date(issueDate); d.setDate(d.getDate() + days);
+    setDueDate(d.toISOString().slice(0, 10));
+  };
+
   const save = (status: "draft" | "pending") => {
-    if (!client.name.trim()) {
-      toast.error("Client name is required");
-      return;
-    }
+    if (!client.name.trim()) { toast.error("Client name is required"); return; }
+    const next = settings.nextInvoiceNumber ?? 1;
     const inv: Invoice = {
       id: crypto.randomUUID(),
-      number: genInvoiceNumber(invoices.map((i) => i.number)),
+      number: genInvoiceNumber(invoices.map((i) => i.number), settings.invoicePrefix ?? "INV", next),
       client, items, currency, tax, memo, status,
+      issueDate: new Date(issueDate).toISOString(),
+      dueDate: new Date(dueDate).toISOString(),
       paymentRequest: null, paymentHash: null, satoshis: null, expiresAt: null,
       createdAt: new Date().toISOString(),
     };
     addInvoice(inv);
+    saveSettings({ nextInvoiceNumber: next + 1 });
     toast.success(status === "draft" ? "Draft saved" : "Invoice created");
     navigate({ to: "/invoices/$id", params: { id: inv.id } });
   };
