@@ -63,25 +63,32 @@ function Dashboard() {
   };
 
   const chartData = useMemo(() => {
-    const months: { name: string; total: number; key: string }[] = [];
+    const months: { name: string; usd: number; btc: number; key: string }[] = [];
     const now = new Date();
     for (let i = 5; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
       months.push({
         key: `${d.getFullYear()}-${d.getMonth()}`,
         name: d.toLocaleDateString("en", { month: "short" }),
-        total: 0,
+        usd: 0,
+        btc: 0,
       });
     }
     for (const inv of invoices) {
-      if (inv.currency !== "USD" || inv.status !== "paid") continue;
+      if (inv.status !== "paid") continue;
       const d = new Date(inv.issueDate ?? inv.createdAt);
       const key = `${d.getFullYear()}-${d.getMonth()}`;
       const bucket = months.find((m) => m.key === key);
-      if (bucket) bucket.total += invoiceTotal(inv).total;
+      if (!bucket) continue;
+      const t = invoiceTotal(inv).total;
+      if (inv.currency === "BTC") bucket.btc += t;
+      else bucket.usd += t;
     }
     return months;
   }, [invoices]);
+
+  const hasUsdRevenue = chartData.some((m) => m.usd > 0);
+  const hasBtcRevenue = chartData.some((m) => m.btc > 0);
 
   const recent = invoices.slice(0, 5);
 
