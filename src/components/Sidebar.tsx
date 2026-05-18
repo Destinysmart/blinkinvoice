@@ -62,7 +62,6 @@ export function Sidebar() {
           <img src={logoUrl} alt="BlinkInvoice" className="h-14 w-14 object-contain" />
           <div>
             <div className="font-display text-[15px] font-semibold leading-none tracking-tight">BlinkInvoice</div>
-            <div className="mt-1 text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Bitcoin Invoicing</div>
           </div>
         </Link>
       </div>
@@ -182,7 +181,6 @@ export function MobileBar() {
                   <img src={logoUrl} alt="BlinkInvoice" className="h-9 w-9 object-contain" />
                   <div>
                     <div className="font-display text-[15px] font-semibold leading-none tracking-tight">BlinkInvoice</div>
-                    <div className="mt-1 text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Bitcoin Invoicing</div>
                   </div>
                 </Link>
               </div>
