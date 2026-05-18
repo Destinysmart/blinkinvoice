@@ -1,92 +1,44 @@
-## Scope
+## Products Catalog + Invoice Autocomplete
 
-Full rewrite of BlinkPay's data layer onto Lovable Cloud, with auth, multi-tenant data, native email sending, and a client CRM. Keep all existing UI/PDF/QR work.
+### 1. Database (migration)
+New table `products` with RLS scoped to `auth.uid() = user_id`:
+- `name` (text, required)
+- `description` (text)
+- `price` (numeric, required)
+- `currency` (text, default `USD`) — `USD` or `BTC` (sats)
+- `unit` (text, default `unit`)
+- `sku` (text)
+- `category` (text)
+- `is_active` (boolean, default true)
+- standard `id`, `user_id`, `created_at`, `updated_at` + updated_at trigger
 
----
+### 2. Server functions (`src/lib/products.functions.ts`)
+`listProducts`, `getProduct`, `createProduct`, `updateProduct`, `deleteProduct` — all protected with `requireSupabaseAuth`, validated with Zod.
 
-## 1. Enable Lovable Cloud + Auth
+### 3. Products page (`src/routes/_authenticated/products.tsx`)
+- Header: title + "New Product" button
+- Search input (filters by name/SKU/category)
+- List/table of products: name, SKU, price + unit, category badge, active toggle, edit/delete actions
+- Slide-over (Sheet) form for create/edit with all fields
+- Confirm delete dialog
+- Empty state when no products
 
-- Enable Lovable Cloud (Supabase under the hood)
-- Email/password auth only (no Google per user spec)
-- Create routes: `/login`, `/signup`, `/forgot-password`, `/reset-password`
-- Centered dark card, orange BlinkPay logo, matches app aesthetic, no sidebar on auth pages
-- `_authenticated` layout route guards every existing app route; redirects to `/login` if no session
-- Full-page spinner during initial session check
-- Wire `onAuthStateChange` at root, invalidate router + queries on auth events
+### 4. Sidebar
+Insert "Products" link in `src/components/Sidebar.tsx` Workspace section between Invoices and Clients (Package icon).
 
-## 2. Database schema (one migration)
+### 5. Invoice line-item autocomplete (`src/routes/invoices.new.tsx` + edit if applicable)
+- Description input becomes a Combobox/Command-driven autocomplete
+- As user types, filter active products by name or SKU (case-insensitive, substring match)
+- Dropdown shows: product name (bold) · SKU (muted) · price hint right-aligned
+- Selecting a product fills `desc`, `price`, and (if line items have unit field — currently they don't, leave description-only fill if not) for that line
+- Typing freely without selecting still works (manual entry preserved)
+- No-op gracefully when product list is empty
 
-Tables: `profiles`, `clients`, `invoices`, `email_logs`. All with `user_id uuid not null references auth.users` (except profiles where `id = auth.users.id`). RLS enabled, `auth.uid() = user_id` policies for all CRUD. Trigger `handle_new_user` auto-creates profile from `raw_user_meta_data.business_name`. `updated_at` trigger on invoices.
+### 6. Notes
+- Line items in current schema only have `desc`, `qty`, `price`. We will auto-fill `desc` and `price` on selection. (Unit isn't stored per line item — out of scope to extend invoice schema for this iteration.)
+- Currency on a product is informational; we won't force-switch invoice currency on selection.
 
-## 3. Profiles → replaces Settings localStorage
-
-Settings page reads/upserts `profiles` row. Fields: business name/email/phone/address/city/country/VAT, Blink API key + wallet IDs, default currency, invoice prefix, default tax, logo URL (base64 stored as text). Stored server-side, syncs across devices.
-
-## 4. Clients CRM
-
-- `/clients` — searchable table (Name, Email, Phone, Country, Currency, Actions), "+ New Client" opens slide-over
-- Add/Edit form with validation (name + valid email required)
-- `/clients/$id` — header card with initials avatar, stats (Total Invoiced / Paid / Outstanding / Count), invoices tab, "New Invoice for this client", Edit, Delete (blocked if invoices exist)
-- Country select: full country list (datalist or combobox)
-
-## 5. Invoices on Supabase
-
-- All invoice CRUD moves from Zustand → Supabase (TanStack Query + server functions)
-- New invoice form: client selector dropdown (searchable, "+ Add new client" inline modal) replaces free-text Bill To; auto-fills name/email/address read-only with Edit link
-- Keep existing fields: line items, tax, memo, dates, status, Lightning payment fields
-- Status transitions and Lightning generation untouched
-
-## 6. localStorage migration banner
-
-On first authenticated load, detect old Zustand-persisted invoices/settings in localStorage. Show one-time banner: "You have local data — import it to your account?" → migrates to Supabase under current user_id, then clears localStorage.
-
-## 7. Email — Lovable native (no Resend)
-
-Set up Lovable email infrastructure + transactional email scaffold. One template `invoice-email.tsx`:
-- Dark-themed branded HTML, orange header with logo + business name
-- Invoice summary card (number, from, amount due, due date)
-- Lightning section: embedded QR (base64 PNG passed via templateData), sats in orange bold, "Open in Lightning Wallet" button using `lightning:` URI, compatible wallets list
-- "Full invoice attached as PDF" notice
-- Footer: "Generated by BlinkPay · Bitcoin-native invoicing"
-
-Note: Lovable's native email pipeline does not support file attachments. The PDF will instead be available via a signed download link in the email (Supabase Storage) — the QR + summary stay inline. I'll flag this clearly in the Send modal.
-
-## 8. Send Invoice flow
-
-- "Send Invoice" button on invoice detail
-- Pre-check: client has email → else toast warning with link to Clients
-- Modal: To (read-only + Change), Subject (prefilled, editable), Message (editable textarea with prefilled template), QR preview if Lightning, Send button
-- On confirm: upload PDF to Storage → generate signed URL → generate QR base64 → enqueue email via `sendTransactionalEmail` with templateData → update invoice `status=sent`, `sent_at` → insert `email_logs` row → toast → activity entry "Emailed to X on date"
-
-## 9. Email history + Email settings
-
-- Invoice detail: "Email History" section below actions, queries `email_logs` by `invoice_id`, shows date/recipient/status with "Resend" link
-- Settings page: Email section with default subject, default message template (with `{number}`, `{businessName}`, `{clientName}`, `{amount}` variables), from-name (read-only, pulled from business name)
-- No Resend API key field (using Lovable email)
-
-## 10. Sidebar updates
-
-User email displayed at bottom + "Sign out" button (logout icon) → `supabase.auth.signOut()` → redirect `/login`.
-
----
-
-## Technical notes
-
-- All Supabase access via `createServerFn` with `requireSupabaseAuth` middleware (no direct table queries from components except realtime/auth listeners)
-- Loaders on `_authenticated/*` routes gate on `supabase.auth.getUser()` in `beforeLoad` to avoid 401 race
-- TanStack Query for client cache; invalidate on auth state change
-- Email sending uses Lovable's native email infrastructure (`scaffold_transactional_email` + queue + `process-email-queue` cron)
-- PDF generation stays client-side (`@react-pdf/renderer`), uploaded to a private `invoices` bucket for emailing
-
----
-
-## Deviations from your spec
-
-1. **Resend → Lovable native email** (per your follow-up answer)
-2. **PDF attachment → signed download link in email** (Lovable email has no native attachment support; the PDF will be hosted in Supabase Storage and linked from the email — recipient still gets the file in one click)
-3. **No Google login** — email/password only per your spec
-4. **No Supabase Edge Functions** — using TanStack server functions (Lovable's recommended pattern for this stack)
-
----
-
-This is a large build (~25-30 files, 1 migration, email infrastructure setup). I'll execute it top to bottom: Cloud → schema → auth → clients → invoice migration → email. Approve to proceed.
+### Technical details
+- Use shadcn `Command` + `Popover` for autocomplete, anchored to the description input
+- TanStack Query: `['products']` key, invalidated on create/update/delete
+- Reuse existing patterns from `clients` route for the Sheet form and table layout
