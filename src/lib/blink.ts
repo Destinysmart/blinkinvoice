@@ -100,3 +100,27 @@ export async function fetchInvoiceStatus(apiKey: string, paymentRequest: string)
   );
   return data.lnInvoicePaymentStatus.status;
 }
+
+// Convert a USD amount (in cents) to sats using Blink's realtime BTC price.
+export async function usdCentsToSats(apiKey: string, cents: number): Promise<number> {
+  const data = await gql<{
+    realtimePrice: {
+      btcSatPrice: { base: number; offset: number };
+      usdCentPrice: { base: number; offset: number };
+    };
+  }>(
+    apiKey,
+    `query RealtimePrice { realtimePrice {
+      btcSatPrice { base offset }
+      usdCentPrice { base offset }
+    } }`,
+    {}
+  );
+  const btc = data.realtimePrice.btcSatPrice;
+  const usd = data.realtimePrice.usdCentPrice;
+  // price of 1 sat in USD cents = btcSatPrice / usdCentPrice (after applying offsets)
+  const satPriceInCents = (btc.base / Math.pow(10, btc.offset)) / (usd.base / Math.pow(10, usd.offset));
+  const sats = Math.round(cents / satPriceInCents);
+  if (!isFinite(sats) || sats <= 0) throw new Error("Failed to convert USD to sats");
+  return sats;
+}
