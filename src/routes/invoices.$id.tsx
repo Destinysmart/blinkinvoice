@@ -40,7 +40,10 @@ function InvoiceDetailPage() {
       const { total } = invoiceTotal(invoice);
       const memo = `${invoice.number} — ${invoice.client.name}`;
       if (invoice.currency === "USD") {
-        return createLnUsdInvoice(settings.apiKey, settings.walletId, Math.round(total * 100), memo);
+        // Convert USD → sats via Blink's realtime price, then create a BTC LN invoice.
+        // This works with any wallet type (BTC or USD) instead of requiring a USD wallet.
+        const sats = await usdCentsToSats(settings.apiKey, Math.round(total * 100));
+        return createLnBtcInvoice(settings.apiKey, settings.walletId, sats, memo);
       }
       return createLnBtcInvoice(settings.apiKey, settings.walletId, Math.round(total), memo);
     },
