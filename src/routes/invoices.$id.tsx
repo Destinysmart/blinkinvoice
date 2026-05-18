@@ -146,11 +146,11 @@ function InvoiceDetailPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <Link to="/invoices" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
           <ArrowLeft className="h-4 w-4" /> All invoices
         </Link>
-        <div className="flex items-center gap-2">
+        <div className="-mx-1 flex flex-wrap items-center gap-2 overflow-x-auto px-1">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button><StatusBadge status={invoice.status} /></button>
@@ -162,23 +162,26 @@ function InvoiceDetailPage() {
             </DropdownMenuContent>
           </DropdownMenu>
           {invoice.status !== "paid" && (
-            <Button size="sm" variant="outline" onClick={() => setStatus("paid")}>Mark as paid</Button>
+            <Button size="sm" variant="outline" onClick={() => setStatus("paid")} className="hidden sm:inline-flex">Mark as paid</Button>
           )}
-          <Button size="sm" variant="outline" onClick={() => setPreviewOpen(true)}>
-            <Eye className="mr-1.5 h-3.5 w-3.5" /> Preview
-          </Button>
           <Button size="sm" onClick={() => setSendOpen(true)}>
-            <Mail className="mr-1.5 h-3.5 w-3.5" /> Send
+            <Mail className="h-3.5 w-3.5 sm:mr-1.5" /> <span className="hidden sm:inline">Send</span>
           </Button>
-          <Button size="sm" variant="outline" onClick={download} disabled={downloading}>
-            <Download className="mr-1.5 h-3.5 w-3.5" /> {downloading ? "Generating…" : "Download"}
+          <Button size="sm" variant="outline" onClick={() => setPreviewOpen(true)} aria-label="Preview">
+            <Eye className="h-3.5 w-3.5 sm:mr-1.5" /> <span className="hidden sm:inline">Preview</span>
           </Button>
-          <Button size="sm" variant="outline" onClick={() => setShareOpen(true)}>
-            <Share2 className="mr-1.5 h-3.5 w-3.5" /> Share
+          <Button size="sm" variant="outline" onClick={download} disabled={downloading} aria-label="Download">
+            <Download className="h-3.5 w-3.5 sm:mr-1.5" /> <span className="hidden sm:inline">{downloading ? "Generating…" : "Download"}</span>
           </Button>
+          <Button size="sm" variant="outline" onClick={() => setShareOpen(true)} aria-label="Share">
+            <Share2 className="h-3.5 w-3.5 sm:mr-1.5" /> <span className="hidden sm:inline">Share</span>
+          </Button>
+          {invoice.status !== "paid" && (
+            <Button size="sm" variant="outline" onClick={() => setStatus("paid")} className="sm:hidden">Paid</Button>
+          )}
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive">
+              <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" aria-label="Delete">
                 <Trash2 className="h-4 w-4" />
               </Button>
             </AlertDialogTrigger>
@@ -197,6 +200,7 @@ function InvoiceDetailPage() {
           </AlertDialog>
         </div>
       </div>
+
 
       <div className="rounded-lg border border-border bg-card p-8">
         <div className="flex flex-wrap items-start justify-between gap-6">
