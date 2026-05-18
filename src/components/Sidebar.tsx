@@ -1,8 +1,9 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import {
-  Zap, LayoutDashboard, FileText, Users,
+  LayoutDashboard, FileText, Users,
   Package, FolderKanban, BarChart3, Settings, LogOut, Plus, Menu, Boxes, Sun, Moon,
 } from "lucide-react";
+import logoUrl from "@/assets/blinkinvoice-logo.png";
 import { useState } from "react";
 import { useAppStore } from "@/lib/store";
 import { useAuth, signOut } from "@/lib/auth";
