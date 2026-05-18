@@ -59,7 +59,7 @@ export function Sidebar() {
       {/* Logo */}
       <div className="px-5 pt-5 pb-6">
         <Link to="/" className="flex items-center gap-2.5">
-          <img src={logoUrl} alt="BlinkInvoice" className="h-9 w-9 object-contain" />
+          <img src={logoUrl} alt="BlinkInvoice" className="h-14 w-14 object-contain" />
           <div>
             <div className="font-display text-[15px] font-semibold leading-none tracking-tight">BlinkInvoice</div>
             <div className="mt-1 text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Bitcoin Invoicing</div>
