@@ -401,7 +401,7 @@ function Dashboard() {
 }
 
 function Kpi({
-  label, value, tone, pulse, hint, icon: Icon, trend,
+  label, value, tone, pulse, hint, icon: Icon, trend, onClick,
 }: {
   label: string;
   value: string;
@@ -410,6 +410,7 @@ function Kpi({
   hint?: string;
   icon?: React.ComponentType<{ className?: string }>;
   trend?: number | null;
+  onClick?: () => void;
 }) {
   const color =
     tone === "success" ? "text-success"
@@ -422,7 +423,13 @@ function Kpi({
     : tone === "destructive" ? "bg-destructive/10 text-destructive"
     : "bg-white/[0.05] text-muted-foreground";
   return (
-    <div className="rounded-xl border border-border bg-card p-5 transition hover:border-border/80">
+    <div
+      className={`rounded-xl border border-border bg-card p-5 transition hover:border-border/80 ${onClick ? "cursor-pointer select-none active:scale-[0.99]" : ""}`}
+      onClick={onClick}
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={onClick ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick(); } } : undefined}
+    >
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-2">
           {Icon && <span className={`grid h-7 w-7 place-items-center rounded-md ${iconBg}`}><Icon className="h-3.5 w-3.5" /></span>}
@@ -442,6 +449,7 @@ function Kpi({
     </div>
   );
 }
+
 
 function Card({
   title, subtitle, children, action, hint, className = "",
