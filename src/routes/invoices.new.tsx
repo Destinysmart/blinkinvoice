@@ -105,6 +105,24 @@ function NewInvoicePage() {
 
         <Section title="Bill to">
           <div className="space-y-3">
+            {savedClients.length > 0 && (
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Use saved client</Label>
+                <Select
+                  onValueChange={(id) => {
+                    const c = savedClients.find((x) => x.id === id);
+                    if (c) setClient({ name: c.name, email: c.email, address: c.address });
+                  }}
+                >
+                  <SelectTrigger><SelectValue placeholder="Choose a saved client…" /></SelectTrigger>
+                  <SelectContent>
+                    {savedClients.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <Field label="Name *"><Input value={client.name} onChange={(e) => setClient({ ...client, name: e.target.value })} /></Field>
             <Field label="Email"><Input type="email" value={client.email} onChange={(e) => setClient({ ...client, email: e.target.value })} /></Field>
             <Field label="Address"><Textarea rows={2} value={client.address} onChange={(e) => setClient({ ...client, address: e.target.value })} /></Field>
