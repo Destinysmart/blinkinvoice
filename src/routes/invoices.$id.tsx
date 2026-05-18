@@ -120,6 +120,15 @@ function InvoiceDetailPage() {
           {invoice.status !== "paid" && (
             <Button size="sm" variant="outline" onClick={() => setStatus("paid")}>Mark as paid</Button>
           )}
+          <Button size="sm" variant="outline" onClick={() => setPreviewOpen(true)}>
+            <Eye className="mr-1.5 h-3.5 w-3.5" /> Preview
+          </Button>
+          <Button size="sm" onClick={download} disabled={downloading}>
+            <Download className="mr-1.5 h-3.5 w-3.5" /> {downloading ? "Generating…" : "Download PDF"}
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => setShareOpen(true)}>
+            <Share2 className="mr-1.5 h-3.5 w-3.5" /> Share
+          </Button>
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive">
