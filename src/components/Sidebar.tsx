@@ -1,6 +1,6 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import {
-  Zap, LayoutDashboard, FileText, MessageSquareQuote, Users,
+  Zap, LayoutDashboard, FileText, Users,
   Package, FolderKanban, BarChart3, Settings, LogOut,
 } from "lucide-react";
 import { useAppStore } from "@/lib/store";
