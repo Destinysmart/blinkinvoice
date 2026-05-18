@@ -15,7 +15,7 @@ export function AuthShell({ children, title, subtitle, footer }: {
             <img src={logoUrl} alt="BlinkInvoice" className="h-12 w-12 object-contain" />
             <span className="font-display text-2xl font-bold tracking-tight">BlinkInvoice</span>
           </Link>
-          <p className="mt-1 text-xs uppercase tracking-widest text-muted-foreground">Bitcoin Invoicing</p>
+          
         </div>
         <div className="rounded-xl border border-border bg-card p-8 shadow-2xl">
           <h1 className="font-display text-2xl font-bold">{title}</h1>
