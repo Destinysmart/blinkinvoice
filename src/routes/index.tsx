@@ -242,32 +242,37 @@ function Dashboard() {
         <Kpi
           icon={DollarSign}
           label="Total invoiced"
-          value={fmtBucket(stats.total)}
-          hint="All invoice amounts across every status. USD and Bitcoin shown separately."
+          value={fmtCombined(stats.total)}
+          onClick={() => setShowUsd((v) => !v)}
+          hint="All invoice amounts across every status, combined. Click to toggle between sats and the USD value recorded when each payment came in."
         />
         <Kpi
           icon={TrendingUp}
           label="Paid this month"
-          value={fmtBucket(stats.paidThisMonth)}
+          value={fmtCombined(stats.paidThisMonth)}
           tone="success"
           trend={stats.trend}
-          hint="Invoices marked as paid in the current calendar month. Trend compares USD vs last month."
+          onClick={() => setShowUsd((v) => !v)}
+          hint="Paid invoices this calendar month, combined. Click to toggle between sats and the USD value at time of payment."
         />
         <Kpi
           icon={Clock}
           label="Outstanding"
-          value={fmtBucket(stats.outstanding)}
+          value={fmtCombined(stats.outstanding)}
           tone="primary"
-          hint="Invoices that have been sent but not yet paid."
+          onClick={() => setShowUsd((v) => !v)}
+          hint="Sent invoices not yet paid."
         />
         <Kpi
           icon={AlertTriangle}
           label="Overdue"
-          value={fmtBucket(stats.overdue)}
+          value={fmtCombined(stats.overdue)}
           tone="destructive"
-          pulse={stats.overdue.usd + stats.overdue.btc > 0}
+          pulse={stats.overdue.sats > 0}
+          onClick={() => setShowUsd((v) => !v)}
           hint="Sent invoices past their due date. Tap an invoice to send a reminder."
         />
+
       </div>
 
       <div className="grid gap-5 lg:grid-cols-3">
