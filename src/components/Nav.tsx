@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Zap } from "lucide-react";
+import logoUrl from "@/assets/blinkinvoice-logo.png";
 
 const tabs = [
   { to: "/invoices", label: "Invoices" },
@@ -12,9 +12,7 @@ export function Nav() {
     <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
         <Link to="/invoices" className="flex items-center gap-2">
-          <span className="grid h-8 w-8 place-items-center rounded-md bg-primary text-primary-foreground">
-            <Zap className="h-4 w-4 fill-current" />
-          </span>
+          <img src={logoUrl} alt="BlinkInvoice" className="h-10 w-10 object-contain" />
           <span className="font-display text-xl font-bold tracking-tight">BlinkInvoice</span>
         </Link>
         <nav className="flex items-center gap-1">
