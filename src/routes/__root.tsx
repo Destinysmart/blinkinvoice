@@ -15,6 +15,7 @@ import { useEffect } from "react";
 import appCss from "../styles.css?url";
 import { Sidebar, MobileBar } from "../components/Sidebar";
 import { useAuth } from "@/lib/auth";
+import { useAppStore } from "@/lib/store";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 
