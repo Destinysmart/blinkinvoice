@@ -14,6 +14,7 @@ import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as ProjectsRouteImport } from './routes/projects'
+import { Route as ProductsRouteImport } from './routes/products'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as ExpensesRouteImport } from './routes/expenses'
@@ -46,6 +47,11 @@ const ReportsRoute = ReportsRouteImport.update({
 const ProjectsRoute = ProjectsRouteImport.update({
   id: '/projects',
   path: '/projects',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProductsRoute = ProductsRouteImport.update({
+  id: '/products',
+  path: '/products',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -95,6 +101,7 @@ export interface FileRoutesByFullPath {
   '/expenses': typeof ExpensesRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
+  '/products': typeof ProductsRoute
   '/projects': typeof ProjectsRoute
   '/reports': typeof ReportsRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -110,6 +117,7 @@ export interface FileRoutesByTo {
   '/expenses': typeof ExpensesRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
+  '/products': typeof ProductsRoute
   '/projects': typeof ProjectsRoute
   '/reports': typeof ReportsRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -126,6 +134,7 @@ export interface FileRoutesById {
   '/expenses': typeof ExpensesRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
+  '/products': typeof ProductsRoute
   '/projects': typeof ProjectsRoute
   '/reports': typeof ReportsRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -143,6 +152,7 @@ export interface FileRouteTypes {
     | '/expenses'
     | '/forgot-password'
     | '/login'
+    | '/products'
     | '/projects'
     | '/reports'
     | '/reset-password'
@@ -158,6 +168,7 @@ export interface FileRouteTypes {
     | '/expenses'
     | '/forgot-password'
     | '/login'
+    | '/products'
     | '/projects'
     | '/reports'
     | '/reset-password'
@@ -173,6 +184,7 @@ export interface FileRouteTypes {
     | '/expenses'
     | '/forgot-password'
     | '/login'
+    | '/products'
     | '/projects'
     | '/reports'
     | '/reset-password'
@@ -189,6 +201,7 @@ export interface RootRouteChildren {
   ExpensesRoute: typeof ExpensesRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
+  ProductsRoute: typeof ProductsRoute
   ProjectsRoute: typeof ProjectsRoute
   ReportsRoute: typeof ReportsRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
@@ -234,6 +247,13 @@ declare module '@tanstack/react-router' {
       path: '/projects'
       fullPath: '/projects'
       preLoaderRoute: typeof ProjectsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/products': {
+      id: '/products'
+      path: '/products'
+      fullPath: '/products'
+      preLoaderRoute: typeof ProductsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -301,6 +321,7 @@ const rootRouteChildren: RootRouteChildren = {
   ExpensesRoute: ExpensesRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
+  ProductsRoute: ProductsRoute,
   ProjectsRoute: ProjectsRoute,
   ReportsRoute: ReportsRoute,
   ResetPasswordRoute: ResetPasswordRoute,
@@ -313,3 +334,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
