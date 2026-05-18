@@ -109,21 +109,34 @@ function RootComponent() {
 }
 
 function AppFrame() {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const router = useRouter();
   const isAuthRoute = AUTH_ROUTES.has(location.pathname);
+  const hydrate = useAppStore((s) => s.hydrate);
+  const resetStore = useAppStore((s) => s.reset);
+  const hydratedUserId = useAppStore((s) => s.userId);
+  const hydrated = useAppStore((s) => s.hydrated);
 
-  // Invalidate cache on auth state change
+  // Invalidate cache + sync local store on auth state change
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       queryClient.invalidateQueries();
       router.invalidate();
+      if (!session) resetStore();
     });
     return () => subscription.unsubscribe();
-  }, [queryClient, router]);
+  }, [queryClient, router, resetStore]);
+
+  // Hydrate the local store from Supabase whenever the signed-in user changes
+  useEffect(() => {
+    if (!user) return;
+    if (hydratedUserId !== user.id) {
+      hydrate(user.id);
+    }
+  }, [user, hydratedUserId, hydrate]);
 
   // Redirect rules
   useEffect(() => {
