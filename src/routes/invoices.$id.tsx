@@ -292,8 +292,23 @@ function InvoiceDetailPage() {
         </div>
       )}
 
+      <EmailHistory invoiceId={invoice.id} />
+
       <ShareDialog open={shareOpen} onOpenChange={setShareOpen} invoice={invoice} settings={settings} onShared={onShared} />
       <PreviewDialog open={previewOpen} onOpenChange={setPreviewOpen} invoice={invoice} settings={settings} />
+      <SendInvoiceDialog
+        open={sendOpen}
+        onOpenChange={setSendOpen}
+        invoice={invoice}
+        settings={settings}
+        onSent={(email) => {
+          const entry = { at: new Date().toISOString(), text: `Emailed to ${email}` };
+          const activity = [...(invoice.activity ?? []), entry];
+          const patch: Partial<typeof invoice> = { activity, sentAt: new Date().toISOString() } as any;
+          if (invoice.status === "draft") patch.status = "pending";
+          updateInvoice(id, patch);
+        }}
+      />
     </div>
   );
 }
