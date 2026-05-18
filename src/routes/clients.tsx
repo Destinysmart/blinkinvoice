@@ -126,72 +126,117 @@ function ClientsPage() {
           action={<Button onClick={openNew}><Plus className="mr-1.5 h-4 w-4" /> Add client</Button>}
         />
       ) : (
-        <div className="overflow-hidden rounded-xl border border-border bg-card">
-          <table className="w-full">
-            <thead className="border-b border-border bg-[var(--surface)] text-xs uppercase tracking-wider text-muted-foreground">
-              <tr>
-                <th className="px-4 py-3 text-left font-medium">Name</th>
-                <th className="px-4 py-3 text-left font-medium">Email</th>
-                <th className="px-4 py-3 text-right font-medium">Invoiced</th>
-                <th className="px-4 py-3 text-right font-medium">Outstanding</th>
-                <th className="px-4 py-3 text-right font-medium">Invoices</th>
-                <th className="px-4 py-3 text-left font-medium">Last invoice</th>
-                <th className="px-4 py-3 text-right font-medium">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((c) => (
-                <tr key={c.id ?? c.name} className="border-b border-border last:border-0 hover:bg-[var(--surface)]">
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-3">
-                      <span className="grid h-8 w-8 place-items-center rounded-full bg-primary/15 font-mono text-xs font-bold text-primary">
-                        {initials(c.name)}
-                      </span>
-                      <div className="flex flex-col">
-                        <span className="text-sm font-medium">{c.name}</span>
-                        {!c.saved && <span className="text-[10px] uppercase tracking-wider text-muted-foreground">From invoice</span>}
-                      </div>
+        <>
+          {/* Mobile: cards */}
+          <ul className="space-y-2 md:hidden">
+            {rows.map((c) => (
+              <li key={c.id ?? c.name} className="rounded-lg border border-border bg-card p-3">
+                <div className="flex items-start gap-3">
+                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary/15 font-mono text-xs font-bold text-primary">
+                    {initials(c.name)}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-sm font-medium">{c.name}</div>
+                    <div className="truncate text-xs text-muted-foreground">{c.email || "—"}</div>
+                    <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 font-mono text-[11px] text-muted-foreground">
+                      <span>{c.count} inv</span>
+                      <span>{fmtUsd(c.total)}</span>
+                      {c.outstanding > 0 && <span className="text-primary">{fmtUsd(c.outstanding)} due</span>}
                     </div>
-                  </td>
-                  <td className="px-4 py-3 text-sm text-muted-foreground">{c.email || "—"}</td>
-                  <td className="px-4 py-3 text-right font-mono text-sm">{fmtUsd(c.total)}</td>
-                  <td className="px-4 py-3 text-right font-mono text-sm text-primary">{c.outstanding ? fmtUsd(c.outstanding) : "—"}</td>
-                  <td className="px-4 py-3 text-right font-mono text-sm">{c.count}</td>
-                  <td className="px-4 py-3 text-sm text-muted-foreground">{c.last ? fmtDate(c.last) : "—"}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center justify-end gap-1">
-                      <Button variant="ghost" size="sm" onClick={() => newInvoiceFor(c)} title="New invoice">
-                        <FilePlus2 className="h-4 w-4" />
+                  </div>
+                </div>
+                <div className="mt-2 flex items-center justify-end gap-1 border-t border-border/50 pt-2">
+                  <Button variant="ghost" size="sm" onClick={() => newInvoiceFor(c)} aria-label="New invoice">
+                    <FilePlus2 className="h-4 w-4" />
+                  </Button>
+                  {c.saved && c.id && (
+                    <>
+                      <Button variant="ghost" size="sm" onClick={() => openEdit({
+                        id: c.id!, name: c.name, email: c.email, address: c.address, createdAt: "",
+                      })} aria-label="Edit">
+                        <Pencil className="h-4 w-4" />
                       </Button>
-                      {c.saved && c.id && (
-                        <>
-                          <Button variant="ghost" size="sm" onClick={() => openEdit({
-                            id: c.id!, name: c.name, email: c.email, address: c.address, createdAt: "",
-                          })} title="Edit">
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="sm" onClick={() => onDelete({
-                            id: c.id!, name: c.name, email: c.email, address: c.address, createdAt: "",
-                          })} title="Delete" className="text-muted-foreground hover:text-destructive">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </>
-                      )}
-                      {!c.saved && (
-                        <Button variant="ghost" size="sm" title="Save as client" onClick={() => {
-                          addClient({ id: crypto.randomUUID(), name: c.name, email: c.email, address: c.address, createdAt: new Date().toISOString() });
-                          toast.success("Saved to clients");
-                        }}>
-                          <Plus className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-                  </td>
+                      <Button variant="ghost" size="sm" onClick={() => onDelete({
+                        id: c.id!, name: c.name, email: c.email, address: c.address, createdAt: "",
+                      })} aria-label="Delete" className="text-muted-foreground hover:text-destructive">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+
+          {/* Desktop: table */}
+          <div className="hidden md:block overflow-x-auto rounded-xl border border-border bg-card">
+            <table className="w-full min-w-[720px]">
+              <thead className="border-b border-border bg-[var(--surface)] text-xs uppercase tracking-wider text-muted-foreground">
+                <tr>
+                  <th className="px-4 py-3 text-left font-medium">Name</th>
+                  <th className="px-4 py-3 text-left font-medium">Email</th>
+                  <th className="px-4 py-3 text-right font-medium">Invoiced</th>
+                  <th className="px-4 py-3 text-right font-medium">Outstanding</th>
+                  <th className="px-4 py-3 text-right font-medium">Invoices</th>
+                  <th className="px-4 py-3 text-left font-medium">Last invoice</th>
+                  <th className="px-4 py-3 text-right font-medium">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {rows.map((c) => (
+                  <tr key={c.id ?? c.name} className="border-b border-border last:border-0 hover:bg-[var(--surface)]">
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <span className="grid h-8 w-8 place-items-center rounded-full bg-primary/15 font-mono text-xs font-bold text-primary">
+                          {initials(c.name)}
+                        </span>
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium">{c.name}</span>
+                          {!c.saved && <span className="text-[10px] uppercase tracking-wider text-muted-foreground">From invoice</span>}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-muted-foreground">{c.email || "—"}</td>
+                    <td className="px-4 py-3 text-right font-mono text-sm">{fmtUsd(c.total)}</td>
+                    <td className="px-4 py-3 text-right font-mono text-sm text-primary">{c.outstanding ? fmtUsd(c.outstanding) : "—"}</td>
+                    <td className="px-4 py-3 text-right font-mono text-sm">{c.count}</td>
+                    <td className="px-4 py-3 text-sm text-muted-foreground">{c.last ? fmtDate(c.last) : "—"}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center justify-end gap-1">
+                        <Button variant="ghost" size="sm" onClick={() => newInvoiceFor(c)} title="New invoice">
+                          <FilePlus2 className="h-4 w-4" />
+                        </Button>
+                        {c.saved && c.id && (
+                          <>
+                            <Button variant="ghost" size="sm" onClick={() => openEdit({
+                              id: c.id!, name: c.name, email: c.email, address: c.address, createdAt: "",
+                            })} title="Edit">
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="sm" onClick={() => onDelete({
+                              id: c.id!, name: c.name, email: c.email, address: c.address, createdAt: "",
+                            })} title="Delete" className="text-muted-foreground hover:text-destructive">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </>
+                        )}
+                        {!c.saved && (
+                          <Button variant="ghost" size="sm" title="Save as client" onClick={() => {
+                            addClient({ id: crypto.randomUUID(), name: c.name, email: c.email, address: c.address, createdAt: new Date().toISOString() });
+                            toast.success("Saved to clients");
+                          }}>
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
+
       )}
 
       <ClientDialog
