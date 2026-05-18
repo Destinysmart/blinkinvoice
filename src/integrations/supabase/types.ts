@@ -14,7 +14,250 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      clients: {
+        Row: {
+          address: string | null
+          city: string | null
+          country: string | null
+          created_at: string
+          currency: string
+          email: string | null
+          id: string
+          name: string
+          notes: string | null
+          phone: string | null
+          updated_at: string
+          user_id: string
+          vat_number: string | null
+        }
+        Insert: {
+          address?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          currency?: string
+          email?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_id: string
+          vat_number?: string | null
+        }
+        Update: {
+          address?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          currency?: string
+          email?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_id?: string
+          vat_number?: string | null
+        }
+        Relationships: []
+      }
+      email_logs: {
+        Row: {
+          created_at: string
+          error: string | null
+          id: string
+          invoice_id: string
+          recipient_email: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          error?: string | null
+          id?: string
+          invoice_id: string
+          recipient_email: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          error?: string | null
+          id?: string
+          invoice_id?: string
+          recipient_email?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_logs_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoices: {
+        Row: {
+          activity: Json
+          client_id: string | null
+          client_snapshot: Json
+          created_at: string
+          currency: string
+          due_date: string | null
+          expires_at: number | null
+          id: string
+          issue_date: string | null
+          items: Json
+          memo: string | null
+          number: string
+          paid_at: string | null
+          payment_hash: string | null
+          payment_request: string | null
+          satoshis: number | null
+          sent_at: string | null
+          status: string
+          tax: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          activity?: Json
+          client_id?: string | null
+          client_snapshot?: Json
+          created_at?: string
+          currency?: string
+          due_date?: string | null
+          expires_at?: number | null
+          id?: string
+          issue_date?: string | null
+          items?: Json
+          memo?: string | null
+          number: string
+          paid_at?: string | null
+          payment_hash?: string | null
+          payment_request?: string | null
+          satoshis?: number | null
+          sent_at?: string | null
+          status?: string
+          tax?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          activity?: Json
+          client_id?: string | null
+          client_snapshot?: Json
+          created_at?: string
+          currency?: string
+          due_date?: string | null
+          expires_at?: number | null
+          id?: string
+          issue_date?: string | null
+          items?: Json
+          memo?: string | null
+          number?: string
+          paid_at?: string | null
+          payment_hash?: string | null
+          payment_request?: string | null
+          satoshis?: number | null
+          sent_at?: string | null
+          status?: string
+          tax?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          address: string | null
+          blink_api_key: string | null
+          btc_wallet_id: string | null
+          business_email: string | null
+          business_name: string | null
+          city: string | null
+          country: string | null
+          created_at: string
+          default_currency: string
+          default_email_message: string
+          default_email_subject: string
+          default_payment_terms_days: number
+          default_tax_rate: number
+          email: string | null
+          id: string
+          invoice_footer: string | null
+          invoice_prefix: string
+          logo_url: string | null
+          next_invoice_number: number
+          phone: string | null
+          updated_at: string
+          usd_wallet_id: string | null
+          vat_number: string | null
+        }
+        Insert: {
+          address?: string | null
+          blink_api_key?: string | null
+          btc_wallet_id?: string | null
+          business_email?: string | null
+          business_name?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          default_currency?: string
+          default_email_message?: string
+          default_email_subject?: string
+          default_payment_terms_days?: number
+          default_tax_rate?: number
+          email?: string | null
+          id: string
+          invoice_footer?: string | null
+          invoice_prefix?: string
+          logo_url?: string | null
+          next_invoice_number?: number
+          phone?: string | null
+          updated_at?: string
+          usd_wallet_id?: string | null
+          vat_number?: string | null
+        }
+        Update: {
+          address?: string | null
+          blink_api_key?: string | null
+          btc_wallet_id?: string | null
+          business_email?: string | null
+          business_name?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          default_currency?: string
+          default_email_message?: string
+          default_email_subject?: string
+          default_payment_terms_days?: number
+          default_tax_rate?: number
+          email?: string | null
+          id?: string
+          invoice_footer?: string | null
+          invoice_prefix?: string
+          logo_url?: string | null
+          next_invoice_number?: number
+          phone?: string | null
+          updated_at?: string
+          usd_wallet_id?: string | null
+          vat_number?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
