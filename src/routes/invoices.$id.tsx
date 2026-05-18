@@ -234,12 +234,11 @@ function InvoiceDetailPage() {
 }
 
 function Countdown({ until }: { until: number }) {
-  const remaining = useMemo(() => Math.max(0, until - Date.now()), [until]);
-  const [n, setN] = useState(remaining);
-  useState(() => {
+  const [n, setN] = useState(Math.max(0, until - Date.now()));
+  useEffect(() => {
     const id = setInterval(() => setN(Math.max(0, until - Date.now())), 1000);
     return () => clearInterval(id);
-  });
+  }, [until]);
   const mins = Math.floor(n / 60000);
   const secs = Math.floor((n % 60000) / 1000);
   return (
