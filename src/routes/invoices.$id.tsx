@@ -129,14 +129,7 @@ function InvoiceDetailPage() {
               { at: new Date().toISOString(), text: "Payment received via Lightning" },
             ],
           });
-          // proceed
-          // (placeholder removed)
 
-            activity: [
-              ...(invoice.activity ?? []),
-              { at: new Date().toISOString(), text: "Payment received via Lightning" },
-            ],
-          });
           setJustPaid(true);
           toast.success("Payment received");
         }
