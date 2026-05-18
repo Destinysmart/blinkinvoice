@@ -217,6 +217,7 @@ function InvoicesPage() {
               })}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </div>
