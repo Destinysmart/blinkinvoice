@@ -88,6 +88,7 @@ export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
       invoices: [],
+      clients: [],
       settings: defaultSettings,
       seeded: false,
       addInvoice: (i) => set({ invoices: [i, ...get().invoices] }),
@@ -95,6 +96,11 @@ export const useAppStore = create<AppState>()(
         set({ invoices: get().invoices.map((x) => (x.id === id ? { ...x, ...patch } : x)) }),
       deleteInvoice: (id) =>
         set({ invoices: get().invoices.filter((x) => x.id !== id) }),
+      addClient: (c) => set({ clients: [c, ...get().clients] }),
+      updateClient: (id, patch) =>
+        set({ clients: get().clients.map((x) => (x.id === id ? { ...x, ...patch } : x)) }),
+      deleteClient: (id) =>
+        set({ clients: get().clients.filter((x) => x.id !== id) }),
       saveSettings: (s) => set({ settings: { ...get().settings, ...s } }),
       seedDemo: () => {
         if (get().seeded) return;
@@ -106,6 +112,7 @@ export const useAppStore = create<AppState>()(
       merge: (persisted: any, current) => ({
         ...current,
         ...(persisted ?? {}),
+        clients: persisted?.clients ?? [],
         settings: { ...defaultSettings, ...(persisted?.settings ?? {}) },
       }),
     }
