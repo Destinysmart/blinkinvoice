@@ -13,6 +13,7 @@ import { InfoHint } from "@/components/InfoHint";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { ProductAutocomplete } from "@/components/ProductAutocomplete";
 
 type NewInvoiceSearch = { name?: string; email?: string; address?: string; clientId?: string };
 
@@ -198,7 +199,16 @@ function NewInvoicePage() {
             <tbody>
               {items.map((it) => (
                 <tr key={it.id} className="border-t border-border">
-                  <td className="px-2 py-1"><Input value={it.desc} onChange={(e) => updateItem(it.id, { desc: e.target.value })} placeholder="Item description" /></td>
+                  <td className="px-2 py-1">
+                    <ProductAutocomplete
+                      value={it.desc}
+                      onChange={(v) => updateItem(it.id, { desc: v })}
+                      onSelectProduct={(s) => {
+                        updateItem(it.id, { desc: s.desc, price: s.price });
+                        if (s.currency !== currency) setCurrency(s.currency);
+                      }}
+                    />
+                  </td>
                   <td className="px-2 py-1"><Input type="number" min={0} value={it.qty} onChange={(e) => updateItem(it.id, { qty: Number(e.target.value) })} /></td>
                   <td className="px-2 py-1"><Input type="number" min={0} value={it.price} onChange={(e) => updateItem(it.id, { price: Number(e.target.value) })} /></td>
                   <td className="px-3 py-2 text-right font-mono text-sm">{(it.qty * it.price).toLocaleString()}</td>
@@ -228,10 +238,13 @@ function NewInvoicePage() {
                   <Trash2 className="h-4 w-4" />
                 </button>
               </div>
-              <Input
+              <ProductAutocomplete
                 value={it.desc}
-                onChange={(e) => updateItem(it.id, { desc: e.target.value })}
-                placeholder="Item description"
+                onChange={(v) => updateItem(it.id, { desc: v })}
+                onSelectProduct={(s) => {
+                  updateItem(it.id, { desc: s.desc, price: s.price });
+                  if (s.currency !== currency) setCurrency(s.currency);
+                }}
               />
               <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-1">
