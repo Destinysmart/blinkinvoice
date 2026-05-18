@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { Plus, Search, Zap, MoreHorizontal, FileText, Download } from "lucide-react";
-import { downloadInvoicePDF } from "@/components/InvoicePDF";
 import { useAppStore, invoiceTotal } from "@/lib/store";
 import { fmtUsd, fmtDate, isOverdue } from "@/lib/format";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -30,7 +29,11 @@ function InvoicesPage() {
   const downloadPdf = async (id: string) => {
     const inv = invoices.find((i) => i.id === id);
     if (!inv) return;
-    try { await downloadInvoicePDF(inv, settings); toast.success("PDF downloaded"); }
+    try {
+      const { downloadInvoicePDF } = await import("@/components/InvoicePDF");
+      await downloadInvoicePDF(inv, settings);
+      toast.success("PDF downloaded");
+    }
     catch (e: any) { toast.error(e?.message ?? "Failed to generate PDF"); }
   };
 
