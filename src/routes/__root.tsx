@@ -171,6 +171,17 @@ function AppFrame() {
     );
   }
 
+  if (!hydrated) {
+    return (
+      <div className="grid min-h-screen place-items-center bg-background">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+          <p className="text-xs uppercase tracking-widest text-muted-foreground">Syncing your data</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background text-foreground flex">
       <Sidebar />
