@@ -103,8 +103,14 @@ export const useAppStore = create<AppState>()(
         set({ clients: get().clients.filter((x) => x.id !== id) }),
       saveSettings: (s) => set({ settings: { ...get().settings, ...s } }),
       seedDemo: () => {
-        if (get().seeded) return;
-        set({ invoices: [...demoInvoices(), ...get().invoices], seeded: true });
+        // Demo seeding disabled. Purge any previously seeded demo invoices
+        // so existing users don't keep seeing fake clients (Nakamoto Studio,
+        // Orange Pill Co., Mempool Labs).
+        const demoNames = new Set(["Nakamoto Studio", "Orange Pill Co.", "Mempool Labs"]);
+        const cleaned = get().invoices.filter((i) => !demoNames.has(i.client?.name ?? ""));
+        if (cleaned.length !== get().invoices.length || !get().seeded) {
+          set({ invoices: cleaned, seeded: true });
+        }
       },
     }),
     {
