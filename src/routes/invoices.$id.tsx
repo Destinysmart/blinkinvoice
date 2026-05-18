@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { QRCodeSVG } from "qrcode.react";
 import { toast } from "sonner";
-import { ArrowLeft, Copy, Zap, AlertTriangle, RefreshCw, Trash2 } from "lucide-react";
+import { ArrowLeft, Copy, Zap, AlertTriangle, RefreshCw, Trash2, Download, Share2, Eye } from "lucide-react";
 import { useAppStore, invoiceTotal } from "@/lib/store";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,9 @@ import {
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ShareDialog, PreviewDialog } from "@/components/ShareDialog";
+import { downloadInvoicePDF } from "@/components/InvoicePDF";
+import { fmtDate } from "@/lib/format";
 
 export const Route = createFileRoute("/invoices/$id")({
   component: InvoiceDetailPage,
@@ -77,6 +80,26 @@ function InvoiceDetailPage() {
   const lnUri = invoice.paymentRequest ? `lightning:${invoice.paymentRequest}` : "";
   const missingKeys = !settings.apiKey || !settings.walletId;
 
+  const [shareOpen, setShareOpen] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+
+  const download = async () => {
+    setDownloading(true);
+    try { await downloadInvoicePDF(invoice, settings); toast.success("PDF downloaded"); }
+    catch (e: any) { toast.error(e?.message ?? "Failed to generate PDF"); }
+    finally { setDownloading(false); }
+  };
+
+  const onShared = (channel: "WhatsApp" | "Email") => {
+    const entry = { at: new Date().toISOString(), text: `Shared via ${channel}` };
+    const activity = [...(invoice.activity ?? []), entry];
+    const patch: Partial<typeof invoice> = { activity };
+    if (invoice.status === "draft") patch.status = "pending";
+    updateInvoice(id, patch);
+    toast.success(`Opened ${channel}`);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -97,6 +120,15 @@ function InvoiceDetailPage() {
           {invoice.status !== "paid" && (
             <Button size="sm" variant="outline" onClick={() => setStatus("paid")}>Mark as paid</Button>
           )}
+          <Button size="sm" variant="outline" onClick={() => setPreviewOpen(true)}>
+            <Eye className="mr-1.5 h-3.5 w-3.5" /> Preview
+          </Button>
+          <Button size="sm" onClick={download} disabled={downloading}>
+            <Download className="mr-1.5 h-3.5 w-3.5" /> {downloading ? "Generating…" : "Download PDF"}
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => setShareOpen(true)}>
+            <Share2 className="mr-1.5 h-3.5 w-3.5" /> Share
+          </Button>
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive">
@@ -235,6 +267,24 @@ function InvoiceDetailPage() {
           </div>
         )}
       </div>
+
+      {invoice.activity && invoice.activity.length > 0 && (
+        <div className="rounded-lg border border-border bg-card p-6">
+          <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Activity</h2>
+          <ul className="space-y-2">
+            {invoice.activity.map((a, i) => (
+              <li key={i} className="flex items-start gap-3 text-sm">
+                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                <span className="flex-1">{a.text}</span>
+                <span className="text-xs text-muted-foreground">{fmtDate(a.at)}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <ShareDialog open={shareOpen} onOpenChange={setShareOpen} invoice={invoice} settings={settings} onShared={onShared} />
+      <PreviewDialog open={previewOpen} onOpenChange={setPreviewOpen} invoice={invoice} settings={settings} />
     </div>
   );
 }

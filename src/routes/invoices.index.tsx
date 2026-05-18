@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Plus, Search, Zap, MoreHorizontal, FileText } from "lucide-react";
+import { Plus, Search, Zap, MoreHorizontal, FileText, Download } from "lucide-react";
+import { downloadInvoicePDF } from "@/components/InvoicePDF";
 import { useAppStore, invoiceTotal } from "@/lib/store";
 import { fmtUsd, fmtDate, isOverdue } from "@/lib/format";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -24,6 +25,14 @@ function InvoicesPage() {
   const updateInvoice = useAppStore((s) => s.updateInvoice);
   const deleteInvoice = useAppStore((s) => s.deleteInvoice);
   const addInvoice = useAppStore((s) => s.addInvoice);
+  const settings = useAppStore((s) => s.settings);
+
+  const downloadPdf = async (id: string) => {
+    const inv = invoices.find((i) => i.id === id);
+    if (!inv) return;
+    try { await downloadInvoicePDF(inv, settings); toast.success("PDF downloaded"); }
+    catch (e: any) { toast.error(e?.message ?? "Failed to generate PDF"); }
+  };
 
   useEffect(() => { seedDemo(); }, [seedDemo]);
 
@@ -186,6 +195,9 @@ function InvoicesPage() {
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => updateInvoice(inv.id, { status: "paid" })}>Mark as paid</DropdownMenuItem>
                           <DropdownMenuItem onClick={() => duplicate(inv.id)}>Duplicate</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => downloadPdf(inv.id)}>
+                            <Download className="mr-2 h-3.5 w-3.5" /> Download PDF
+                          </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => { deleteInvoice(inv.id); toast.success("Deleted"); }}>
                             Delete
