@@ -106,6 +106,44 @@ function InvoiceDetailPage() {
     toast.success(`Opened ${channel}`);
   };
 
+  // Poll Lightning payment status every 5s while invoice is outstanding
+  const [justPaid, setJustPaid] = useState(false);
+  const polling =
+    !!invoice.paymentRequest &&
+    invoice.status !== "paid" &&
+    !!settings.apiKey &&
+    (!invoice.expiresAt || invoice.expiresAt > Date.now());
+
+  useEffect(() => {
+    if (!polling || !invoice.paymentRequest || !settings.apiKey) return;
+    let cancelled = false;
+    const check = async () => {
+      try {
+        const status = await fetchInvoiceStatus(settings.apiKey!, invoice.paymentRequest!);
+        if (cancelled) return;
+        if (status === "PAID") {
+          updateInvoice(id, {
+            status: "paid",
+            paidAt: new Date().toISOString(),
+            activity: [
+              ...(invoice.activity ?? []),
+              { at: new Date().toISOString(), text: "Payment received via Lightning" },
+            ],
+          });
+          setJustPaid(true);
+          toast.success("Payment received");
+        }
+      } catch {
+        /* ignore transient errors and keep polling */
+      }
+    };
+    check();
+    const iv = setInterval(check, 5000);
+    return () => { cancelled = true; clearInterval(iv); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [polling, invoice.paymentRequest, settings.apiKey, id]);
+
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
