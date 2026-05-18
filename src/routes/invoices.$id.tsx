@@ -7,7 +7,7 @@ import { ArrowLeft, Copy, Zap, AlertTriangle, RefreshCw, Trash2, Download, Share
 import { useAppStore, invoiceTotal } from "@/lib/store";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
-import { createLnUsdInvoice, createLnBtcInvoice, fetchInvoiceStatus } from "@/lib/blink";
+import { createLnUsdInvoice, createLnBtcInvoice, fetchInvoiceStatus, usdCentsToSats } from "@/lib/blink";
 import type { InvoiceStatus } from "@/lib/types";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
