@@ -195,6 +195,9 @@ function InvoicesPage() {
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => updateInvoice(inv.id, { status: "paid" })}>Mark as paid</DropdownMenuItem>
                           <DropdownMenuItem onClick={() => duplicate(inv.id)}>Duplicate</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => downloadPdf(inv.id)}>
+                            <Download className="mr-2 h-3.5 w-3.5" /> Download PDF
+                          </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => { deleteInvoice(inv.id); toast.success("Deleted"); }}>
                             Delete
