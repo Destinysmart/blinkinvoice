@@ -7,6 +7,8 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { EmptyState } from "@/components/EmptyState";
+import { PageHeader } from "@/components/PageHeader";
+import { InfoHint } from "@/components/InfoHint";
 import { toast } from "sonner";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
@@ -88,13 +90,14 @@ function InvoicesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="font-display text-4xl font-bold">Invoices</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Bill clients. Get paid in Bitcoin.</p>
-        </div>
-        <Button asChild><Link to="/invoices/new"><Plus className="mr-2 h-4 w-4" /> New Invoice</Link></Button>
-      </div>
+      <PageHeader
+        title="Invoices"
+        subtitle="Create, send, and track your invoices in one place."
+        hint="Each invoice can be paid in USD or Bitcoin over the Lightning Network. Click any invoice to see details."
+        actions={
+          <Button asChild size="sm"><Link to="/invoices/new"><Plus className="mr-1.5 h-3.5 w-3.5" /> New invoice</Link></Button>
+        }
+      />
 
       {/* Filter bar */}
       <div className="flex flex-wrap items-center gap-3 rounded-xl border border-border bg-card p-3">
@@ -152,7 +155,7 @@ function InvoicesPage() {
                 <th className="px-3 py-3 text-left font-medium">Due Date</th>
                 <th className="px-3 py-3 text-right font-medium">Amount</th>
                 <th className="px-3 py-3 text-left font-medium">Status</th>
-                <th className="px-3 py-3 text-center font-medium"><Zap className="inline h-3.5 w-3.5" /></th>
+                <th className="px-3 py-3 text-center font-medium"><span className="inline-flex items-center gap-1"><Zap className="h-3.5 w-3.5" /><InfoHint text="Lightning column — a bolt icon means a Bitcoin Lightning invoice has been generated and the client can pay instantly." /></span></th>
                 <th className="w-10 px-3 py-3" />
               </tr>
             </thead>

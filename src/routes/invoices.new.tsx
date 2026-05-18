@@ -1,6 +1,6 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { useAppStore, invoiceTotal, genInvoiceNumber } from "@/lib/store";
 import type { Currency, Invoice, LineItem } from "@/lib/types";
@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { PageHeader } from "@/components/PageHeader";
+import { InfoHint } from "@/components/InfoHint";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -93,8 +95,21 @@ function NewInvoicePage() {
   const unit = currency === "USD" ? "$" : "sats";
 
   return (
-    <div className="space-y-8">
-      <h1 className="font-display text-4xl font-bold">New invoice</h1>
+    <div className="space-y-6">
+      <Link to="/invoices" className="inline-flex items-center gap-1.5 text-xs text-muted-foreground transition hover:text-foreground">
+        <ArrowLeft className="h-3 w-3" /> Back to invoices
+      </Link>
+      <PageHeader
+        title="New invoice"
+        subtitle="Fill in who you're billing, what you're billing for, and when it's due."
+        hint="Save as a draft to keep working on it, or create the invoice to send it to your client."
+        actions={
+          <>
+            <Button variant="outline" size="sm" onClick={() => save("draft")}>Save as draft</Button>
+            <Button size="sm" onClick={() => save("pending")}>Create invoice</Button>
+          </>
+        }
+      />
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Section title="From">
@@ -123,9 +138,9 @@ function NewInvoicePage() {
                 </Select>
               </div>
             )}
-            <Field label="Name *"><Input value={client.name} onChange={(e) => setClient({ ...client, name: e.target.value })} /></Field>
-            <Field label="Email"><Input type="email" value={client.email} onChange={(e) => setClient({ ...client, email: e.target.value })} /></Field>
-            <Field label="Address"><Textarea rows={2} value={client.address} onChange={(e) => setClient({ ...client, address: e.target.value })} /></Field>
+            <Field label="Name *" hint="Required. The person or company you're billing. Shown at the top of the invoice."><Input value={client.name} onChange={(e) => setClient({ ...client, name: e.target.value })} placeholder="Acme Corp" /></Field>
+            <Field label="Email" hint="Used to email the invoice and payment reminders."><Input type="email" value={client.email} onChange={(e) => setClient({ ...client, email: e.target.value })} placeholder="billing@acme.com" /></Field>
+            <Field label="Address" hint="Optional. Shown on the invoice — useful for legal/tax purposes."><Textarea rows={2} value={client.address} onChange={(e) => setClient({ ...client, address: e.target.value })} placeholder="123 Main St&#10;San Francisco, CA" /></Field>
           </div>
         </Section>
       </div>
@@ -232,10 +247,13 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
-      <Label className="text-xs text-muted-foreground">{label}</Label>
+      <div className="flex items-center gap-1.5">
+        <Label className="text-xs text-muted-foreground">{label}</Label>
+        {hint && <InfoHint text={hint} />}
+      </div>
       {children}
     </div>
   );
