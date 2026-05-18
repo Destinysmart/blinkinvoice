@@ -41,7 +41,7 @@ function fmtDate(d?: string | null) {
   return new Date(d).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
 }
 
-export function InvoicePDF({ invoice, settings }: { invoice: Invoice; settings: Settings }) {
+export function InvoicePDF({ invoice, settings, qrCodeDataURL }: { invoice: Invoice; settings: Settings; qrCodeDataURL?: string | null }) {
   const { subtotal, tax, total } = invoiceTotal(invoice);
 
   return (
