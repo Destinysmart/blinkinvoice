@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { QRCodeSVG } from "qrcode.react";
 import { toast } from "sonner";
-import { ArrowLeft, Copy, Zap, AlertTriangle, RefreshCw, Trash2, Download, Share2, Eye } from "lucide-react";
+import { ArrowLeft, Copy, Zap, AlertTriangle, RefreshCw, Trash2, Download, Share2, Eye, MoreHorizontal, CheckCircle2 } from "lucide-react";
 import { useAppStore, invoiceTotal } from "@/lib/store";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
@@ -150,7 +150,7 @@ function InvoiceDetailPage() {
         <Link to="/invoices" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
           <ArrowLeft className="h-4 w-4" /> All invoices
         </Link>
-        <div className="-mx-1 flex flex-wrap items-center gap-2 overflow-x-auto px-1">
+        <div className="flex flex-wrap items-center gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button><StatusBadge status={invoice.status} /></button>
@@ -161,24 +161,51 @@ function InvoiceDetailPage() {
               <DropdownMenuItem onClick={() => setStatus("paid")}>Paid</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          {invoice.status !== "paid" && (
-            <Button size="sm" variant="outline" onClick={() => setStatus("paid")} className="hidden sm:inline-flex">Mark as paid</Button>
-          )}
+
+          {/* Primary action: always visible */}
           <Button size="sm" onClick={() => setSendOpen(true)}>
             <Mail className="h-3.5 w-3.5 sm:mr-1.5" /> <span className="hidden sm:inline">Send</span>
           </Button>
-          <Button size="sm" variant="outline" onClick={() => setPreviewOpen(true)} aria-label="Preview">
+
+          {/* Desktop / tablet: inline secondary actions */}
+          {invoice.status !== "paid" && (
+            <Button size="sm" variant="outline" onClick={() => setStatus("paid")} className="hidden sm:inline-flex">Mark as paid</Button>
+          )}
+          <Button size="sm" variant="outline" onClick={() => setPreviewOpen(true)} aria-label="Preview" className="hidden sm:inline-flex">
             <Eye className="h-3.5 w-3.5 sm:mr-1.5" /> <span className="hidden sm:inline">Preview</span>
           </Button>
-          <Button size="sm" variant="outline" onClick={download} disabled={downloading} aria-label="Download">
+          <Button size="sm" variant="outline" onClick={download} disabled={downloading} aria-label="Download" className="hidden sm:inline-flex">
             <Download className="h-3.5 w-3.5 sm:mr-1.5" /> <span className="hidden sm:inline">{downloading ? "Generating…" : "Download"}</span>
           </Button>
-          <Button size="sm" variant="outline" onClick={() => setShareOpen(true)} aria-label="Share">
+          <Button size="sm" variant="outline" onClick={() => setShareOpen(true)} aria-label="Share" className="hidden sm:inline-flex">
             <Share2 className="h-3.5 w-3.5 sm:mr-1.5" /> <span className="hidden sm:inline">Share</span>
           </Button>
-          {invoice.status !== "paid" && (
-            <Button size="sm" variant="outline" onClick={() => setStatus("paid")} className="sm:hidden">Paid</Button>
-          )}
+
+          {/* Mobile: collapse secondary actions into one menu */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button size="sm" variant="outline" aria-label="More actions" className="sm:hidden">
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {invoice.status !== "paid" && (
+                <DropdownMenuItem onClick={() => setStatus("paid")}>
+                  <CheckCircle2 className="mr-2 h-4 w-4" /> Mark as paid
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuItem onClick={() => setPreviewOpen(true)}>
+                <Eye className="mr-2 h-4 w-4" /> Preview
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={download} disabled={downloading}>
+                <Download className="mr-2 h-4 w-4" /> {downloading ? "Generating…" : "Download"}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setShareOpen(true)}>
+                <Share2 className="mr-2 h-4 w-4" /> Share
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" aria-label="Delete">
