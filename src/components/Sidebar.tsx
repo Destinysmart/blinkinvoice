@@ -122,6 +122,15 @@ export function Sidebar() {
                 {user.email}
               </div>
             </div>
+            <HintWrap hint={`Switch to ${theme === "dark" ? "light" : "dark"} theme`} side="top">
+              <button
+                onClick={toggleTheme}
+                className="rounded p-1.5 text-muted-foreground transition hover:bg-foreground/5 hover:text-foreground"
+                aria-label="Toggle theme"
+              >
+                {theme === "dark" ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
+              </button>
+            </HintWrap>
             <HintWrap hint="Sign out of BlinkInvoice" side="top">
               <button
                 onClick={handleSignOut}
