@@ -1,4 +1,5 @@
 import { Document, Page, View, Text, Image, StyleSheet } from "@react-pdf/renderer";
+import QRCode from "qrcode";
 import type { Invoice, Settings } from "@/lib/types";
 import { invoiceTotal } from "@/lib/store";
 
