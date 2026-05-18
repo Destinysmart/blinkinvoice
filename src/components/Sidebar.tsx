@@ -1,9 +1,11 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import {
   Zap, LayoutDashboard, FileText, MessageSquareQuote, Users,
-  Package, FolderKanban, BarChart3, Settings,
+  Package, FolderKanban, BarChart3, Settings, LogOut,
 } from "lucide-react";
 import { useAppStore } from "@/lib/store";
+import { useAuth, signOut } from "@/lib/auth";
+import { toast } from "sonner";
 
 const groups = [
   {
@@ -33,6 +35,14 @@ export function Sidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const apiKey = useAppStore((s) => s.settings.apiKey);
   const connected = Boolean(apiKey);
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await signOut();
+    toast.success("Signed out");
+    navigate({ to: "/login" });
+  };
 
   const isActive = (to: string, exact?: boolean) =>
     exact ? pathname === to : pathname === to || pathname.startsWith(to + "/");
@@ -98,6 +108,18 @@ export function Sidebar() {
           <span className={`h-1.5 w-1.5 rounded-full ${connected ? "bg-success animate-pulse" : "bg-muted-foreground/40"}`} />
           <span className="text-muted-foreground">{connected ? "Connected" : "Not connected"}</span>
         </div>
+        {user && (
+          <div className="mt-3 border-t border-border pt-3 space-y-2">
+            <div className="px-1 text-[11px] text-muted-foreground truncate" title={user.email ?? ""}>{user.email}</div>
+            <button
+              onClick={handleSignOut}
+              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-xs text-muted-foreground transition hover:bg-white/[0.03] hover:text-foreground"
+            >
+              <LogOut className="h-3.5 w-3.5" />
+              Sign out
+            </button>
+          </div>
+        )}
       </div>
     </aside>
   );
