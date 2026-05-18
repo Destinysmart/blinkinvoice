@@ -138,9 +138,9 @@ function NewInvoicePage() {
                 </Select>
               </div>
             )}
-            <Field label="Name *"><Input value={client.name} onChange={(e) => setClient({ ...client, name: e.target.value })} /></Field>
-            <Field label="Email"><Input type="email" value={client.email} onChange={(e) => setClient({ ...client, email: e.target.value })} /></Field>
-            <Field label="Address"><Textarea rows={2} value={client.address} onChange={(e) => setClient({ ...client, address: e.target.value })} /></Field>
+            <Field label="Name *" hint="Required. The person or company you're billing. Shown at the top of the invoice."><Input value={client.name} onChange={(e) => setClient({ ...client, name: e.target.value })} placeholder="Acme Corp" /></Field>
+            <Field label="Email" hint="Used to email the invoice and payment reminders."><Input type="email" value={client.email} onChange={(e) => setClient({ ...client, email: e.target.value })} placeholder="billing@acme.com" /></Field>
+            <Field label="Address" hint="Optional. Shown on the invoice — useful for legal/tax purposes."><Textarea rows={2} value={client.address} onChange={(e) => setClient({ ...client, address: e.target.value })} placeholder="123 Main St&#10;San Francisco, CA" /></Field>
           </div>
         </Section>
       </div>
