@@ -170,7 +170,7 @@ export const useAppStore = create<AppState>()((set, get) => ({
     set({ invoices: [i, ...get().invoices] });
     const uid = get().userId;
     if (!uid) return;
-    supabase.from("invoices").insert(invoiceToRow(i, uid)).then(({ error }) => {
+    (supabase.from("invoices") as any).insert(invoiceToRow(i, uid)).then(({ error }: any) => {
       if (error) console.error("Failed to save invoice", error);
     });
   },
