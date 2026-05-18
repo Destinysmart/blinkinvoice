@@ -25,6 +25,14 @@ function InvoicesPage() {
   const updateInvoice = useAppStore((s) => s.updateInvoice);
   const deleteInvoice = useAppStore((s) => s.deleteInvoice);
   const addInvoice = useAppStore((s) => s.addInvoice);
+  const settings = useAppStore((s) => s.settings);
+
+  const downloadPdf = async (id: string) => {
+    const inv = invoices.find((i) => i.id === id);
+    if (!inv) return;
+    try { await downloadInvoicePDF(inv, settings); toast.success("PDF downloaded"); }
+    catch (e: any) { toast.error(e?.message ?? "Failed to generate PDF"); }
+  };
 
   useEffect(() => { seedDemo(); }, [seedDemo]);
 
