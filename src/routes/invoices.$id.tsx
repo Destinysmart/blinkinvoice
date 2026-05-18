@@ -259,10 +259,26 @@ function InvoiceDetailPage() {
 
       {/* Lightning section */}
       <div className="rounded-lg border border-border bg-card p-6">
-        <div className="mb-4 flex items-center gap-2">
-          <Zap className="h-5 w-5 fill-primary text-primary" />
-          <h2 className="font-display text-xl font-bold">Lightning payment</h2>
+        <div className="mb-4 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <Zap className="h-5 w-5 fill-primary text-primary" />
+            <h2 className="font-display text-xl font-bold">Lightning payment</h2>
+          </div>
+          {polling && (
+            <span className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-medium text-primary animate-pulse">
+              <span className="h-2 w-2 rounded-full bg-primary" />
+              Watching for payment
+            </span>
+          )}
         </div>
+
+        {(invoice.status === "paid" && (justPaid || invoice.paymentRequest)) && justPaid && (
+          <div className="mb-4 flex items-center gap-2 rounded-md border border-success/30 bg-success/10 p-3 text-sm font-medium text-success animate-in fade-in slide-in-from-top-2 duration-500" style={{ color: "var(--success)" }}>
+            <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-success/20 animate-pulse">✓</span>
+            Payment confirmed — invoice marked as paid.
+          </div>
+        )}
+
 
         {missingKeys && (
           <div className="mb-4 flex items-start gap-2 rounded-md border border-warning/30 bg-warning/10 p-3 text-sm text-warning" style={{ color: "var(--warning)" }}>
