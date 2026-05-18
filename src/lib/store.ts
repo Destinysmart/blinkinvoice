@@ -267,13 +267,16 @@ export const useAppStore = create<AppState>()((set, get) => ({
         hydrated: true,
         hydrating: false,
       });
+
+      subscribeRealtime(userId);
     } catch (e) {
       console.error("Hydrate failed", e);
       set({ hydrating: false });
     }
   },
 
-  reset: () =>
+  reset: () => {
+    unsubscribeRealtime();
     set({
       invoices: [],
       clients: [],
@@ -281,7 +284,8 @@ export const useAppStore = create<AppState>()((set, get) => ({
       hydrated: false,
       hydrating: false,
       userId: null,
-    }),
+    });
+  },
 
   seedDemo: () => {
     // legacy no-op; data now syncs from Supabase via hydrate()
