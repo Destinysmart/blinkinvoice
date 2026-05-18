@@ -17,6 +17,8 @@ export interface Invoice {
   tax: number;
   memo: string;
   status: InvoiceStatus;
+  issueDate?: string;
+  dueDate?: string;
   paymentRequest: string | null;
   paymentHash: string | null;
   satoshis: number | null;
@@ -31,4 +33,10 @@ export interface Settings {
   apiKey: string;
   walletId: string;
   defaultCurrency: Currency;
+  invoicePrefix?: string;
+  nextInvoiceNumber?: number;
+  defaultPaymentTermsDays?: number;
+  defaultTaxRate?: number;
+  invoiceFooter?: string;
+  logo?: string; // base64 data URL
 }
