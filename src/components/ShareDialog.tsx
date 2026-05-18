@@ -5,7 +5,6 @@ import type { Invoice, Settings } from "@/lib/types";
 import { invoiceTotal } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { downloadInvoicePDF } from "./InvoicePDF";
 
 interface Props {
   open: boolean;
@@ -24,7 +23,11 @@ export function ShareDialog({ open, onOpenChange, invoice, settings, onShared }:
 
   const download = async () => {
     setLoading(true);
-    try { await downloadInvoicePDF(invoice, settings); toast.success("PDF downloaded"); }
+    try {
+      const { downloadInvoicePDF } = await import("./InvoicePDF");
+      await downloadInvoicePDF(invoice, settings);
+      toast.success("PDF downloaded");
+    }
     catch (e: any) { toast.error(e?.message ?? "Failed to generate PDF"); }
     finally { setLoading(false); }
   };
@@ -93,6 +96,16 @@ export function PreviewDialog({ open, onOpenChange, invoice, settings }: Omit<Pr
   const [PDFViewer, setPDFViewer] = useState<any>(null);
   const [InvoicePDFComp, setInvoicePDFComp] = useState<any>(null);
 
+  const downloadPreview = async () => {
+    try {
+      const { downloadInvoicePDF } = await import("./InvoicePDF");
+      await downloadInvoicePDF(invoice, settings);
+      toast.success("PDF downloaded");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Failed to generate PDF");
+    }
+  };
+
   // Lazy-load on open
   if (open && !PDFViewer) {
     Promise.all([
@@ -110,7 +123,7 @@ export function PreviewDialog({ open, onOpenChange, invoice, settings }: Omit<Pr
         <DialogHeader className="flex flex-row items-center justify-between border-b border-border px-5 py-3 space-y-0">
           <DialogTitle>Preview · {invoice.number}</DialogTitle>
           <div className="flex items-center gap-2">
-            <Button size="sm" variant="outline" onClick={() => downloadInvoicePDF(invoice, settings).then(() => toast.success("PDF downloaded"))}>
+            <Button size="sm" variant="outline" onClick={downloadPreview}>
               <Download className="mr-1.5 h-3.5 w-3.5" /> Download
             </Button>
             <button onClick={() => onOpenChange(false)} className="rounded p-1 text-muted-foreground hover:bg-white/5 hover:text-foreground">
