@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ArrowRight, ArrowUpRight, FileText, Plus, Zap, CheckCircle2, Circle,
   Wallet, Building2, Users, TrendingUp, Clock, AlertTriangle, DollarSign,
@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/PageHeader";
 import { InfoHint } from "@/components/InfoHint";
 import { useAuth } from "@/lib/auth";
+import { usdCentsToSats } from "@/lib/blink";
 
 export const Route = createFileRoute("/")({
   component: Dashboard,
@@ -25,8 +26,38 @@ function Dashboard() {
   const { user } = useAuth();
   useEffect(() => { seedDemo(); }, [seedDemo]);
 
+  // Current sats-per-USD rate (sats per 1 USD), fetched once. Used as a
+  // fallback for invoices that don't carry a stored sats snapshot (e.g.
+  // historical BTC invoices have no recorded USD value).
+  const [satsPerUsd, setSatsPerUsd] = useState<number | null>(null);
+  useEffect(() => {
+    if (!settings.apiKey) return;
+    let cancelled = false;
+    usdCentsToSats(settings.apiKey, 100)
+      .then((s) => { if (!cancelled) setSatsPerUsd(s); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [settings.apiKey]);
+
+  // Per-invoice {sats, usd} pair using the value recorded when the money came
+  // in (invoice.satoshis snapshot) when available, else current rate.
+  const pairOf = (inv: typeof invoices[number]) => {
+    const t = invoiceTotal(inv).total;
+    if (inv.currency === "BTC") {
+      const sats = t;
+      const usd = satsPerUsd ? sats / satsPerUsd : 0;
+      return { sats, usd };
+    }
+    // USD invoice
+    const usd = t;
+    const sats = inv.satoshis ?? (satsPerUsd ? Math.round(usd * satsPerUsd) : 0);
+    return { sats, usd };
+  };
+
+  const [showUsd, setShowUsd] = useState(false);
+
   const stats = useMemo(() => {
-    const empty = () => ({ usd: 0, btc: 0 });
+    const empty = () => ({ sats: 0, usd: 0 });
     const total = empty();
     const paidThisMonth = empty();
     const paidLastMonth = empty();
@@ -36,31 +67,29 @@ function Dashboard() {
     const thisM = now.getMonth(), thisY = now.getFullYear();
     const lastDate = new Date(thisY, thisM - 1, 1);
     for (const inv of invoices) {
-      const { total: t } = invoiceTotal(inv);
-      const bucket = inv.currency === "BTC" ? "btc" : "usd";
-      total[bucket] += t;
+      const p = pairOf(inv);
+      total.sats += p.sats; total.usd += p.usd;
       if (inv.status === "paid") {
         const d = new Date(inv.issueDate ?? inv.createdAt);
-        if (d.getMonth() === thisM && d.getFullYear() === thisY) paidThisMonth[bucket] += t;
-        if (d.getMonth() === lastDate.getMonth() && d.getFullYear() === lastDate.getFullYear()) paidLastMonth[bucket] += t;
+        if (d.getMonth() === thisM && d.getFullYear() === thisY) {
+          paidThisMonth.sats += p.sats; paidThisMonth.usd += p.usd;
+        }
+        if (d.getMonth() === lastDate.getMonth() && d.getFullYear() === lastDate.getFullYear()) {
+          paidLastMonth.sats += p.sats; paidLastMonth.usd += p.usd;
+        }
       } else if (inv.status === "pending") {
-        outstanding[bucket] += t;
-        if (isOverdue(inv)) overdue[bucket] += t;
+        outstanding.sats += p.sats; outstanding.usd += p.usd;
+        if (isOverdue(inv)) { overdue.sats += p.sats; overdue.usd += p.usd; }
       }
     }
-    const usdLast = paidLastMonth.usd;
-    const trend = usdLast === 0 ? null : ((paidThisMonth.usd - usdLast) / usdLast) * 100;
+    const last = paidLastMonth.sats;
+    const trend = last === 0 ? null : ((paidThisMonth.sats - last) / last) * 100;
     return { total, paidThisMonth, outstanding, overdue, trend };
-  }, [invoices]);
+  }, [invoices, satsPerUsd]);
 
-  // Format a {usd, btc} bucket. Shows both when both non-zero; otherwise the
-  // non-zero one; falls back to $0.00 when both are zero.
-  const fmtBucket = (b: { usd: number; btc: number }) => {
-    const parts: string[] = [];
-    if (b.usd > 0) parts.push(fmtUsd(b.usd));
-    if (b.btc > 0) parts.push(fmtSats(b.btc));
-    return parts.length ? parts.join(" · ") : fmtUsd(0);
-  };
+  // Combined formatter: sats by default, USD on toggle.
+  const fmtCombined = (b: { sats: number; usd: number }) =>
+    showUsd ? fmtUsd(b.usd) : fmtSats(b.sats);
 
   const chartData = useMemo(() => {
     const months: { name: string; usd: number; btc: number; key: string }[] = [];
