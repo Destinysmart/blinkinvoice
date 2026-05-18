@@ -7,7 +7,7 @@ import { ArrowLeft, Copy, Zap, AlertTriangle, RefreshCw, Trash2, Download, Share
 import { useAppStore, invoiceTotal } from "@/lib/store";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
-import { createLnUsdInvoice, createLnBtcInvoice } from "@/lib/blink";
+import { createLnUsdInvoice, createLnBtcInvoice, fetchInvoiceStatus } from "@/lib/blink";
 import type { InvoiceStatus } from "@/lib/types";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -105,6 +105,44 @@ function InvoiceDetailPage() {
     updateInvoice(id, patch);
     toast.success(`Opened ${channel}`);
   };
+
+  // Poll Lightning payment status every 5s while invoice is outstanding
+  const [justPaid, setJustPaid] = useState(false);
+  const polling =
+    !!invoice.paymentRequest &&
+    invoice.status !== "paid" &&
+    !!settings.apiKey &&
+    (!invoice.expiresAt || invoice.expiresAt > Date.now());
+
+  useEffect(() => {
+    if (!polling || !invoice.paymentRequest || !settings.apiKey) return;
+    let cancelled = false;
+    const check = async () => {
+      try {
+        const status = await fetchInvoiceStatus(settings.apiKey!, invoice.paymentRequest!);
+        if (cancelled) return;
+        if (status === "PAID") {
+          updateInvoice(id, {
+            status: "paid",
+            activity: [
+              ...(invoice.activity ?? []),
+              { at: new Date().toISOString(), text: "Payment received via Lightning" },
+            ],
+          });
+
+          setJustPaid(true);
+          toast.success("Payment received");
+        }
+      } catch {
+        /* ignore transient errors and keep polling */
+      }
+    };
+    check();
+    const iv = setInterval(check, 5000);
+    return () => { cancelled = true; clearInterval(iv); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [polling, invoice.paymentRequest, settings.apiKey, id]);
+
 
   return (
     <div className="space-y-6">
@@ -221,10 +259,26 @@ function InvoiceDetailPage() {
 
       {/* Lightning section */}
       <div className="rounded-lg border border-border bg-card p-6">
-        <div className="mb-4 flex items-center gap-2">
-          <Zap className="h-5 w-5 fill-primary text-primary" />
-          <h2 className="font-display text-xl font-bold">Lightning payment</h2>
+        <div className="mb-4 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <Zap className="h-5 w-5 fill-primary text-primary" />
+            <h2 className="font-display text-xl font-bold">Lightning payment</h2>
+          </div>
+          {polling && (
+            <span className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-medium text-primary animate-pulse">
+              <span className="h-2 w-2 rounded-full bg-primary" />
+              Watching for payment
+            </span>
+          )}
         </div>
+
+        {(invoice.status === "paid" && (justPaid || invoice.paymentRequest)) && justPaid && (
+          <div className="mb-4 flex items-center gap-2 rounded-md border border-success/30 bg-success/10 p-3 text-sm font-medium text-success animate-in fade-in slide-in-from-top-2 duration-500" style={{ color: "var(--success)" }}>
+            <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-success/20 animate-pulse">✓</span>
+            Payment confirmed — invoice marked as paid.
+          </div>
+        )}
+
 
         {missingKeys && (
           <div className="mb-4 flex items-start gap-2 rounded-md border border-warning/30 bg-warning/10 p-3 text-sm text-warning" style={{ color: "var(--warning)" }}>
