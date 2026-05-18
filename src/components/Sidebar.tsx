@@ -235,9 +235,7 @@ export function MobileBar() {
         </Sheet>
 
         <Link to="/" className="flex items-center gap-2">
-          <span className="grid h-7 w-7 place-items-center rounded bg-primary text-primary-foreground">
-            <Zap className="h-3.5 w-3.5 fill-current" />
-          </span>
+          <img src={logoUrl} alt="BlinkInvoice" className="h-8 w-8 object-contain" />
           <span className="font-display text-base font-semibold">BlinkInvoice</span>
         </Link>
       </div>
