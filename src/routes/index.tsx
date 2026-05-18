@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid } from "recharts";
 import { useAppStore, invoiceTotal } from "@/lib/store";
-import { fmtUsd, fmtDate, isOverdue } from "@/lib/format";
+import { fmtUsd, fmtSats, fmtDate, isOverdue } from "@/lib/format";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/PageHeader";
