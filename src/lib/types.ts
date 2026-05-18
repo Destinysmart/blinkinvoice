@@ -41,3 +41,11 @@ export interface Settings {
   invoiceFooter?: string;
   logo?: string; // base64 data URL
 }
+
+export interface Client {
+  id: string;
+  name: string;
+  email: string;
+  address: string;
+  createdAt: string;
+}
