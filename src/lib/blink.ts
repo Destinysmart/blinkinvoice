@@ -1,12 +1,31 @@
 const ENDPOINT = "https://api.blink.sv/graphql";
 
 async function gql<T>(apiKey: string, query: string, variables: Record<string, unknown>): Promise<T> {
-  const res = await fetch(ENDPOINT, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "X-API-KEY": apiKey },
-    body: JSON.stringify({ query, variables }),
-  });
-  const json = await res.json();
+  let res: Response;
+  try {
+    res = await fetch(ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-API-KEY": apiKey },
+      body: JSON.stringify({ query, variables }),
+    });
+  } catch (e) {
+    throw new Error("API unreachable — check your key and network");
+  }
+
+  const contentType = res.headers.get("content-type") ?? "";
+  if (!res.ok || contentType.includes("text/html")) {
+    if (res.status === 401 || res.status === 403) {
+      throw new Error("Unauthorized — check your Blink API key");
+    }
+    throw new Error(`API unreachable — check your key and network (status ${res.status})`);
+  }
+
+  let json: any;
+  try {
+    json = await res.json();
+  } catch {
+    throw new Error("API returned an invalid response — check your key and network");
+  }
   if (json.errors?.length) throw new Error(json.errors[0].message);
   return json.data as T;
 }
