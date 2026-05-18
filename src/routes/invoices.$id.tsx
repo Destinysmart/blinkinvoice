@@ -124,7 +124,14 @@ function InvoiceDetailPage() {
         if (status === "PAID") {
           updateInvoice(id, {
             status: "paid",
-            paidAt: new Date().toISOString(),
+            activity: [
+              ...(invoice.activity ?? []),
+              { at: new Date().toISOString(), text: "Payment received via Lightning" },
+            ],
+          });
+          // proceed
+          // (placeholder removed)
+
             activity: [
               ...(invoice.activity ?? []),
               { at: new Date().toISOString(), text: "Payment received via Lightning" },
