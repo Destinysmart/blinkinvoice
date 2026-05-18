@@ -35,6 +35,14 @@ export function Sidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const apiKey = useAppStore((s) => s.settings.apiKey);
   const connected = Boolean(apiKey);
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await signOut();
+    toast.success("Signed out");
+    navigate({ to: "/login" });
+  };
 
   const isActive = (to: string, exact?: boolean) =>
     exact ? pathname === to : pathname === to || pathname.startsWith(to + "/");
