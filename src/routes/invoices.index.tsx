@@ -142,8 +142,7 @@ function InvoicesPage() {
           action={invoices.length === 0 ? <Button asChild><Link to="/invoices/new"><Plus className="mr-2 h-4 w-4" /> New Invoice</Link></Button> : null}
         />
       ) : (
-        <div className="overflow-hidden rounded-xl border border-border bg-card">
-          <div className="overflow-x-auto">
+        <div className="overflow-x-auto rounded-xl border border-border bg-card">
           <table className="w-full min-w-[760px]">
             <thead className="border-b border-border bg-[var(--surface)] text-xs uppercase tracking-wider text-muted-foreground">
               <tr>
