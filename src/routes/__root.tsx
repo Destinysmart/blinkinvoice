@@ -58,8 +58,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "BlinkInvoice — Bitcoin Invoicing" },
+      { title: "Blink Invoice" },
       { name: "description", content: "Send invoices, get paid over Lightning." },
+      { property: "og:title", content: "Blink Invoice" },
+      { name: "twitter:title", content: "Blink Invoice" },
+      { property: "og:description", content: "Send invoices, get paid over Lightning." },
+      { name: "twitter:description", content: "Send invoices, get paid over Lightning." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/6d0b2f85-93c3-40e5-966e-d39c05b70153" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/6d0b2f85-93c3-40e5-966e-d39c05b70153" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { property: "og:type", content: "website" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
@@ -79,15 +87,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <head>
-        <HeadContent />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `(function(){try{var k=localStorage.getItem('blinkinvoice.theme');var m=window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';var t=(k==='light'||k==='dark')?k:m;document.documentElement.classList.add(t);}catch(e){document.documentElement.classList.add('dark');}})();`,
-          }}
-        />
-      </head>
+    <html lang="en" className="dark">
+      <head><HeadContent /></head>
       <body>
         {children}
         <Scripts />
@@ -101,7 +102,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AppFrame />
-      <Toaster theme="system" position="bottom-right" richColors />
+      <Toaster theme="dark" position="bottom-right" richColors />
     </QueryClientProvider>
   );
 }
