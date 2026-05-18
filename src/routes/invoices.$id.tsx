@@ -17,8 +17,6 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ShareDialog, PreviewDialog } from "@/components/ShareDialog";
-import { SendInvoiceDialog } from "@/components/SendInvoiceDialog";
-import { EmailHistory } from "@/components/EmailHistory";
 import { fmtDate } from "@/lib/format";
 
 export const Route = createFileRoute("/invoices/$id")({
@@ -82,7 +80,6 @@ function InvoiceDetailPage() {
   const missingKeys = !settings.apiKey || !settings.walletId;
 
   const [shareOpen, setShareOpen] = useState(false);
-  const [sendOpen, setSendOpen] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [downloading, setDownloading] = useState(false);
 
@@ -289,29 +286,7 @@ function InvoiceDetailPage() {
         </div>
       )}
 
-      <EmailHistory invoiceId={invoice.id} />
-
-      <ShareDialog
-        open={shareOpen}
-        onOpenChange={setShareOpen}
-        invoice={invoice}
-        settings={settings}
-        onShared={onShared}
-        onSendEmail={() => setSendOpen(true)}
-      />
-      <SendInvoiceDialog
-        open={sendOpen}
-        onOpenChange={setSendOpen}
-        invoice={invoice}
-        settings={settings}
-        onSent={() => {
-          const entry = { at: new Date().toISOString(), text: `Emailed to ${invoice.client.email}` };
-          updateInvoice(id, {
-            status: invoice.status === "draft" ? "pending" : invoice.status,
-            activity: [...(invoice.activity ?? []), entry],
-          });
-        }}
-      />
+      <ShareDialog open={shareOpen} onOpenChange={setShareOpen} invoice={invoice} settings={settings} onShared={onShared} />
       <PreviewDialog open={previewOpen} onOpenChange={setPreviewOpen} invoice={invoice} settings={settings} />
     </div>
   );

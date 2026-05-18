@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Download, Link2, MessageCircle, Mail, Send, X } from "lucide-react";
+import { Download, Link2, MessageCircle, Mail, X } from "lucide-react";
 import { toast } from "sonner";
 import type { Invoice, Settings } from "@/lib/types";
 import { invoiceTotal } from "@/lib/store";
@@ -12,10 +12,9 @@ interface Props {
   invoice: Invoice;
   settings: Settings;
   onShared?: (channel: "WhatsApp" | "Email") => void;
-  onSendEmail?: () => void;
 }
 
-export function ShareDialog({ open, onOpenChange, invoice, settings, onShared, onSendEmail }: Props) {
+export function ShareDialog({ open, onOpenChange, invoice, settings, onShared }: Props) {
   const [loading, setLoading] = useState(false);
   const { total } = invoiceTotal(invoice);
   const amount = invoice.currency === "USD" ? `$${total.toFixed(2)}` : `${Math.round(total).toLocaleString()} sats`;
@@ -57,13 +56,7 @@ export function ShareDialog({ open, onOpenChange, invoice, settings, onShared, o
     onOpenChange(false);
   };
 
-  const sendViaResend = () => {
-    onOpenChange(false);
-    onSendEmail?.();
-  };
-
   const options = [
-    { icon: Send, title: "Send via email (Resend)", desc: "Send the invoice with PDF attached", onClick: sendViaResend, disabled: !onSendEmail },
     { icon: Download, title: "Download PDF", desc: "Save a copy to your device", onClick: download, disabled: loading },
     { icon: Link2, title: "Copy shareable link", desc: "Paste in any messenger", onClick: copyLink },
     { icon: MessageCircle, title: "Share via WhatsApp", desc: "Pre-filled message with invoice details", onClick: whatsapp },
