@@ -109,7 +109,7 @@ function InvoicesPage() {
               className={`rounded-md px-3 py-1.5 text-xs font-medium transition ${
                 filter === f.key
                   ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-white/[0.04] hover:text-foreground"
+                  : "text-muted-foreground hover:bg-foreground/5 hover:text-foreground"
               }`}
             >
               {f.label}
@@ -169,7 +169,7 @@ function InvoicesPage() {
                   <div className="mt-2 flex items-center justify-end gap-1 border-t border-border/50 pt-2">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <button className="rounded p-1 text-muted-foreground hover:bg-white/5 hover:text-foreground">
+                        <button className="rounded p-1 text-muted-foreground hover:bg-foreground/5 hover:text-foreground">
                           <MoreHorizontal className="h-4 w-4" />
                         </button>
                       </DropdownMenuTrigger>
@@ -244,7 +244,7 @@ function InvoicesPage() {
                       <td className="px-3 py-3 text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <button className="rounded p-1 text-muted-foreground hover:bg-white/5 hover:text-foreground">
+                            <button className="rounded p-1 text-muted-foreground hover:bg-foreground/5 hover:text-foreground">
                               <MoreHorizontal className="h-4 w-4" />
                             </button>
                           </DropdownMenuTrigger>

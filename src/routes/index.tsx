@@ -214,7 +214,7 @@ function Dashboard() {
               <li key={s.label}>
                 <Link
                   to={s.to}
-                  className="group flex items-center gap-4 px-5 py-3.5 transition hover:bg-white/[0.02]"
+                  className="group flex items-center gap-4 px-5 py-3.5 transition hover:bg-foreground/[0.03]"
                 >
                   {s.done ? (
                     <CheckCircle2 className="h-5 w-5 shrink-0 text-success" />
@@ -421,7 +421,7 @@ function Kpi({
     tone === "success" ? "bg-success/10 text-success"
     : tone === "primary" ? "bg-primary/10 text-primary"
     : tone === "destructive" ? "bg-destructive/10 text-destructive"
-    : "bg-white/[0.05] text-muted-foreground";
+    : "bg-foreground/10 text-muted-foreground";
   return (
     <div
       className={`rounded-xl border border-border bg-card p-5 transition hover:border-border/80 ${onClick ? "cursor-pointer select-none active:scale-[0.99]" : ""}`}

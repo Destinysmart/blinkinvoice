@@ -91,7 +91,7 @@ export function ProductAutocomplete({
               onMouseDown={(e) => { e.preventDefault(); pick(p); }}
               onMouseEnter={() => setHighlight(i)}
               className={`flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-sm transition ${
-                i === highlight ? "bg-primary/10 text-foreground" : "hover:bg-white/[0.04]"
+                i === highlight ? "bg-primary/10 text-foreground" : "hover:bg-foreground/5"
               }`}
             >
               <div className="min-w-0 flex-1">

@@ -134,7 +134,7 @@ export function PreviewDialog({ open, onOpenChange, invoice, settings }: Omit<Pr
             <Button size="sm" variant="outline" onClick={downloadPreview}>
               <Download className="mr-1.5 h-3.5 w-3.5" /> Download
             </Button>
-            <button onClick={() => onOpenChange(false)} className="rounded p-1 text-muted-foreground hover:bg-white/5 hover:text-foreground">
+            <button onClick={() => onOpenChange(false)} className="rounded p-1 text-muted-foreground hover:bg-foreground/5 hover:text-foreground">
               <X className="h-4 w-4" />
             </button>
           </div>

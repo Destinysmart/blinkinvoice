@@ -1,11 +1,12 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import {
   Zap, LayoutDashboard, FileText, Users,
-  Package, FolderKanban, BarChart3, Settings, LogOut, Plus, Menu, Boxes,
+  Package, FolderKanban, BarChart3, Settings, LogOut, Plus, Menu, Boxes, Sun, Moon,
 } from "lucide-react";
 import { useState } from "react";
 import { useAppStore } from "@/lib/store";
 import { useAuth, signOut } from "@/lib/auth";
+import { useTheme } from "@/lib/theme";
 import { toast } from "sonner";
 import { HintWrap } from "./InfoHint";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -41,6 +42,7 @@ export function Sidebar() {
   const connected = Boolean(apiKey);
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { theme, toggle: toggleTheme } = useTheme();
 
   const handleSignOut = async () => {
     await signOut();
@@ -52,7 +54,7 @@ export function Sidebar() {
     exact ? pathname === to : pathname === to || pathname.startsWith(to + "/");
 
   return (
-    <aside className="hidden md:flex sticky top-0 h-screen w-[240px] shrink-0 flex-col border-r border-border bg-[#0B0B0B]">
+    <aside className="hidden md:flex sticky top-0 h-screen w-[240px] shrink-0 flex-col border-r border-border bg-surface">
       {/* Logo */}
       <div className="px-5 pt-5 pb-6">
         <Link to="/" className="flex items-center gap-2.5">
@@ -85,7 +87,7 @@ export function Sidebar() {
                         className={`group relative flex items-center gap-2.5 rounded-md px-3 py-2 text-[13px] font-medium transition ${
                           active
                             ? "bg-primary/10 text-primary"
-                            : "text-muted-foreground hover:bg-white/[0.04] hover:text-foreground"
+                            : "text-muted-foreground hover:bg-foreground/5 hover:text-foreground"
                         }`}
                       >
                         {active && <span className="absolute left-0 top-1.5 bottom-1.5 w-[2px] rounded-r bg-primary" />}
@@ -120,10 +122,19 @@ export function Sidebar() {
                 {user.email}
               </div>
             </div>
+            <HintWrap hint={`Switch to ${theme === "dark" ? "light" : "dark"} theme`} side="top">
+              <button
+                onClick={toggleTheme}
+                className="rounded p-1.5 text-muted-foreground transition hover:bg-foreground/5 hover:text-foreground"
+                aria-label="Toggle theme"
+              >
+                {theme === "dark" ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
+              </button>
+            </HintWrap>
             <HintWrap hint="Sign out of BlinkInvoice" side="top">
               <button
                 onClick={handleSignOut}
-                className="rounded p-1.5 text-muted-foreground transition hover:bg-white/[0.05] hover:text-foreground"
+                className="rounded p-1.5 text-muted-foreground transition hover:bg-foreground/5 hover:text-foreground"
                 aria-label="Sign out"
               >
                 <LogOut className="h-3.5 w-3.5" />
@@ -154,7 +165,7 @@ export function MobileBar() {
     exact ? pathname === to : pathname === to || pathname.startsWith(to + "/");
 
   return (
-    <header className="md:hidden sticky top-0 z-40 flex h-14 items-center justify-between border-b border-border bg-[#0B0B0B] px-4">
+    <header className="md:hidden sticky top-0 z-40 flex h-14 items-center justify-between border-b border-border bg-surface px-4">
       <div className="flex items-center gap-2">
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild>
@@ -165,7 +176,7 @@ export function MobileBar() {
               <Menu className="h-4 w-4" />
             </button>
           </SheetTrigger>
-          <SheetContent side="left" className="w-[280px] border-r border-border bg-[#0B0B0B] p-0">
+          <SheetContent side="left" className="w-[280px] border-r border-border bg-surface p-0">
             <div className="flex h-full flex-col">
               <div className="px-5 pt-6 pb-5">
                 <Link to="/" onClick={() => setOpen(false)} className="flex items-center gap-2.5">
@@ -197,7 +208,7 @@ export function MobileBar() {
                               className={`flex items-center gap-2.5 rounded-md px-3 py-2.5 text-sm font-medium transition ${
                                 active
                                   ? "bg-primary/10 text-primary"
-                                  : "text-muted-foreground hover:bg-white/[0.04] hover:text-foreground"
+                                  : "text-muted-foreground hover:bg-foreground/5 hover:text-foreground"
                               }`}
                             >
                               <it.icon className="h-4 w-4" />
