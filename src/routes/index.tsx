@@ -63,25 +63,32 @@ function Dashboard() {
   };
 
   const chartData = useMemo(() => {
-    const months: { name: string; total: number; key: string }[] = [];
+    const months: { name: string; usd: number; btc: number; key: string }[] = [];
     const now = new Date();
     for (let i = 5; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
       months.push({
         key: `${d.getFullYear()}-${d.getMonth()}`,
         name: d.toLocaleDateString("en", { month: "short" }),
-        total: 0,
+        usd: 0,
+        btc: 0,
       });
     }
     for (const inv of invoices) {
-      if (inv.currency !== "USD" || inv.status !== "paid") continue;
+      if (inv.status !== "paid") continue;
       const d = new Date(inv.issueDate ?? inv.createdAt);
       const key = `${d.getFullYear()}-${d.getMonth()}`;
       const bucket = months.find((m) => m.key === key);
-      if (bucket) bucket.total += invoiceTotal(inv).total;
+      if (!bucket) continue;
+      const t = invoiceTotal(inv).total;
+      if (inv.currency === "BTC") bucket.btc += t;
+      else bucket.usd += t;
     }
     return months;
   }, [invoices]);
+
+  const hasUsdRevenue = chartData.some((m) => m.usd > 0);
+  const hasBtcRevenue = chartData.some((m) => m.btc > 0);
 
   const recent = invoices.slice(0, 5);
 
@@ -239,21 +246,38 @@ function Dashboard() {
           title="Revenue"
           subtitle="Last 6 months · paid invoices"
           className="lg:col-span-2"
-          hint="Sum of paid USD invoices per month, based on the invoice issue date."
+          hint="Sum of paid invoices per month, by currency. USD on the left axis, sats on the right."
         >
           <div className="h-60 -mx-2">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData} margin={{ top: 10, right: 10, bottom: 0, left: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#262626" vertical={false} />
                 <XAxis dataKey="name" stroke="#6b6b6b" fontSize={11} tickLine={false} axisLine={false} />
-                <YAxis stroke="#6b6b6b" fontSize={11} tickLine={false} axisLine={false}
-                  tickFormatter={(v) => `$${v >= 1000 ? `${(v/1000).toFixed(0)}k` : v}`} />
+                {hasUsdRevenue && (
+                  <YAxis yAxisId="usd" stroke="#6b6b6b" fontSize={11} tickLine={false} axisLine={false}
+                    tickFormatter={(v) => `$${v >= 1000 ? `${(v/1000).toFixed(0)}k` : v}`} />
+                )}
+                {hasBtcRevenue && (
+                  <YAxis yAxisId="btc" orientation="right" stroke="#F7931A" fontSize={11} tickLine={false} axisLine={false}
+                    tickFormatter={(v) => v >= 1000 ? `${(v/1000).toFixed(0)}k` : `${v}`} />
+                )}
+                {!hasUsdRevenue && !hasBtcRevenue && (
+                  <YAxis yAxisId="usd" stroke="#6b6b6b" fontSize={11} tickLine={false} axisLine={false} />
+                )}
                 <Tooltip
                   cursor={{ fill: "rgba(232,93,58,0.08)" }}
                   contentStyle={{ background: "#181818", border: "1px solid #262626", borderRadius: 8, fontSize: 12 }}
-                  formatter={(v: number) => fmtUsd(v)}
+                  formatter={(v: number, name) => name === "btc" ? fmtSats(v) : fmtUsd(v)}
                 />
-                <Bar dataKey="total" fill="var(--primary)" radius={[4, 4, 0, 0]} />
+                {hasUsdRevenue && (
+                  <Bar yAxisId="usd" dataKey="usd" name="USD" fill="var(--primary)" radius={[4, 4, 0, 0]} />
+                )}
+                {hasBtcRevenue && (
+                  <Bar yAxisId={hasUsdRevenue ? "btc" : "usd"} dataKey="btc" name="btc" fill="#F7931A" radius={[4, 4, 0, 0]} />
+                )}
+                {!hasUsdRevenue && !hasBtcRevenue && (
+                  <Bar yAxisId="usd" dataKey="usd" fill="var(--primary)" radius={[4, 4, 0, 0]} />
+                )}
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -316,7 +340,7 @@ function Dashboard() {
                     <td className="py-3 text-[13px]">{inv.client.name}</td>
                     <td className="py-3 text-[13px] text-muted-foreground">{fmtDate(inv.issueDate ?? inv.createdAt)}</td>
                     <td className="py-3"><StatusBadge status={overdue ? "overdue" : inv.status} /></td>
-                    <td className="py-3 text-right font-mono text-[13px]">{fmtUsd(invoiceTotal(inv).total)}</td>
+                    <td className="py-3 text-right font-mono text-[13px]">{inv.currency === "BTC" ? fmtSats(invoiceTotal(inv).total) : fmtUsd(invoiceTotal(inv).total)}</td>
                   </tr>
                 );
               })}
