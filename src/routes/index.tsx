@@ -26,26 +26,41 @@ function Dashboard() {
   useEffect(() => { seedDemo(); }, [seedDemo]);
 
   const stats = useMemo(() => {
-    let total = 0, paidThisMonth = 0, paidLastMonth = 0, outstanding = 0, overdue = 0;
+    const empty = () => ({ usd: 0, btc: 0 });
+    const total = empty();
+    const paidThisMonth = empty();
+    const paidLastMonth = empty();
+    const outstanding = empty();
+    const overdue = empty();
     const now = new Date();
     const thisM = now.getMonth(), thisY = now.getFullYear();
     const lastDate = new Date(thisY, thisM - 1, 1);
     for (const inv of invoices) {
-      if (inv.currency !== "USD") continue;
       const { total: t } = invoiceTotal(inv);
-      total += t;
+      const bucket = inv.currency === "BTC" ? "btc" : "usd";
+      total[bucket] += t;
       if (inv.status === "paid") {
         const d = new Date(inv.issueDate ?? inv.createdAt);
-        if (d.getMonth() === thisM && d.getFullYear() === thisY) paidThisMonth += t;
-        if (d.getMonth() === lastDate.getMonth() && d.getFullYear() === lastDate.getFullYear()) paidLastMonth += t;
+        if (d.getMonth() === thisM && d.getFullYear() === thisY) paidThisMonth[bucket] += t;
+        if (d.getMonth() === lastDate.getMonth() && d.getFullYear() === lastDate.getFullYear()) paidLastMonth[bucket] += t;
       } else if (inv.status === "pending") {
-        outstanding += t;
-        if (isOverdue(inv)) overdue += t;
+        outstanding[bucket] += t;
+        if (isOverdue(inv)) overdue[bucket] += t;
       }
     }
-    const trend = paidLastMonth === 0 ? null : ((paidThisMonth - paidLastMonth) / paidLastMonth) * 100;
+    const usdLast = paidLastMonth.usd;
+    const trend = usdLast === 0 ? null : ((paidThisMonth.usd - usdLast) / usdLast) * 100;
     return { total, paidThisMonth, outstanding, overdue, trend };
   }, [invoices]);
+
+  // Format a {usd, btc} bucket. Shows both when both non-zero; otherwise the
+  // non-zero one; falls back to $0.00 when both are zero.
+  const fmtBucket = (b: { usd: number; btc: number }) => {
+    const parts: string[] = [];
+    if (b.usd > 0) parts.push(fmtUsd(b.usd));
+    if (b.btc > 0) parts.push(fmtSats(b.btc));
+    return parts.length ? parts.join(" · ") : fmtUsd(0);
+  };
 
   const chartData = useMemo(() => {
     const months: { name: string; total: number; key: string }[] = [];
