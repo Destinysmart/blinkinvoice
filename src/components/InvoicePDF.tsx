@@ -4,43 +4,145 @@ import type { Invoice, Settings } from "@/lib/types";
 import { invoiceTotal } from "@/lib/store";
 
 const ORANGE = "#F7931A";
-const MUTED = "#6b6b6b";
-const BORDER = "#d4d4d4";
+const INK = "#0F0F10";
+const TEXT = "#1f1f22";
+const MUTED = "#8a8a90";
+const SOFT = "#bdbdc4";
+const HAIR = "#e6e6ea";
+const PANEL = "#FAFAF7";
 
 const styles = StyleSheet.create({
-  page: { padding: 40, fontSize: 10, fontFamily: "Helvetica", color: "#111", lineHeight: 1.4 },
-  header: { flexDirection: "row", justifyContent: "space-between", marginBottom: 28 },
-  bizName: { fontSize: 14, fontFamily: "Helvetica-Bold" },
-  muted: { color: MUTED, fontSize: 9 },
-  invoiceLabel: { fontSize: 28, fontFamily: "Helvetica-Bold", color: ORANGE, letterSpacing: 2, textAlign: "right" },
-  invoiceNum: { fontFamily: "Courier-Bold", fontSize: 11, textAlign: "right", marginTop: 4 },
-  smallLabel: { fontSize: 8, color: MUTED, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 },
-  billTo: { marginBottom: 24 },
-  row: { flexDirection: "row" },
-  th: { backgroundColor: "#f3f3f3", paddingVertical: 6, paddingHorizontal: 6, fontSize: 8, textTransform: "uppercase", letterSpacing: 0.5, fontFamily: "Helvetica-Bold", color: "#444" },
-  td: { paddingVertical: 6, paddingHorizontal: 6, fontSize: 10 },
+  page: {
+    paddingTop: 56,
+    paddingBottom: 64,
+    paddingHorizontal: 56,
+    fontSize: 10,
+    fontFamily: "Helvetica",
+    color: TEXT,
+    lineHeight: 1.45,
+  },
+
+  // ---------- Header ----------
+  header: { flexDirection: "row", alignItems: "flex-start", marginBottom: 36 },
+  headerLeft: { flex: 1 },
+  headerRight: { flex: 1, flexDirection: "row" },
+  divider: { width: 1, backgroundColor: HAIR, marginRight: 18 },
+  logo: { width: 56, height: 56, objectFit: "contain", marginBottom: 10 },
+  logoMark: {
+    width: 36, height: 36, borderRadius: 8, backgroundColor: ORANGE,
+    alignItems: "center", justifyContent: "center", marginBottom: 12,
+  },
+  logoMarkText: { color: "#fff", fontFamily: "Helvetica-Bold", fontSize: 18 },
+
+  // Label/value pairs (right column)
+  metaRow: { flexDirection: "row", marginBottom: 10 },
+  metaLabel: {
+    width: 70, fontSize: 8, color: MUTED, textTransform: "uppercase",
+    letterSpacing: 0.8, textAlign: "right", marginRight: 16, paddingTop: 2,
+  },
+  metaValue: { flex: 1, fontSize: 10, color: TEXT },
+  bizName: { fontSize: 11, fontFamily: "Helvetica-Bold", color: INK, marginBottom: 2 },
+  bizLine: { fontSize: 10, color: TEXT },
+
+  // ---------- INVOICE wordmark ----------
+  wordmark: {
+    fontSize: 36, fontFamily: "Helvetica-Bold", color: INK,
+    letterSpacing: 1, marginTop: 8, marginBottom: 14,
+  },
+
+  // ---------- Bill-to + meta block ----------
+  metaBlock: { flexDirection: "row", marginBottom: 36 },
+  metaCol: { flex: 1, flexDirection: "row" },
+
+  // ---------- Items ----------
+  itemsHeader: {
+    flexDirection: "row", backgroundColor: PANEL,
+    paddingVertical: 9, paddingHorizontal: 10, marginBottom: 2,
+  },
+  th: {
+    fontSize: 8, fontFamily: "Helvetica-Bold", color: INK,
+    textTransform: "uppercase", letterSpacing: 0.6,
+  },
+  itemRow: {
+    flexDirection: "row", paddingVertical: 11, paddingHorizontal: 10,
+    borderBottomWidth: 1, borderBottomColor: HAIR,
+  },
+  td: { fontSize: 10, color: TEXT },
   colDesc: { flex: 3 },
   colNum: { flex: 1, textAlign: "right" },
-  totalsBox: { width: 220, alignSelf: "flex-end", marginTop: 12 },
-  totalRow: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 3, fontSize: 10 },
-  totalLine: { borderTopWidth: 1, borderTopColor: BORDER, marginTop: 6, paddingTop: 8 },
-  totalAmount: { fontFamily: "Helvetica-Bold", fontSize: 16, color: ORANGE },
-  section: { marginTop: 28, paddingTop: 14, borderTopWidth: 1, borderTopColor: BORDER },
-  sectionTitle: { fontSize: 9, fontFamily: "Helvetica-Bold", color: ORANGE, textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 },
-  bolt11: { fontFamily: "Courier", fontSize: 8, color: "#333", backgroundColor: "#fafafa", padding: 8, borderWidth: 1, borderColor: BORDER },
-  footer: { position: "absolute", bottom: 24, left: 40, right: 40, fontSize: 8, color: MUTED, textAlign: "center", borderTopWidth: 1, borderTopColor: BORDER, paddingTop: 8 },
-  logo: { width: 48, height: 48, objectFit: "contain", marginBottom: 6 },
-  lightningSection: { marginTop: 24, padding: 16, backgroundColor: "#FFF8F0", borderRadius: 6, borderLeftWidth: 4, borderLeftColor: ORANGE, borderLeftStyle: "solid" },
-  lightningTitle: { fontSize: 10, fontFamily: "Helvetica-Bold", color: ORANGE, letterSpacing: 1, marginBottom: 12 },
-  lightningBody: { flexDirection: "row", alignItems: "center", gap: 20 },
-  qrBox: { alignItems: "center", flexShrink: 0 },
+
+  // ---------- Totals ----------
+  totalsBox: { width: 260, alignSelf: "flex-end", marginTop: 20 },
+  totalRow: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 4 },
+  totalLabel: { color: MUTED, fontSize: 10 },
+  totalValue: { fontSize: 10, color: TEXT },
+  amountDueRow: {
+    flexDirection: "row", justifyContent: "space-between", alignItems: "center",
+    marginTop: 10, paddingTop: 14, borderTopWidth: 1, borderTopColor: HAIR,
+  },
+  amountDueLabel: { fontSize: 16, fontFamily: "Helvetica-Bold", color: INK },
+  amountDueValue: { fontSize: 22, fontFamily: "Helvetica-Bold", color: INK },
+  satsHint: { textAlign: "right", color: MUTED, fontSize: 9, marginTop: 4 },
+
+  // ---------- Lightning ----------
+  lightningCard: {
+    marginTop: 32, padding: 18,
+    borderWidth: 1, borderColor: HAIR, borderRadius: 4,
+    backgroundColor: "#fffdfa",
+  },
+  lightningHead: {
+    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
+    marginBottom: 14,
+  },
+  lightningTitle: {
+    fontSize: 9, fontFamily: "Helvetica-Bold", color: ORANGE,
+    letterSpacing: 1.2, textTransform: "uppercase",
+  },
+  lightningAmount: { fontSize: 14, fontFamily: "Courier-Bold", color: INK },
+  lightningBody: { flexDirection: "row", gap: 18 },
+  qrBox: {
+    padding: 6, backgroundColor: "#fff",
+    borderWidth: 1, borderColor: HAIR, borderRadius: 4,
+  },
   qrImage: { width: 110, height: 110 },
-  qrCaption: { fontSize: 7, color: "#888888", textAlign: "center", marginTop: 4 },
-  lightningInfo: { flex: 1 },
-  lightningAmount: { fontSize: 16, fontFamily: "Courier-Bold", color: ORANGE, marginBottom: 8 },
-  lightningInstructions: { fontSize: 9, color: "#444444", lineHeight: 1.5, marginBottom: 8 },
-  walletList: { fontSize: 8, color: "#888888", fontStyle: "italic" },
+  lightningInfo: { flex: 1, justifyContent: "center" },
+  lightningInstructions: { fontSize: 9.5, color: TEXT, lineHeight: 1.55, marginBottom: 8 },
+  walletList: { fontSize: 8.5, color: MUTED },
+  bolt11Label: {
+    marginTop: 14, fontSize: 7.5, color: MUTED,
+    textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 4,
+  },
+  bolt11: {
+    fontFamily: "Courier", fontSize: 7.5, color: "#3a3a3a",
+    backgroundColor: "#f5f5f1", padding: 8, borderRadius: 3,
+  },
+
+  // ---------- Misc ----------
+  notesBlock: { marginTop: 32 },
+  notesLabel: {
+    fontSize: 8, color: MUTED, textTransform: "uppercase",
+    letterSpacing: 0.8, marginBottom: 6,
+  },
+  notesText: { fontSize: 10, color: TEXT, lineHeight: 1.5 },
+  footerBar: {
+    position: "absolute", bottom: 32, left: 56, right: 56,
+    flexDirection: "row", justifyContent: "space-between",
+    paddingTop: 12, borderTopWidth: 1, borderTopColor: HAIR,
+  },
+  footerText: { fontSize: 8, color: SOFT },
+
+  statusPill: {
+    alignSelf: "flex-start", paddingHorizontal: 8, paddingVertical: 3,
+    borderRadius: 999, fontSize: 8, fontFamily: "Helvetica-Bold",
+    textTransform: "uppercase", letterSpacing: 0.8,
+  },
 });
+
+const STATUS_STYLES: Record<string, { bg: string; color: string }> = {
+  paid:    { bg: "#E9F7EF", color: "#1B7F47" },
+  pending: { bg: "#FFF3E0", color: "#B26A00" },
+  draft:   { bg: "#EFEFEF", color: "#555" },
+};
 
 function fmtMoney(n: number, currency: "USD" | "BTC") {
   if (currency === "USD") return `$${n.toFixed(2)}`;
@@ -51,51 +153,98 @@ function fmtDate(d?: string | null) {
   return new Date(d).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
 }
 
-export function InvoicePDF({ invoice, settings, qrCodeDataURL }: { invoice: Invoice; settings: Settings; qrCodeDataURL?: string | null }) {
+export function InvoicePDF({
+  invoice, settings, qrCodeDataURL,
+}: { invoice: Invoice; settings: Settings; qrCodeDataURL?: string | null }) {
   const { subtotal, tax, total } = invoiceTotal(invoice);
+  const status = STATUS_STYLES[invoice.status] ?? STATUS_STYLES.draft;
+  const businessInitial = (settings.businessName || "B").trim().charAt(0).toUpperCase();
 
   return (
     <Document title={invoice.number} author={settings.businessName || "BlinkPay"}>
       <Page size="A4" style={styles.page}>
-        {/* Header */}
+
+        {/* Header: logo (left)  |  From (right, label/value with divider) */}
         <View style={styles.header}>
-          <View style={{ flex: 1 }}>
-            {settings.logo ? <Image src={settings.logo} style={styles.logo} /> : null}
-            <Text style={styles.bizName}>{settings.businessName || "Your Business"}</Text>
-            {settings.businessEmail ? <Text style={styles.muted}>{settings.businessEmail}</Text> : null}
-            {settings.businessAddress ? <Text style={styles.muted}>{settings.businessAddress}</Text> : null}
+          <View style={styles.headerLeft}>
+            {settings.logo ? (
+              <Image src={settings.logo} style={styles.logo} />
+            ) : (
+              <View style={styles.logoMark}>
+                <Text style={styles.logoMarkText}>{businessInitial}</Text>
+              </View>
+            )}
           </View>
-          <View style={{ width: 200 }}>
-            <Text style={styles.invoiceLabel}>INVOICE</Text>
-            <Text style={styles.invoiceNum}>{invoice.number}</Text>
-            <View style={{ marginTop: 10, alignItems: "flex-end" }}>
-              <Text style={styles.muted}>Issued: {fmtDate(invoice.issueDate ?? invoice.createdAt)}</Text>
-              <Text style={styles.muted}>Due: {fmtDate(invoice.dueDate)}</Text>
+          <View style={styles.headerRight}>
+            <Text style={styles.metaLabel}>From</Text>
+            <View style={styles.divider} />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.bizName}>{settings.businessName || "Your Business"}</Text>
+              {settings.businessAddress
+                ? settings.businessAddress.split("\n").map((line, i) => (
+                    <Text key={i} style={styles.bizLine}>{line}</Text>
+                  ))
+                : null}
+              {settings.businessEmail ? <Text style={styles.bizLine}>{settings.businessEmail}</Text> : null}
             </View>
           </View>
         </View>
 
-        {/* Bill To */}
-        <View style={styles.billTo}>
-          <Text style={styles.smallLabel}>Bill to</Text>
-          <Text style={{ fontFamily: "Helvetica-Bold", fontSize: 12 }}>{invoice.client.name}</Text>
-          {invoice.client.email ? <Text style={styles.muted}>{invoice.client.email}</Text> : null}
-          {invoice.client.address ? <Text style={styles.muted}>{invoice.client.address}</Text> : null}
+        {/* INVOICE wordmark + meta */}
+        <View style={styles.metaBlock}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.wordmark}>INVOICE</Text>
+            <View style={styles.metaRow}>
+              <Text style={styles.metaLabel}>Invoice ID</Text>
+              <Text style={styles.metaValue}>{invoice.number}</Text>
+            </View>
+            <View style={styles.metaRow}>
+              <Text style={styles.metaLabel}>Issued</Text>
+              <Text style={styles.metaValue}>{fmtDate(invoice.issueDate ?? invoice.createdAt)}</Text>
+            </View>
+            <View style={styles.metaRow}>
+              <Text style={styles.metaLabel}>Due</Text>
+              <Text style={styles.metaValue}>{fmtDate(invoice.dueDate)}</Text>
+            </View>
+            <View style={styles.metaRow}>
+              <Text style={styles.metaLabel}>Status</Text>
+              <View style={styles.metaValue}>
+                <Text style={[styles.statusPill, { backgroundColor: status.bg, color: status.color }]}>
+                  {invoice.status}
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Bill To */}
+          <View style={[styles.headerRight, { marginTop: 50 }]}>
+            <Text style={styles.metaLabel}>Bill to</Text>
+            <View style={styles.divider} />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.bizName}>{invoice.client.name}</Text>
+              {invoice.client.address
+                ? invoice.client.address.split("\n").map((line, i) => (
+                    <Text key={i} style={styles.bizLine}>{line}</Text>
+                  ))
+                : null}
+              {invoice.client.email ? <Text style={styles.bizLine}>{invoice.client.email}</Text> : null}
+            </View>
+          </View>
         </View>
 
         {/* Items */}
-        <View style={{ borderBottomWidth: 1, borderBottomColor: BORDER }}>
-          <View style={styles.row}>
+        <View>
+          <View style={styles.itemsHeader}>
             <Text style={[styles.th, styles.colDesc]}>Description</Text>
-            <Text style={[styles.th, styles.colNum]}>Qty</Text>
             <Text style={[styles.th, styles.colNum]}>Unit Price</Text>
-            <Text style={[styles.th, styles.colNum]}>Total</Text>
+            <Text style={[styles.th, styles.colNum]}>Qty</Text>
+            <Text style={[styles.th, styles.colNum]}>Amount</Text>
           </View>
-          {invoice.items.map((it, i) => (
-            <View key={it.id} style={[styles.row, { backgroundColor: i % 2 ? "#fafafa" : "#ffffff" }]}>
+          {invoice.items.map((it) => (
+            <View key={it.id} style={styles.itemRow}>
               <Text style={[styles.td, styles.colDesc]}>{it.desc || "—"}</Text>
-              <Text style={[styles.td, styles.colNum]}>{it.qty}</Text>
               <Text style={[styles.td, styles.colNum]}>{fmtMoney(it.price, invoice.currency)}</Text>
+              <Text style={[styles.td, styles.colNum]}>{it.qty}</Text>
               <Text style={[styles.td, styles.colNum]}>{fmtMoney(it.qty * it.price, invoice.currency)}</Text>
             </View>
           ))}
@@ -104,68 +253,69 @@ export function InvoicePDF({ invoice, settings, qrCodeDataURL }: { invoice: Invo
         {/* Totals */}
         <View style={styles.totalsBox}>
           <View style={styles.totalRow}>
-            <Text style={{ color: MUTED }}>Subtotal</Text>
-            <Text>{fmtMoney(subtotal, invoice.currency)}</Text>
+            <Text style={styles.totalLabel}>Subtotal</Text>
+            <Text style={styles.totalValue}>{fmtMoney(subtotal, invoice.currency)}</Text>
           </View>
           {invoice.tax > 0 && (
             <View style={styles.totalRow}>
-              <Text style={{ color: MUTED }}>Tax ({invoice.tax}%)</Text>
-              <Text>{fmtMoney(tax, invoice.currency)}</Text>
+              <Text style={styles.totalLabel}>Tax ({invoice.tax}%)</Text>
+              <Text style={styles.totalValue}>{fmtMoney(tax, invoice.currency)}</Text>
             </View>
           )}
-          <View style={[styles.totalRow, styles.totalLine]}>
-            <Text style={{ fontFamily: "Helvetica-Bold" }}>Total Due</Text>
-            <Text style={styles.totalAmount}>{fmtMoney(total, invoice.currency)}</Text>
+          <View style={styles.amountDueRow}>
+            <Text style={styles.amountDueLabel}>Amount Due</Text>
+            <Text style={styles.amountDueValue}>{fmtMoney(total, invoice.currency)}</Text>
           </View>
-          {invoice.satoshis ? (
-            <Text style={{ textAlign: "right", color: MUTED, fontSize: 9, marginTop: 2 }}>
-              ≈ {invoice.satoshis.toLocaleString()} sats
-            </Text>
+          {invoice.satoshis && invoice.currency === "USD" ? (
+            <Text style={styles.satsHint}>≈ {invoice.satoshis.toLocaleString()} sats</Text>
           ) : null}
         </View>
 
         {/* Lightning */}
         {invoice.paymentRequest ? (
-          <View style={styles.lightningSection}>
-            <Text style={styles.lightningTitle}>⚡  PAY VIA BITCOIN LIGHTNING</Text>
+          <View style={styles.lightningCard} wrap={false}>
+            <View style={styles.lightningHead}>
+              <Text style={styles.lightningTitle}>⚡  Pay via Bitcoin Lightning</Text>
+              {invoice.satoshis ? (
+                <Text style={styles.lightningAmount}>{invoice.satoshis.toLocaleString()} sats</Text>
+              ) : null}
+            </View>
             <View style={styles.lightningBody}>
               {qrCodeDataURL ? (
                 <View style={styles.qrBox}>
                   <Image src={qrCodeDataURL} style={styles.qrImage} />
-                  <Text style={styles.qrCaption}>Scan to pay instantly</Text>
                 </View>
               ) : null}
               <View style={styles.lightningInfo}>
-                {invoice.satoshis ? (
-                  <Text style={styles.lightningAmount}>{invoice.satoshis.toLocaleString()} sats</Text>
-                ) : null}
                 <Text style={styles.lightningInstructions}>
-                  Open any Lightning wallet, tap Scan or Pay Invoice, then scan this QR code.
+                  Open any Lightning wallet, choose Scan or Pay Invoice, and scan the QR code on the left.
+                  Payment settles in seconds.
                 </Text>
                 <Text style={styles.walletList}>
-                  Works with: Blink · Zeus · Phoenix · Muun · Blue Wallet · Wallet of Satoshi
+                  Works with Blink, Zeus, Phoenix, Muun, Blue Wallet, Wallet of Satoshi and others.
                 </Text>
               </View>
             </View>
-            <Text style={[styles.bolt11, { marginTop: 10 }]}>{invoice.paymentRequest}</Text>
+            <Text style={styles.bolt11Label}>Lightning invoice (BOLT11)</Text>
+            <Text style={styles.bolt11}>{invoice.paymentRequest}</Text>
           </View>
         ) : null}
 
-        {/* Memo */}
+        {/* Notes */}
         {invoice.memo ? (
-          <View style={styles.section}>
-            <Text style={styles.smallLabel}>Notes</Text>
-            <Text>{invoice.memo}</Text>
+          <View style={styles.notesBlock}>
+            <Text style={styles.notesLabel}>Notes</Text>
+            <Text style={styles.notesText}>{invoice.memo}</Text>
           </View>
         ) : null}
 
-        {settings.invoiceFooter ? (
-          <Text style={{ marginTop: 18, fontSize: 9, color: MUTED, textAlign: "center" }}>{settings.invoiceFooter}</Text>
-        ) : null}
-
-        <Text style={styles.footer} fixed>
-          Generated by BlinkPay • Bitcoin-native invoicing
-        </Text>
+        {/* Footer */}
+        <View style={styles.footerBar} fixed>
+          <Text style={styles.footerText}>
+            {settings.invoiceFooter || `Thank you for your business — ${settings.businessName || "BlinkPay"}`}
+          </Text>
+          <Text style={styles.footerText} render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`} />
+        </View>
       </Page>
     </Document>
   );
@@ -176,8 +326,8 @@ export async function downloadInvoicePDF(invoice: Invoice, settings: Settings) {
   let qrCodeDataURL: string | null = null;
   if (invoice.paymentRequest) {
     qrCodeDataURL = await QRCode.toDataURL(`lightning:${invoice.paymentRequest}`, {
-      width: 220,
-      margin: 2,
+      width: 320,
+      margin: 1,
       color: { dark: "#000000", light: "#FFFFFF" },
     });
   }
