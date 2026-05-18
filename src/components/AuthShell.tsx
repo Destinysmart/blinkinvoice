@@ -15,7 +15,7 @@ export function AuthShell({ children, title, subtitle, footer }: {
             <span className="grid h-10 w-10 place-items-center rounded-lg bg-primary text-primary-foreground">
               <Zap className="h-5 w-5 fill-current" />
             </span>
-            <span className="font-display text-2xl font-bold tracking-tight">BlinkPay</span>
+            <span className="font-display text-2xl font-bold tracking-tight">BlinkInvoice</span>
           </Link>
           <p className="mt-1 text-xs uppercase tracking-widest text-muted-foreground">Bitcoin Invoicing</p>
         </div>

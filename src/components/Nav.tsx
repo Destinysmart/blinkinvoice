@@ -15,7 +15,7 @@ export function Nav() {
           <span className="grid h-8 w-8 place-items-center rounded-md bg-primary text-primary-foreground">
             <Zap className="h-4 w-4 fill-current" />
           </span>
-          <span className="font-display text-xl font-bold tracking-tight">BlinkPay</span>
+          <span className="font-display text-xl font-bold tracking-tight">BlinkInvoice</span>
         </Link>
         <nav className="flex items-center gap-1">
           {tabs.map((t) => (
