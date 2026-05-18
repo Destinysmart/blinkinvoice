@@ -155,7 +155,7 @@ function InvoicesPage() {
                 <th className="px-3 py-3 text-left font-medium">Due Date</th>
                 <th className="px-3 py-3 text-right font-medium">Amount</th>
                 <th className="px-3 py-3 text-left font-medium">Status</th>
-                <th className="px-3 py-3 text-center font-medium"><Zap className="inline h-3.5 w-3.5" /></th>
+                <th className="px-3 py-3 text-center font-medium"><span className="inline-flex items-center gap-1"><Zap className="h-3.5 w-3.5" /><InfoHint text="Lightning column — a bolt icon means a Bitcoin Lightning invoice has been generated and the client can pay instantly." /></span></th>
                 <th className="w-10 px-3 py-3" />
               </tr>
             </thead>
