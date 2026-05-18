@@ -61,7 +61,7 @@ export function SendInvoiceDialog({ open, onOpenChange, invoice, settings, onSen
       const base64 = await blobToBase64(blob);
       return sendFn({
         data: {
-          invoiceId: invoice.id.includes("-") ? invoice.id : undefined,
+          invoiceId: /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(invoice.id) ? invoice.id : undefined,
           to,
           subject,
           html,
