@@ -340,7 +340,7 @@ function Dashboard() {
                     <td className="py-3 text-[13px]">{inv.client.name}</td>
                     <td className="py-3 text-[13px] text-muted-foreground">{fmtDate(inv.issueDate ?? inv.createdAt)}</td>
                     <td className="py-3"><StatusBadge status={overdue ? "overdue" : inv.status} /></td>
-                    <td className="py-3 text-right font-mono text-[13px]">{fmtUsd(invoiceTotal(inv).total)}</td>
+                    <td className="py-3 text-right font-mono text-[13px]">{inv.currency === "BTC" ? fmtSats(invoiceTotal(inv).total) : fmtUsd(invoiceTotal(inv).total)}</td>
                   </tr>
                 );
               })}
