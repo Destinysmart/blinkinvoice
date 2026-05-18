@@ -29,22 +29,11 @@ function InvoiceDetailPage() {
   const updateInvoice = useAppStore((s) => s.updateInvoice);
   const deleteInvoice = useAppStore((s) => s.deleteInvoice);
 
-  if (!invoice) {
-    return (
-      <div className="text-center py-20">
-        <p className="text-muted-foreground">Invoice not found.</p>
-        <Button asChild className="mt-4"><Link to="/invoices">Back</Link></Button>
-      </div>
-    );
-  }
-
-  const { subtotal, tax, total } = invoiceTotal(invoice);
-  const unit = invoice.currency === "USD" ? "$" : "sats";
-  const fmt = (n: number) => (invoice.currency === "USD" ? `$${n.toFixed(2)}` : `${Math.round(n).toLocaleString()} sats`);
-
   const ln = useMutation({
     mutationFn: async () => {
+      if (!invoice) throw new Error("Invoice not found");
       if (!settings.apiKey || !settings.walletId) throw new Error("Configure API key & wallet in Settings");
+      const { total } = invoiceTotal(invoice);
       const memo = `${invoice.number} — ${invoice.client.name}`;
       if (invoice.currency === "USD") {
         return createLnUsdInvoice(settings.apiKey, settings.walletId, Math.round(total * 100), memo);
@@ -62,6 +51,18 @@ function InvoiceDetailPage() {
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
+  if (!invoice) {
+    return (
+      <div className="text-center py-20">
+        <p className="text-muted-foreground">Invoice not found.</p>
+        <Button asChild className="mt-4"><Link to="/invoices">Back</Link></Button>
+      </div>
+    );
+  }
+
+  const { subtotal, tax, total } = invoiceTotal(invoice);
+  const fmt = (n: number) => (invoice.currency === "USD" ? `$${n.toFixed(2)}` : `${Math.round(n).toLocaleString()} sats`);
 
   const setStatus = (status: InvoiceStatus) => {
     updateInvoice(id, { status });
