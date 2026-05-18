@@ -42,6 +42,7 @@ export function Sidebar() {
   const connected = Boolean(apiKey);
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { theme, toggle: toggleTheme } = useTheme();
 
   const handleSignOut = async () => {
     await signOut();
