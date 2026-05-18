@@ -95,6 +95,7 @@ export function ShareDialog({ open, onOpenChange, invoice, settings, onShared }:
 export function PreviewDialog({ open, onOpenChange, invoice, settings }: Omit<Props, "onShared">) {
   const [PDFViewer, setPDFViewer] = useState<any>(null);
   const [InvoicePDFComp, setInvoicePDFComp] = useState<any>(null);
+  const [qrDataURL, setQrDataURL] = useState<string | null>(null);
 
   const downloadPreview = async () => {
     try {
@@ -111,9 +112,16 @@ export function PreviewDialog({ open, onOpenChange, invoice, settings }: Omit<Pr
     Promise.all([
       import("@react-pdf/renderer"),
       import("./InvoicePDF"),
-    ]).then(([rp, ip]) => {
+      import("qrcode"),
+    ]).then(async ([rp, ip, qr]) => {
       setPDFViewer(() => rp.PDFViewer);
       setInvoicePDFComp(() => ip.InvoicePDF);
+      if (invoice.paymentRequest) {
+        const url = await qr.default.toDataURL(`lightning:${invoice.paymentRequest}`, {
+          width: 220, margin: 2, color: { dark: "#000000", light: "#FFFFFF" },
+        });
+        setQrDataURL(url);
+      }
     });
   }
 
