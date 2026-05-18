@@ -146,11 +146,11 @@ function InvoiceDetailPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <Link to="/invoices" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
           <ArrowLeft className="h-4 w-4" /> All invoices
         </Link>
-        <div className="flex items-center gap-2">
+        <div className="-mx-1 flex flex-wrap items-center gap-2 overflow-x-auto px-1">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button><StatusBadge status={invoice.status} /></button>
@@ -162,23 +162,26 @@ function InvoiceDetailPage() {
             </DropdownMenuContent>
           </DropdownMenu>
           {invoice.status !== "paid" && (
-            <Button size="sm" variant="outline" onClick={() => setStatus("paid")}>Mark as paid</Button>
+            <Button size="sm" variant="outline" onClick={() => setStatus("paid")} className="hidden sm:inline-flex">Mark as paid</Button>
           )}
-          <Button size="sm" variant="outline" onClick={() => setPreviewOpen(true)}>
-            <Eye className="mr-1.5 h-3.5 w-3.5" /> Preview
-          </Button>
           <Button size="sm" onClick={() => setSendOpen(true)}>
-            <Mail className="mr-1.5 h-3.5 w-3.5" /> Send
+            <Mail className="h-3.5 w-3.5 sm:mr-1.5" /> <span className="hidden sm:inline">Send</span>
           </Button>
-          <Button size="sm" variant="outline" onClick={download} disabled={downloading}>
-            <Download className="mr-1.5 h-3.5 w-3.5" /> {downloading ? "Generating…" : "Download"}
+          <Button size="sm" variant="outline" onClick={() => setPreviewOpen(true)} aria-label="Preview">
+            <Eye className="h-3.5 w-3.5 sm:mr-1.5" /> <span className="hidden sm:inline">Preview</span>
           </Button>
-          <Button size="sm" variant="outline" onClick={() => setShareOpen(true)}>
-            <Share2 className="mr-1.5 h-3.5 w-3.5" /> Share
+          <Button size="sm" variant="outline" onClick={download} disabled={downloading} aria-label="Download">
+            <Download className="h-3.5 w-3.5 sm:mr-1.5" /> <span className="hidden sm:inline">{downloading ? "Generating…" : "Download"}</span>
           </Button>
+          <Button size="sm" variant="outline" onClick={() => setShareOpen(true)} aria-label="Share">
+            <Share2 className="h-3.5 w-3.5 sm:mr-1.5" /> <span className="hidden sm:inline">Share</span>
+          </Button>
+          {invoice.status !== "paid" && (
+            <Button size="sm" variant="outline" onClick={() => setStatus("paid")} className="sm:hidden">Paid</Button>
+          )}
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive">
+              <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" aria-label="Delete">
                 <Trash2 className="h-4 w-4" />
               </Button>
             </AlertDialogTrigger>
@@ -198,18 +201,19 @@ function InvoiceDetailPage() {
         </div>
       </div>
 
-      <div className="rounded-lg border border-border bg-card p-8">
-        <div className="flex flex-wrap items-start justify-between gap-6">
-          <div>
+
+      <div className="rounded-lg border border-border bg-card p-4 sm:p-6 md:p-8">
+        <div className="flex flex-col gap-6 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
+          <div className="order-2 sm:order-1">
             <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Bill to</p>
-            <p className="mt-2 font-display text-xl font-bold">{invoice.client.name}</p>
-            <p className="text-sm text-muted-foreground">{invoice.client.email}</p>
+            <p className="mt-2 font-display text-lg font-bold sm:text-xl">{invoice.client.name}</p>
+            <p className="text-sm text-muted-foreground break-words">{invoice.client.email}</p>
             <p className="text-sm text-muted-foreground whitespace-pre-line">{invoice.client.address}</p>
           </div>
-          <div className="text-right">
-            {settings.logo && <img src={settings.logo} alt="logo" className="ml-auto mb-2 h-12 rounded bg-white p-1 object-contain" />}
-            <p className="font-display text-2xl font-bold">{settings.businessName || "Your business"}</p>
-            <p className="text-sm text-muted-foreground">{settings.businessEmail}</p>
+          <div className="order-1 sm:order-2 sm:text-right">
+            {settings.logo && <img src={settings.logo} alt="logo" className="mb-2 h-10 rounded bg-white p-1 object-contain sm:ml-auto sm:h-12" />}
+            <p className="font-display text-xl font-bold sm:text-2xl">{settings.businessName || "Your business"}</p>
+            <p className="text-sm text-muted-foreground break-words">{settings.businessEmail}</p>
             <p className="text-sm text-muted-foreground whitespace-pre-line">{settings.businessAddress}</p>
             <div className="mt-4 font-mono text-sm">{invoice.number}</div>
             <div className="text-xs text-muted-foreground">Issued {new Date(invoice.issueDate ?? invoice.createdAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}</div>
@@ -217,26 +221,41 @@ function InvoiceDetailPage() {
           </div>
         </div>
 
-        <table className="mt-8 w-full">
-          <thead className="border-y border-border text-xs uppercase tracking-wider text-muted-foreground">
-            <tr>
-              <th className="py-2 text-left font-medium">Description</th>
-              <th className="py-2 text-right font-medium">Qty</th>
-              <th className="py-2 text-right font-medium">Price</th>
-              <th className="py-2 text-right font-medium">Total</th>
-            </tr>
-          </thead>
-          <tbody>
-            {invoice.items.map((it) => (
-              <tr key={it.id} className="border-b border-border">
-                <td className="py-3 text-sm">{it.desc || <span className="text-muted-foreground">—</span>}</td>
-                <td className="py-3 text-right font-mono text-sm">{it.qty}</td>
-                <td className="py-3 text-right font-mono text-sm">{fmt(it.price)}</td>
-                <td className="py-3 text-right font-mono text-sm">{fmt(it.qty * it.price)}</td>
+        {/* Items — table on sm+, stacked cards on mobile */}
+        <div className="mt-6 sm:mt-8">
+          <table className="hidden w-full sm:table">
+            <thead className="border-y border-border text-xs uppercase tracking-wider text-muted-foreground">
+              <tr>
+                <th className="py-2 text-left font-medium">Description</th>
+                <th className="py-2 text-right font-medium">Qty</th>
+                <th className="py-2 text-right font-medium">Price</th>
+                <th className="py-2 text-right font-medium">Total</th>
               </tr>
+            </thead>
+            <tbody>
+              {invoice.items.map((it) => (
+                <tr key={it.id} className="border-b border-border">
+                  <td className="py-3 text-sm">{it.desc || <span className="text-muted-foreground">—</span>}</td>
+                  <td className="py-3 text-right font-mono text-sm">{it.qty}</td>
+                  <td className="py-3 text-right font-mono text-sm">{fmt(it.price)}</td>
+                  <td className="py-3 text-right font-mono text-sm">{fmt(it.qty * it.price)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <ul className="space-y-2 sm:hidden">
+            {invoice.items.map((it) => (
+              <li key={it.id} className="rounded-md border border-border bg-[var(--surface)] p-3">
+                <div className="text-sm font-medium break-words">{it.desc || <span className="text-muted-foreground">—</span>}</div>
+                <div className="mt-1 flex items-center justify-between font-mono text-xs text-muted-foreground">
+                  <span>{it.qty} × {fmt(it.price)}</span>
+                  <span className="font-semibold text-foreground">{fmt(it.qty * it.price)}</span>
+                </div>
+              </li>
             ))}
-          </tbody>
-        </table>
+          </ul>
+        </div>
+
 
         <div className="mt-6 ml-auto w-full max-w-xs space-y-1 font-mono text-sm">
           <div className="flex justify-between text-muted-foreground"><span>Subtotal</span><span>{fmt(subtotal)}</span></div>
@@ -258,11 +277,11 @@ function InvoiceDetailPage() {
       </div>
 
       {/* Lightning section */}
-      <div className="rounded-lg border border-border bg-card p-6">
-        <div className="mb-4 flex items-center justify-between gap-2">
+      <div className="rounded-lg border border-border bg-card p-4 sm:p-6">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <Zap className="h-5 w-5 fill-primary text-primary" />
-            <h2 className="font-display text-xl font-bold">Lightning payment</h2>
+            <h2 className="font-display text-lg font-bold sm:text-xl">Lightning payment</h2>
           </div>
           {polling && (
             <span className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-medium text-primary animate-pulse">
@@ -291,14 +310,15 @@ function InvoiceDetailPage() {
         )}
 
         {!invoice.paymentRequest ? (
-          <Button onClick={() => ln.mutate()} disabled={ln.isPending || missingKeys}>
+          <Button onClick={() => ln.mutate()} disabled={ln.isPending || missingKeys} className="w-full sm:w-auto">
             {ln.isPending ? "Generating…" : "Generate Lightning Invoice"}
           </Button>
         ) : (
-          <div className="grid gap-6 md:grid-cols-[auto_1fr]">
-            <div className="rounded-md bg-white p-3">
-              <QRCodeSVG value={lnUri} size={200} level="M" />
+          <div className="grid gap-6 sm:grid-cols-[auto_1fr]">
+            <div className="mx-auto rounded-md bg-white p-3 sm:mx-0">
+              <QRCodeSVG value={lnUri} size={180} level="M" className="h-auto w-full max-w-[200px]" />
             </div>
+
             <div className="space-y-3">
               <div>
                 <p className="text-xs uppercase tracking-wider text-muted-foreground">Amount</p>

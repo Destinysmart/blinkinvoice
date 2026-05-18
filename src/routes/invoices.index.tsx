@@ -142,81 +142,136 @@ function InvoicesPage() {
           action={invoices.length === 0 ? <Button asChild><Link to="/invoices/new"><Plus className="mr-2 h-4 w-4" /> New Invoice</Link></Button> : null}
         />
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-border bg-card">
-          <table className="w-full min-w-[760px]">
-            <thead className="border-b border-border bg-[var(--surface)] text-xs uppercase tracking-wider text-muted-foreground">
-              <tr>
-                <th className="w-10 px-3 py-3">
-                  <input type="checkbox" checked={selected.size === filtered.length && filtered.length > 0} onChange={toggleAll} className="accent-primary" />
-                </th>
-                <th className="px-3 py-3 text-left font-medium">#</th>
-                <th className="px-3 py-3 text-left font-medium">Client</th>
-                <th className="px-3 py-3 text-left font-medium">Issue Date</th>
-                <th className="px-3 py-3 text-left font-medium">Due Date</th>
-                <th className="px-3 py-3 text-right font-medium">Amount</th>
-                <th className="px-3 py-3 text-left font-medium">Status</th>
-                <th className="px-3 py-3 text-center font-medium"><span className="inline-flex items-center gap-1"><Zap className="h-3.5 w-3.5" /><InfoHint text="Lightning column — a bolt icon means a Bitcoin Lightning invoice has been generated and the client can pay instantly." /></span></th>
-                <th className="w-10 px-3 py-3" />
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((inv) => {
-                const overdue = isOverdue(inv);
-                const { total } = invoiceTotal(inv);
-                return (
-                  <tr key={inv.id} className="group border-b border-border last:border-0 transition hover:bg-[var(--surface)] relative">
-                    <td className="px-3 py-3">
-                      <input type="checkbox" checked={selected.has(inv.id)} onChange={() => toggle(inv.id)} className="accent-primary" />
-                    </td>
-                    <td className="px-3 py-3 relative">
-                      <span className="absolute left-0 top-0 bottom-0 w-[2px] bg-primary opacity-0 group-hover:opacity-100 transition" />
-                      <Link to="/invoices/$id" params={{ id: inv.id }} className="font-mono text-sm hover:text-primary">{inv.number}</Link>
-                    </td>
-                    <td className="px-3 py-3 text-sm">{inv.client.name}</td>
-                    <td className="px-3 py-3 text-sm text-muted-foreground">{fmtDate(inv.issueDate ?? inv.createdAt)}</td>
-                    <td className={`px-3 py-3 text-sm ${overdue ? "text-destructive font-medium" : "text-muted-foreground"}`}>
-                      {fmtDate(inv.dueDate)}
-                    </td>
-                    <td className="px-3 py-3 text-right font-mono text-sm">
-                      {inv.currency === "USD" ? fmtUsd(total) : `${Math.round(total).toLocaleString()} sats`}
-                    </td>
-                    <td className="px-3 py-3"><StatusBadge status={overdue ? "overdue" : inv.status} /></td>
-                    <td className="px-3 py-3 text-center">
-                      {inv.paymentRequest ? (
-                        <Zap className="mx-auto h-4 w-4 fill-primary text-primary" />
-                      ) : (
-                        <span className="mx-auto block h-3.5 w-3.5 rounded-full border border-dashed border-muted-foreground/40" />
-                      )}
-                    </td>
-                    <td className="px-3 py-3 text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <button className="rounded p-1 text-muted-foreground hover:bg-white/5 hover:text-foreground">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem asChild>
-                            <Link to="/invoices/$id" params={{ id: inv.id }}>View</Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => updateInvoice(inv.id, { status: "paid" })}>Mark as paid</DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => duplicate(inv.id)}>Duplicate</DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => downloadPdf(inv.id)}>
-                            <Download className="mr-2 h-3.5 w-3.5" /> Download PDF
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => { deleteInvoice(inv.id); toast.success("Deleted"); }}>
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+        <>
+          {/* Mobile: card list */}
+          <ul className="space-y-2 md:hidden">
+            {filtered.map((inv) => {
+              const overdue = isOverdue(inv);
+              const { total } = invoiceTotal(inv);
+              return (
+                <li key={inv.id} className="rounded-lg border border-border bg-card p-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <Link to="/invoices/$id" params={{ id: inv.id }} className="min-w-0 flex-1">
+                      <div className="font-mono text-sm text-primary truncate">{inv.number}</div>
+                      <div className="mt-0.5 truncate text-sm font-medium">{inv.client.name}</div>
+                      <div className="mt-1 text-xs text-muted-foreground">
+                        Due <span className={overdue ? "text-destructive font-medium" : ""}>{fmtDate(inv.dueDate)}</span>
+                      </div>
+                    </Link>
+                    <div className="flex flex-col items-end gap-1.5 shrink-0">
+                      <span className="font-mono text-sm font-semibold">
+                        {inv.currency === "USD" ? fmtUsd(total) : `${Math.round(total).toLocaleString()} sats`}
+                      </span>
+                      <StatusBadge status={overdue ? "overdue" : inv.status} />
+                      {inv.paymentRequest && <Zap className="h-3.5 w-3.5 fill-primary text-primary" />}
+                    </div>
+                  </div>
+                  <div className="mt-2 flex items-center justify-end gap-1 border-t border-border/50 pt-2">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button className="rounded p-1 text-muted-foreground hover:bg-white/5 hover:text-foreground">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem asChild>
+                          <Link to="/invoices/$id" params={{ id: inv.id }}>View</Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => updateInvoice(inv.id, { status: "paid" })}>Mark as paid</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => duplicate(inv.id)}>Duplicate</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => downloadPdf(inv.id)}>
+                          <Download className="mr-2 h-3.5 w-3.5" /> Download PDF
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => { deleteInvoice(inv.id); toast.success("Deleted"); }}>
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+
+          {/* Desktop: table */}
+          <div className="hidden md:block overflow-x-auto rounded-xl border border-border bg-card">
+            <table className="w-full min-w-[760px]">
+              <thead className="border-b border-border bg-[var(--surface)] text-xs uppercase tracking-wider text-muted-foreground">
+                <tr>
+                  <th className="w-10 px-3 py-3">
+                    <input type="checkbox" checked={selected.size === filtered.length && filtered.length > 0} onChange={toggleAll} className="accent-primary" />
+                  </th>
+                  <th className="px-3 py-3 text-left font-medium">#</th>
+                  <th className="px-3 py-3 text-left font-medium">Client</th>
+                  <th className="px-3 py-3 text-left font-medium">Issue Date</th>
+                  <th className="px-3 py-3 text-left font-medium">Due Date</th>
+                  <th className="px-3 py-3 text-right font-medium">Amount</th>
+                  <th className="px-3 py-3 text-left font-medium">Status</th>
+                  <th className="px-3 py-3 text-center font-medium"><span className="inline-flex items-center gap-1"><Zap className="h-3.5 w-3.5" /><InfoHint text="Lightning column — a bolt icon means a Bitcoin Lightning invoice has been generated and the client can pay instantly." /></span></th>
+                  <th className="w-10 px-3 py-3" />
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((inv) => {
+                  const overdue = isOverdue(inv);
+                  const { total } = invoiceTotal(inv);
+                  return (
+                    <tr key={inv.id} className="group border-b border-border last:border-0 transition hover:bg-[var(--surface)] relative">
+                      <td className="px-3 py-3">
+                        <input type="checkbox" checked={selected.has(inv.id)} onChange={() => toggle(inv.id)} className="accent-primary" />
+                      </td>
+                      <td className="px-3 py-3 relative">
+                        <span className="absolute left-0 top-0 bottom-0 w-[2px] bg-primary opacity-0 group-hover:opacity-100 transition" />
+                        <Link to="/invoices/$id" params={{ id: inv.id }} className="font-mono text-sm hover:text-primary">{inv.number}</Link>
+                      </td>
+                      <td className="px-3 py-3 text-sm">{inv.client.name}</td>
+                      <td className="px-3 py-3 text-sm text-muted-foreground">{fmtDate(inv.issueDate ?? inv.createdAt)}</td>
+                      <td className={`px-3 py-3 text-sm ${overdue ? "text-destructive font-medium" : "text-muted-foreground"}`}>
+                        {fmtDate(inv.dueDate)}
+                      </td>
+                      <td className="px-3 py-3 text-right font-mono text-sm">
+                        {inv.currency === "USD" ? fmtUsd(total) : `${Math.round(total).toLocaleString()} sats`}
+                      </td>
+                      <td className="px-3 py-3"><StatusBadge status={overdue ? "overdue" : inv.status} /></td>
+                      <td className="px-3 py-3 text-center">
+                        {inv.paymentRequest ? (
+                          <Zap className="mx-auto h-4 w-4 fill-primary text-primary" />
+                        ) : (
+                          <span className="mx-auto block h-3.5 w-3.5 rounded-full border border-dashed border-muted-foreground/40" />
+                        )}
+                      </td>
+                      <td className="px-3 py-3 text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button className="rounded p-1 text-muted-foreground hover:bg-white/5 hover:text-foreground">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem asChild>
+                              <Link to="/invoices/$id" params={{ id: inv.id }}>View</Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => updateInvoice(inv.id, { status: "paid" })}>Mark as paid</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => duplicate(inv.id)}>Duplicate</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => downloadPdf(inv.id)}>
+                              <Download className="mr-2 h-3.5 w-3.5" /> Download PDF
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => { deleteInvoice(inv.id); toast.success("Deleted"); }}>
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </>
+
       )}
     </div>
   );

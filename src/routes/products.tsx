@@ -151,7 +151,7 @@ function ProductsPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="font-display text-4xl font-bold">Products</h1>
+          <h1 className="font-display text-2xl font-bold sm:text-4xl">Products</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Reusable products and services. Auto-fill them into invoice line items.
           </p>

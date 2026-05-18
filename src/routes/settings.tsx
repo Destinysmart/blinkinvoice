@@ -36,7 +36,7 @@ function SettingsPage() {
   return (
     <div className="space-y-8 max-w-3xl">
       <div>
-        <h1 className="font-display text-4xl font-bold">Settings</h1>
+        <h1 className="font-display text-2xl font-bold sm:text-4xl">Settings</h1>
         <p className="mt-1 text-sm text-muted-foreground">Configure your business and Blink connection.</p>
       </div>
 
