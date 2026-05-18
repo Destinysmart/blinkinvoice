@@ -267,6 +267,24 @@ function InvoiceDetailPage() {
           </div>
         )}
       </div>
+
+      {invoice.activity && invoice.activity.length > 0 && (
+        <div className="rounded-lg border border-border bg-card p-6">
+          <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Activity</h2>
+          <ul className="space-y-2">
+            {invoice.activity.map((a, i) => (
+              <li key={i} className="flex items-start gap-3 text-sm">
+                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                <span className="flex-1">{a.text}</span>
+                <span className="text-xs text-muted-foreground">{fmtDate(a.at)}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <ShareDialog open={shareOpen} onOpenChange={setShareOpen} invoice={invoice} settings={settings} onShared={onShared} />
+      <PreviewDialog open={previewOpen} onOpenChange={setPreviewOpen} invoice={invoice} settings={settings} />
     </div>
   );
 }
