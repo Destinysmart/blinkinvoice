@@ -70,6 +70,7 @@ export type Database = {
           invoice_id: string
           recipient_email: string
           status: string
+          subject: string | null
           user_id: string
         }
         Insert: {
@@ -79,6 +80,7 @@ export type Database = {
           invoice_id: string
           recipient_email: string
           status?: string
+          subject?: string | null
           user_id: string
         }
         Update: {
@@ -88,6 +90,7 @@ export type Database = {
           invoice_id?: string
           recipient_email?: string
           status?: string
+          subject?: string | null
           user_id?: string
         }
         Relationships: [

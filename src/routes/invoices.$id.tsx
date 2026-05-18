@@ -17,6 +17,8 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ShareDialog, PreviewDialog } from "@/components/ShareDialog";
+import { SendInvoiceDialog, EmailHistory } from "@/components/SendInvoiceDialog";
+import { Mail } from "lucide-react";
 import { fmtDate } from "@/lib/format";
 
 export const Route = createFileRoute("/invoices/$id")({
@@ -80,6 +82,7 @@ function InvoiceDetailPage() {
   const missingKeys = !settings.apiKey || !settings.walletId;
 
   const [shareOpen, setShareOpen] = useState(false);
+  const [sendOpen, setSendOpen] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [downloading, setDownloading] = useState(false);
 
@@ -126,8 +129,11 @@ function InvoiceDetailPage() {
           <Button size="sm" variant="outline" onClick={() => setPreviewOpen(true)}>
             <Eye className="mr-1.5 h-3.5 w-3.5" /> Preview
           </Button>
-          <Button size="sm" onClick={download} disabled={downloading}>
-            <Download className="mr-1.5 h-3.5 w-3.5" /> {downloading ? "Generating…" : "Download PDF"}
+          <Button size="sm" onClick={() => setSendOpen(true)}>
+            <Mail className="mr-1.5 h-3.5 w-3.5" /> Send
+          </Button>
+          <Button size="sm" variant="outline" onClick={download} disabled={downloading}>
+            <Download className="mr-1.5 h-3.5 w-3.5" /> {downloading ? "Generating…" : "Download"}
           </Button>
           <Button size="sm" variant="outline" onClick={() => setShareOpen(true)}>
             <Share2 className="mr-1.5 h-3.5 w-3.5" /> Share
@@ -286,8 +292,23 @@ function InvoiceDetailPage() {
         </div>
       )}
 
+      <EmailHistory invoiceId={invoice.id} />
+
       <ShareDialog open={shareOpen} onOpenChange={setShareOpen} invoice={invoice} settings={settings} onShared={onShared} />
       <PreviewDialog open={previewOpen} onOpenChange={setPreviewOpen} invoice={invoice} settings={settings} />
+      <SendInvoiceDialog
+        open={sendOpen}
+        onOpenChange={setSendOpen}
+        invoice={invoice}
+        settings={settings}
+        onSent={(email) => {
+          const entry = { at: new Date().toISOString(), text: `Emailed to ${email}` };
+          const activity = [...(invoice.activity ?? []), entry];
+          const patch: Partial<typeof invoice> = { activity, sentAt: new Date().toISOString() } as any;
+          if (invoice.status === "draft") patch.status = "pending";
+          updateInvoice(id, patch);
+        }}
+      />
     </div>
   );
 }
