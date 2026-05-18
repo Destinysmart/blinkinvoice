@@ -1,12 +1,14 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import {
   Zap, LayoutDashboard, FileText, Users,
-  Package, FolderKanban, BarChart3, Settings, LogOut, Plus,
+  Package, FolderKanban, BarChart3, Settings, LogOut, Plus, Menu,
 } from "lucide-react";
+import { useState } from "react";
 import { useAppStore } from "@/lib/store";
 import { useAuth, signOut } from "@/lib/auth";
 import { toast } from "sonner";
 import { HintWrap } from "./InfoHint";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 const groups = [
   {
