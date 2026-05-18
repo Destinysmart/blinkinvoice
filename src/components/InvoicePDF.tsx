@@ -173,7 +173,15 @@ export function InvoicePDF({ invoice, settings, qrCodeDataURL }: { invoice: Invo
 
 export async function downloadInvoicePDF(invoice: Invoice, settings: Settings) {
   const { pdf } = await import("@react-pdf/renderer");
-  const blob = await pdf(<InvoicePDF invoice={invoice} settings={settings} />).toBlob();
+  let qrCodeDataURL: string | null = null;
+  if (invoice.paymentRequest) {
+    qrCodeDataURL = await QRCode.toDataURL(`lightning:${invoice.paymentRequest}`, {
+      width: 220,
+      margin: 2,
+      color: { dark: "#000000", light: "#FFFFFF" },
+    });
+  }
+  const blob = await pdf(<InvoicePDF invoice={invoice} settings={settings} qrCodeDataURL={qrCodeDataURL} />).toBlob();
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
