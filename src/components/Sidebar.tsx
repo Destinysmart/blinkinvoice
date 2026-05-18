@@ -1,7 +1,7 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import {
   Zap, LayoutDashboard, FileText, Users,
-  Package, FolderKanban, BarChart3, Settings, LogOut, Plus, Menu,
+  Package, FolderKanban, BarChart3, Settings, LogOut, Plus, Menu, Boxes,
 } from "lucide-react";
 import { useState } from "react";
 import { useAppStore } from "@/lib/store";
@@ -16,9 +16,11 @@ const groups = [
     items: [
       { to: "/", icon: LayoutDashboard, label: "Dashboard", exact: true, hint: "Overview of revenue, outstanding invoices, and recent activity." },
       { to: "/invoices", icon: FileText, label: "Invoices", hint: "Create, send, and track invoices. Get paid in Bitcoin over Lightning." },
+      { to: "/products", icon: Boxes, label: "Products", hint: "Reusable products and services that auto-fill into invoice line items." },
       { to: "/clients", icon: Users, label: "Clients", hint: "Saved customers — reuse their details when creating invoices." },
     ],
   },
+
   {
     label: "Finance",
     items: [
