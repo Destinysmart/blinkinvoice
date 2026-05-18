@@ -17,6 +17,8 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ShareDialog, PreviewDialog } from "@/components/ShareDialog";
+import { SendInvoiceDialog, EmailHistory } from "@/components/SendInvoiceDialog";
+import { Mail } from "lucide-react";
 import { fmtDate } from "@/lib/format";
 
 export const Route = createFileRoute("/invoices/$id")({
