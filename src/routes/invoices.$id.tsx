@@ -277,11 +277,11 @@ function InvoiceDetailPage() {
       </div>
 
       {/* Lightning section */}
-      <div className="rounded-lg border border-border bg-card p-6">
-        <div className="mb-4 flex items-center justify-between gap-2">
+      <div className="rounded-lg border border-border bg-card p-4 sm:p-6">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <Zap className="h-5 w-5 fill-primary text-primary" />
-            <h2 className="font-display text-xl font-bold">Lightning payment</h2>
+            <h2 className="font-display text-lg font-bold sm:text-xl">Lightning payment</h2>
           </div>
           {polling && (
             <span className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-medium text-primary animate-pulse">
@@ -310,14 +310,15 @@ function InvoiceDetailPage() {
         )}
 
         {!invoice.paymentRequest ? (
-          <Button onClick={() => ln.mutate()} disabled={ln.isPending || missingKeys}>
+          <Button onClick={() => ln.mutate()} disabled={ln.isPending || missingKeys} className="w-full sm:w-auto">
             {ln.isPending ? "Generating…" : "Generate Lightning Invoice"}
           </Button>
         ) : (
-          <div className="grid gap-6 md:grid-cols-[auto_1fr]">
-            <div className="rounded-md bg-white p-3">
-              <QRCodeSVG value={lnUri} size={200} level="M" />
+          <div className="grid gap-6 sm:grid-cols-[auto_1fr]">
+            <div className="mx-auto rounded-md bg-white p-3 sm:mx-0">
+              <QRCodeSVG value={lnUri} size={180} level="M" className="h-auto w-full max-w-[200px]" />
             </div>
+
             <div className="space-y-3">
               <div>
                 <p className="text-xs uppercase tracking-wider text-muted-foreground">Amount</p>
