@@ -173,6 +173,9 @@ function InvoiceDetailPage() {
             <p className="mt-1 text-sm whitespace-pre-line">{invoice.memo}</p>
           </div>
         )}
+        {settings.invoiceFooter && (
+          <p className="mt-6 border-t border-border pt-4 text-xs text-muted-foreground">{settings.invoiceFooter}</p>
+        )}
       </div>
 
       {/* Lightning section */}
