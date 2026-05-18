@@ -206,30 +206,30 @@ function Dashboard() {
         <Kpi
           icon={DollarSign}
           label="Total invoiced"
-          value={fmtUsd(stats.total)}
-          hint="All invoice amounts in USD, across every status."
+          value={fmtBucket(stats.total)}
+          hint="All invoice amounts across every status. USD and Bitcoin shown separately."
         />
         <Kpi
           icon={TrendingUp}
           label="Paid this month"
-          value={fmtUsd(stats.paidThisMonth)}
+          value={fmtBucket(stats.paidThisMonth)}
           tone="success"
           trend={stats.trend}
-          hint="USD invoices marked as paid in the current calendar month. Trend compares to last month."
+          hint="Invoices marked as paid in the current calendar month. Trend compares USD vs last month."
         />
         <Kpi
           icon={Clock}
           label="Outstanding"
-          value={fmtUsd(stats.outstanding)}
+          value={fmtBucket(stats.outstanding)}
           tone="primary"
-          hint="USD invoices that have been sent but not yet paid."
+          hint="Invoices that have been sent but not yet paid."
         />
         <Kpi
           icon={AlertTriangle}
           label="Overdue"
-          value={fmtUsd(stats.overdue)}
+          value={fmtBucket(stats.overdue)}
           tone="destructive"
-          pulse={stats.overdue > 0}
+          pulse={stats.overdue.usd + stats.overdue.btc > 0}
           hint="Sent invoices past their due date. Tap an invoice to send a reminder."
         />
       </div>
