@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ArrowRight, ArrowUpRight, FileText, Plus, Zap, CheckCircle2, Circle,
   Wallet, Building2, Users, TrendingUp, Clock, AlertTriangle, DollarSign,
@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/PageHeader";
 import { InfoHint } from "@/components/InfoHint";
 import { useAuth } from "@/lib/auth";
+import { usdCentsToSats } from "@/lib/blink";
 
 export const Route = createFileRoute("/")({
   component: Dashboard,
@@ -25,8 +26,38 @@ function Dashboard() {
   const { user } = useAuth();
   useEffect(() => { seedDemo(); }, [seedDemo]);
 
+  // Current sats-per-USD rate (sats per 1 USD), fetched once. Used as a
+  // fallback for invoices that don't carry a stored sats snapshot (e.g.
+  // historical BTC invoices have no recorded USD value).
+  const [satsPerUsd, setSatsPerUsd] = useState<number | null>(null);
+  useEffect(() => {
+    if (!settings.apiKey) return;
+    let cancelled = false;
+    usdCentsToSats(settings.apiKey, 100)
+      .then((s) => { if (!cancelled) setSatsPerUsd(s); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [settings.apiKey]);
+
+  // Per-invoice {sats, usd} pair using the value recorded when the money came
+  // in (invoice.satoshis snapshot) when available, else current rate.
+  const pairOf = (inv: typeof invoices[number]) => {
+    const t = invoiceTotal(inv).total;
+    if (inv.currency === "BTC") {
+      const sats = t;
+      const usd = satsPerUsd ? sats / satsPerUsd : 0;
+      return { sats, usd };
+    }
+    // USD invoice
+    const usd = t;
+    const sats = inv.satoshis ?? (satsPerUsd ? Math.round(usd * satsPerUsd) : 0);
+    return { sats, usd };
+  };
+
+  const [showUsd, setShowUsd] = useState(false);
+
   const stats = useMemo(() => {
-    const empty = () => ({ usd: 0, btc: 0 });
+    const empty = () => ({ sats: 0, usd: 0 });
     const total = empty();
     const paidThisMonth = empty();
     const paidLastMonth = empty();
@@ -36,31 +67,29 @@ function Dashboard() {
     const thisM = now.getMonth(), thisY = now.getFullYear();
     const lastDate = new Date(thisY, thisM - 1, 1);
     for (const inv of invoices) {
-      const { total: t } = invoiceTotal(inv);
-      const bucket = inv.currency === "BTC" ? "btc" : "usd";
-      total[bucket] += t;
+      const p = pairOf(inv);
+      total.sats += p.sats; total.usd += p.usd;
       if (inv.status === "paid") {
         const d = new Date(inv.issueDate ?? inv.createdAt);
-        if (d.getMonth() === thisM && d.getFullYear() === thisY) paidThisMonth[bucket] += t;
-        if (d.getMonth() === lastDate.getMonth() && d.getFullYear() === lastDate.getFullYear()) paidLastMonth[bucket] += t;
+        if (d.getMonth() === thisM && d.getFullYear() === thisY) {
+          paidThisMonth.sats += p.sats; paidThisMonth.usd += p.usd;
+        }
+        if (d.getMonth() === lastDate.getMonth() && d.getFullYear() === lastDate.getFullYear()) {
+          paidLastMonth.sats += p.sats; paidLastMonth.usd += p.usd;
+        }
       } else if (inv.status === "pending") {
-        outstanding[bucket] += t;
-        if (isOverdue(inv)) overdue[bucket] += t;
+        outstanding.sats += p.sats; outstanding.usd += p.usd;
+        if (isOverdue(inv)) { overdue.sats += p.sats; overdue.usd += p.usd; }
       }
     }
-    const usdLast = paidLastMonth.usd;
-    const trend = usdLast === 0 ? null : ((paidThisMonth.usd - usdLast) / usdLast) * 100;
+    const last = paidLastMonth.sats;
+    const trend = last === 0 ? null : ((paidThisMonth.sats - last) / last) * 100;
     return { total, paidThisMonth, outstanding, overdue, trend };
-  }, [invoices]);
+  }, [invoices, satsPerUsd]);
 
-  // Format a {usd, btc} bucket. Shows both when both non-zero; otherwise the
-  // non-zero one; falls back to $0.00 when both are zero.
-  const fmtBucket = (b: { usd: number; btc: number }) => {
-    const parts: string[] = [];
-    if (b.usd > 0) parts.push(fmtUsd(b.usd));
-    if (b.btc > 0) parts.push(fmtSats(b.btc));
-    return parts.length ? parts.join(" · ") : fmtUsd(0);
-  };
+  // Combined formatter: sats by default, USD on toggle.
+  const fmtCombined = (b: { sats: number; usd: number }) =>
+    showUsd ? fmtUsd(b.usd) : fmtSats(b.sats);
 
   const chartData = useMemo(() => {
     const months: { name: string; usd: number; btc: number; key: string }[] = [];
@@ -213,32 +242,37 @@ function Dashboard() {
         <Kpi
           icon={DollarSign}
           label="Total invoiced"
-          value={fmtBucket(stats.total)}
-          hint="All invoice amounts across every status. USD and Bitcoin shown separately."
+          value={fmtCombined(stats.total)}
+          onClick={() => setShowUsd((v) => !v)}
+          hint="All invoice amounts across every status, combined. Click to toggle between sats and the USD value recorded when each payment came in."
         />
         <Kpi
           icon={TrendingUp}
           label="Paid this month"
-          value={fmtBucket(stats.paidThisMonth)}
+          value={fmtCombined(stats.paidThisMonth)}
           tone="success"
           trend={stats.trend}
-          hint="Invoices marked as paid in the current calendar month. Trend compares USD vs last month."
+          onClick={() => setShowUsd((v) => !v)}
+          hint="Paid invoices this calendar month, combined. Click to toggle between sats and the USD value at time of payment."
         />
         <Kpi
           icon={Clock}
           label="Outstanding"
-          value={fmtBucket(stats.outstanding)}
+          value={fmtCombined(stats.outstanding)}
           tone="primary"
-          hint="Invoices that have been sent but not yet paid."
+          onClick={() => setShowUsd((v) => !v)}
+          hint="Sent invoices not yet paid."
         />
         <Kpi
           icon={AlertTriangle}
           label="Overdue"
-          value={fmtBucket(stats.overdue)}
+          value={fmtCombined(stats.overdue)}
           tone="destructive"
-          pulse={stats.overdue.usd + stats.overdue.btc > 0}
+          pulse={stats.overdue.sats > 0}
+          onClick={() => setShowUsd((v) => !v)}
           hint="Sent invoices past their due date. Tap an invoice to send a reminder."
         />
+
       </div>
 
       <div className="grid gap-5 lg:grid-cols-3">
@@ -367,7 +401,7 @@ function Dashboard() {
 }
 
 function Kpi({
-  label, value, tone, pulse, hint, icon: Icon, trend,
+  label, value, tone, pulse, hint, icon: Icon, trend, onClick,
 }: {
   label: string;
   value: string;
@@ -376,6 +410,7 @@ function Kpi({
   hint?: string;
   icon?: React.ComponentType<{ className?: string }>;
   trend?: number | null;
+  onClick?: () => void;
 }) {
   const color =
     tone === "success" ? "text-success"
@@ -388,7 +423,13 @@ function Kpi({
     : tone === "destructive" ? "bg-destructive/10 text-destructive"
     : "bg-white/[0.05] text-muted-foreground";
   return (
-    <div className="rounded-xl border border-border bg-card p-5 transition hover:border-border/80">
+    <div
+      className={`rounded-xl border border-border bg-card p-5 transition hover:border-border/80 ${onClick ? "cursor-pointer select-none active:scale-[0.99]" : ""}`}
+      onClick={onClick}
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={onClick ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick(); } } : undefined}
+    >
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-2">
           {Icon && <span className={`grid h-7 w-7 place-items-center rounded-md ${iconBg}`}><Icon className="h-3.5 w-3.5" /></span>}
@@ -408,6 +449,7 @@ function Kpi({
     </div>
   );
 }
+
 
 function Card({
   title, subtitle, children, action, hint, className = "",
