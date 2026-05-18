@@ -89,3 +89,14 @@ export async function createLnBtcInvoice(apiKey: string, walletId: string, sats:
   if (!r.invoice) throw new Error("No invoice returned");
   return r.invoice;
 }
+
+export async function fetchInvoiceStatus(apiKey: string, paymentRequest: string): Promise<string> {
+  const data = await gql<{ lnInvoicePaymentStatus: { status: string } }>(
+    apiKey,
+    `query LnInvoicePaymentStatus($input: LnInvoicePaymentStatusInput!) {
+      lnInvoicePaymentStatus(input: $input) { status }
+    }`,
+    { input: { paymentRequest } }
+  );
+  return data.lnInvoicePaymentStatus.status;
+}
