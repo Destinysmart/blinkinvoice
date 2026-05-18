@@ -1,9 +1,11 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import {
   Zap, LayoutDashboard, FileText, MessageSquareQuote, Users,
-  Package, FolderKanban, BarChart3, Settings,
+  Package, FolderKanban, BarChart3, Settings, LogOut,
 } from "lucide-react";
 import { useAppStore } from "@/lib/store";
+import { useAuth, signOut } from "@/lib/auth";
+import { toast } from "sonner";
 
 const groups = [
   {
