@@ -87,7 +87,26 @@ function NewInvoicePage() {
       </div>
 
       <Section title="Details">
-        <div className="flex items-center gap-2">
+        <div className="grid gap-4 md:grid-cols-3">
+          <Field label="Issue date">
+            <Input type="date" value={issueDate} onChange={(e) => setIssueDate(e.target.value)} />
+          </Field>
+          <Field label="Due date">
+            <Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+          </Field>
+          <Field label="Payment terms">
+            <div className="flex flex-wrap gap-1">
+              {[7, 14, 30, 60].map((d) => (
+                <button key={d} type="button" onClick={() => setNet(d)}
+                  className="rounded-md border border-border px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:border-primary hover:text-primary">
+                  Net {d}
+                </button>
+              ))}
+            </div>
+          </Field>
+        </div>
+
+        <div className="mt-6 flex items-center gap-2">
           <Label className="text-sm">Currency</Label>
           <div className="inline-flex rounded-md border border-border p-0.5">
             {(["USD", "BTC"] as const).map((c) => (
