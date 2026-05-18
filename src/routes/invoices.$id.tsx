@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { QRCodeSVG } from "qrcode.react";
 import { toast } from "sonner";
-import { ArrowLeft, Copy, Zap, AlertTriangle, RefreshCw, Trash2 } from "lucide-react";
+import { ArrowLeft, Copy, Zap, AlertTriangle, RefreshCw, Trash2, Download, Share2, Eye } from "lucide-react";
 import { useAppStore, invoiceTotal } from "@/lib/store";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,9 @@ import {
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ShareDialog, PreviewDialog } from "@/components/ShareDialog";
+import { downloadInvoicePDF } from "@/components/InvoicePDF";
+import { fmtDate } from "@/lib/format";
 
 export const Route = createFileRoute("/invoices/$id")({
   component: InvoiceDetailPage,
