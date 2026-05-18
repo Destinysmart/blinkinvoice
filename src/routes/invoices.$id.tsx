@@ -202,18 +202,18 @@ function InvoiceDetailPage() {
       </div>
 
 
-      <div className="rounded-lg border border-border bg-card p-8">
-        <div className="flex flex-wrap items-start justify-between gap-6">
-          <div>
+      <div className="rounded-lg border border-border bg-card p-4 sm:p-6 md:p-8">
+        <div className="flex flex-col gap-6 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
+          <div className="order-2 sm:order-1">
             <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Bill to</p>
-            <p className="mt-2 font-display text-xl font-bold">{invoice.client.name}</p>
-            <p className="text-sm text-muted-foreground">{invoice.client.email}</p>
+            <p className="mt-2 font-display text-lg font-bold sm:text-xl">{invoice.client.name}</p>
+            <p className="text-sm text-muted-foreground break-words">{invoice.client.email}</p>
             <p className="text-sm text-muted-foreground whitespace-pre-line">{invoice.client.address}</p>
           </div>
-          <div className="text-right">
-            {settings.logo && <img src={settings.logo} alt="logo" className="ml-auto mb-2 h-12 rounded bg-white p-1 object-contain" />}
-            <p className="font-display text-2xl font-bold">{settings.businessName || "Your business"}</p>
-            <p className="text-sm text-muted-foreground">{settings.businessEmail}</p>
+          <div className="order-1 sm:order-2 sm:text-right">
+            {settings.logo && <img src={settings.logo} alt="logo" className="mb-2 h-10 rounded bg-white p-1 object-contain sm:ml-auto sm:h-12" />}
+            <p className="font-display text-xl font-bold sm:text-2xl">{settings.businessName || "Your business"}</p>
+            <p className="text-sm text-muted-foreground break-words">{settings.businessEmail}</p>
             <p className="text-sm text-muted-foreground whitespace-pre-line">{settings.businessAddress}</p>
             <div className="mt-4 font-mono text-sm">{invoice.number}</div>
             <div className="text-xs text-muted-foreground">Issued {new Date(invoice.issueDate ?? invoice.createdAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}</div>
@@ -221,26 +221,41 @@ function InvoiceDetailPage() {
           </div>
         </div>
 
-        <table className="mt-8 w-full">
-          <thead className="border-y border-border text-xs uppercase tracking-wider text-muted-foreground">
-            <tr>
-              <th className="py-2 text-left font-medium">Description</th>
-              <th className="py-2 text-right font-medium">Qty</th>
-              <th className="py-2 text-right font-medium">Price</th>
-              <th className="py-2 text-right font-medium">Total</th>
-            </tr>
-          </thead>
-          <tbody>
-            {invoice.items.map((it) => (
-              <tr key={it.id} className="border-b border-border">
-                <td className="py-3 text-sm">{it.desc || <span className="text-muted-foreground">—</span>}</td>
-                <td className="py-3 text-right font-mono text-sm">{it.qty}</td>
-                <td className="py-3 text-right font-mono text-sm">{fmt(it.price)}</td>
-                <td className="py-3 text-right font-mono text-sm">{fmt(it.qty * it.price)}</td>
+        {/* Items — table on sm+, stacked cards on mobile */}
+        <div className="mt-6 sm:mt-8">
+          <table className="hidden w-full sm:table">
+            <thead className="border-y border-border text-xs uppercase tracking-wider text-muted-foreground">
+              <tr>
+                <th className="py-2 text-left font-medium">Description</th>
+                <th className="py-2 text-right font-medium">Qty</th>
+                <th className="py-2 text-right font-medium">Price</th>
+                <th className="py-2 text-right font-medium">Total</th>
               </tr>
+            </thead>
+            <tbody>
+              {invoice.items.map((it) => (
+                <tr key={it.id} className="border-b border-border">
+                  <td className="py-3 text-sm">{it.desc || <span className="text-muted-foreground">—</span>}</td>
+                  <td className="py-3 text-right font-mono text-sm">{it.qty}</td>
+                  <td className="py-3 text-right font-mono text-sm">{fmt(it.price)}</td>
+                  <td className="py-3 text-right font-mono text-sm">{fmt(it.qty * it.price)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <ul className="space-y-2 sm:hidden">
+            {invoice.items.map((it) => (
+              <li key={it.id} className="rounded-md border border-border bg-[var(--surface)] p-3">
+                <div className="text-sm font-medium break-words">{it.desc || <span className="text-muted-foreground">—</span>}</div>
+                <div className="mt-1 flex items-center justify-between font-mono text-xs text-muted-foreground">
+                  <span>{it.qty} × {fmt(it.price)}</span>
+                  <span className="font-semibold text-foreground">{fmt(it.qty * it.price)}</span>
+                </div>
+              </li>
             ))}
-          </tbody>
-        </table>
+          </ul>
+        </div>
+
 
         <div className="mt-6 ml-auto w-full max-w-xs space-y-1 font-mono text-sm">
           <div className="flex justify-between text-muted-foreground"><span>Subtotal</span><span>{fmt(subtotal)}</span></div>
