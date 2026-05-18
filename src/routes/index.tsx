@@ -273,7 +273,7 @@ function Dashboard() {
                   <Bar yAxisId="usd" dataKey="usd" name="USD" fill="var(--primary)" radius={[4, 4, 0, 0]} />
                 )}
                 {hasBtcRevenue && (
-                  <Bar yAxisId={hasUsdRevenue ? "btc" : "usd"} dataKey="btc" name="btc" fill="#F7931A" radius={[4, 4, 0, 0]} />
+                  <Bar yAxisId="btc" dataKey="btc" name="btc" fill="#F7931A" radius={[4, 4, 0, 0]} />)}
                 )}
                 {!hasUsdRevenue && !hasBtcRevenue && (
                   <Bar yAxisId="usd" dataKey="usd" fill="var(--primary)" radius={[4, 4, 0, 0]} />
