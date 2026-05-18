@@ -181,7 +181,7 @@ export const useAppStore = create<AppState>()((set, get) => ({
     });
     const uid = get().userId;
     if (!uid) return;
-    supabase.from("invoices").update(invoicePatchToRow(patch)).eq("id", id).then(({ error }) => {
+    (supabase.from("invoices") as any).update(invoicePatchToRow(patch)).eq("id", id).then(({ error }: any) => {
       if (error) console.error("Failed to update invoice", error);
     });
   },
@@ -220,7 +220,7 @@ export const useAppStore = create<AppState>()((set, get) => ({
     if (patch.name !== undefined) out.name = patch.name;
     if (patch.email !== undefined) out.email = patch.email || null;
     if (patch.address !== undefined) out.address = patch.address || null;
-    supabase.from("clients").update(out).eq("id", id).then(({ error }) => {
+    (supabase.from("clients") as any).update(out).eq("id", id).then(({ error }: any) => {
       if (error) console.error("Failed to update client", error);
     });
   },
@@ -238,11 +238,11 @@ export const useAppStore = create<AppState>()((set, get) => ({
     if (!uid) return;
     const profilePatch = settingsPatchToProfile(s);
     if (Object.keys(profilePatch).length === 0) return;
-    supabase
-      .from("profiles")
+    (supabase
+      .from("profiles") as any)
       .update(profilePatch)
       .eq("id", uid)
-      .then(({ error }) => {
+      .then(({ error }: any) => {
         if (error) console.error("Failed to save settings", error);
       });
   },
