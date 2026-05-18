@@ -12,9 +12,7 @@ export function AuthShell({ children, title, subtitle, footer }: {
       <div className="w-full max-w-md">
         <div className="mb-8 flex flex-col items-center text-center">
           <Link to="/" className="flex items-center gap-2">
-            <span className="grid h-10 w-10 place-items-center rounded-lg bg-primary text-primary-foreground">
-              <Zap className="h-5 w-5 fill-current" />
-            </span>
+            <img src={logoUrl} alt="BlinkInvoice" className="h-12 w-12 object-contain" />
             <span className="font-display text-2xl font-bold tracking-tight">BlinkInvoice</span>
           </Link>
           <p className="mt-1 text-xs uppercase tracking-widest text-muted-foreground">Bitcoin Invoicing</p>
