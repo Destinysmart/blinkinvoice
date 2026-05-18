@@ -30,6 +30,16 @@ const styles = StyleSheet.create({
   bolt11: { fontFamily: "Courier", fontSize: 8, color: "#333", backgroundColor: "#fafafa", padding: 8, borderWidth: 1, borderColor: BORDER },
   footer: { position: "absolute", bottom: 24, left: 40, right: 40, fontSize: 8, color: MUTED, textAlign: "center", borderTopWidth: 1, borderTopColor: BORDER, paddingTop: 8 },
   logo: { width: 48, height: 48, objectFit: "contain", marginBottom: 6 },
+  lightningSection: { marginTop: 24, padding: 16, backgroundColor: "#FFF8F0", borderRadius: 6, borderLeftWidth: 4, borderLeftColor: ORANGE, borderLeftStyle: "solid" },
+  lightningTitle: { fontSize: 10, fontFamily: "Helvetica-Bold", color: ORANGE, letterSpacing: 1, marginBottom: 12 },
+  lightningBody: { flexDirection: "row", alignItems: "center", gap: 20 },
+  qrBox: { alignItems: "center", flexShrink: 0 },
+  qrImage: { width: 110, height: 110 },
+  qrCaption: { fontSize: 7, color: "#888888", textAlign: "center", marginTop: 4 },
+  lightningInfo: { flex: 1 },
+  lightningAmount: { fontSize: 16, fontFamily: "Courier-Bold", color: ORANGE, marginBottom: 8 },
+  lightningInstructions: { fontSize: 9, color: "#444444", lineHeight: 1.5, marginBottom: 8 },
+  walletList: { fontSize: 8, color: "#888888", fontStyle: "italic" },
 });
 
 function fmtMoney(n: number, currency: "USD" | "BTC") {
