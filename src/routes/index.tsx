@@ -119,12 +119,15 @@ function Dashboard() {
   const doneCount = setup.filter((s) => s.done).length;
   const allDone = doneCount === setup.length;
 
-  const firstName = user?.email?.split("@")[0] ?? "there";
+  const displayName =
+    settings.businessName?.trim() ||
+    user?.email?.split("@")[0] ||
+    "there";
 
   return (
     <div className="space-y-8">
       <PageHeader
-        title={`Welcome back, ${firstName}`}
+        title={`Welcome back, ${displayName}`}
         subtitle="Here's a snapshot of your business today."
         actions={
           <>
