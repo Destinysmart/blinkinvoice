@@ -179,9 +179,7 @@ export function MobileBar() {
             <div className="flex h-full flex-col">
               <div className="px-5 pt-6 pb-5">
                 <Link to="/" onClick={() => setOpen(false)} className="flex items-center gap-2.5">
-                  <span className="grid h-8 w-8 place-items-center rounded-md bg-primary text-primary-foreground">
-                    <Zap className="h-4 w-4 fill-current" />
-                  </span>
+                  <img src={logoUrl} alt="BlinkInvoice" className="h-9 w-9 object-contain" />
                   <div>
                     <div className="font-display text-[15px] font-semibold leading-none tracking-tight">BlinkInvoice</div>
                     <div className="mt-1 text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Bitcoin Invoicing</div>
