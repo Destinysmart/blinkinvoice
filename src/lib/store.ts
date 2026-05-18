@@ -1,6 +1,9 @@
 import { create } from "zustand";
 import { supabase } from "@/integrations/supabase/client";
+import type { RealtimeChannel } from "@supabase/supabase-js";
 import type { Client, Invoice, Settings } from "./types";
+
+let realtimeChannel: RealtimeChannel | null = null;
 
 interface AppState {
   invoices: Invoice[];
