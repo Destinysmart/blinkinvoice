@@ -1,6 +1,6 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import {
-  Zap, LayoutDashboard, FileText, MessageSquareQuote, Users,
+  Zap, LayoutDashboard, FileText, Users,
   Package, FolderKanban, BarChart3, Settings, LogOut,
 } from "lucide-react";
 import { useAppStore } from "@/lib/store";
@@ -13,7 +13,7 @@ const groups = [
     items: [
       { to: "/", icon: LayoutDashboard, label: "Dashboard", exact: true },
       { to: "/invoices", icon: FileText, label: "Invoices" },
-      { to: "/quotes", icon: MessageSquareQuote, label: "Quotes" },
+      
       { to: "/clients", icon: Users, label: "Clients" },
     ],
   },
