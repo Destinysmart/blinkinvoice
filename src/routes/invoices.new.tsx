@@ -8,8 +8,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+
+type NewInvoiceSearch = { name?: string; email?: string; address?: string; clientId?: string };
 
 export const Route = createFileRoute("/invoices/new")({
+  validateSearch: (search: Record<string, unknown>): NewInvoiceSearch => ({
+    name: typeof search.name === "string" ? search.name : undefined,
+    email: typeof search.email === "string" ? search.email : undefined,
+    address: typeof search.address === "string" ? search.address : undefined,
+    clientId: typeof search.clientId === "string" ? search.clientId : undefined,
+  }),
   component: NewInvoicePage,
 });
 
@@ -19,8 +30,10 @@ function newItem(): LineItem {
 
 function NewInvoicePage() {
   const navigate = useNavigate();
+  const search = Route.useSearch();
   const settings = useAppStore((s) => s.settings);
   const invoices = useAppStore((s) => s.invoices);
+  const savedClients = useAppStore((s) => s.clients);
   const addInvoice = useAppStore((s) => s.addInvoice);
   const saveSettings = useAppStore((s) => s.saveSettings);
 
@@ -28,13 +41,26 @@ function NewInvoicePage() {
   const today = new Date();
   const defaultDue = new Date(today); defaultDue.setDate(defaultDue.getDate() + termsDays);
 
-  const [client, setClient] = useState({ name: "", email: "", address: "" });
+  const prefill = (() => {
+    if (search.clientId) {
+      const c = savedClients.find((x) => x.id === search.clientId);
+      if (c) return { name: c.name, email: c.email, address: c.address };
+    }
+    return {
+      name: search.name ?? "",
+      email: search.email ?? "",
+      address: search.address ?? "",
+    };
+  })();
+
+  const [client, setClient] = useState(prefill);
   const [currency, setCurrency] = useState<Currency>(settings.defaultCurrency);
   const [items, setItems] = useState<LineItem[]>([newItem()]);
   const [tax, setTax] = useState(settings.defaultTaxRate ?? 0);
   const [memo, setMemo] = useState("");
   const [issueDate, setIssueDate] = useState(today.toISOString().slice(0, 10));
   const [dueDate, setDueDate] = useState(defaultDue.toISOString().slice(0, 10));
+
 
   const { subtotal, tax: taxAmt, total } = invoiceTotal({ items, tax });
 
@@ -79,6 +105,24 @@ function NewInvoicePage() {
 
         <Section title="Bill to">
           <div className="space-y-3">
+            {savedClients.length > 0 && (
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Use saved client</Label>
+                <Select
+                  onValueChange={(id) => {
+                    const c = savedClients.find((x) => x.id === id);
+                    if (c) setClient({ name: c.name, email: c.email, address: c.address });
+                  }}
+                >
+                  <SelectTrigger><SelectValue placeholder="Choose a saved client…" /></SelectTrigger>
+                  <SelectContent>
+                    {savedClients.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <Field label="Name *"><Input value={client.name} onChange={(e) => setClient({ ...client, name: e.target.value })} /></Field>
             <Field label="Email"><Input type="email" value={client.email} onChange={(e) => setClient({ ...client, email: e.target.value })} /></Field>
             <Field label="Address"><Textarea rows={2} value={client.address} onChange={(e) => setClient({ ...client, address: e.target.value })} /></Field>
