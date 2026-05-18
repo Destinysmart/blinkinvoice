@@ -1,6 +1,9 @@
 import { create } from "zustand";
 import { supabase } from "@/integrations/supabase/client";
+import type { RealtimeChannel } from "@supabase/supabase-js";
 import type { Client, Invoice, Settings } from "./types";
+
+let realtimeChannel: RealtimeChannel | null = null;
 
 interface AppState {
   invoices: Invoice[];
@@ -264,13 +267,16 @@ export const useAppStore = create<AppState>()((set, get) => ({
         hydrated: true,
         hydrating: false,
       });
+
+      subscribeRealtime(userId);
     } catch (e) {
       console.error("Hydrate failed", e);
       set({ hydrating: false });
     }
   },
 
-  reset: () =>
+  reset: () => {
+    unsubscribeRealtime();
     set({
       invoices: [],
       clients: [],
@@ -278,12 +284,77 @@ export const useAppStore = create<AppState>()((set, get) => ({
       hydrated: false,
       hydrating: false,
       userId: null,
-    }),
+    });
+  },
 
   seedDemo: () => {
     // legacy no-op; data now syncs from Supabase via hydrate()
   },
 }));
+
+// ---------- Realtime sync ----------
+
+function unsubscribeRealtime() {
+  if (realtimeChannel) {
+    supabase.removeChannel(realtimeChannel);
+    realtimeChannel = null;
+  }
+}
+
+function subscribeRealtime(userId: string) {
+  unsubscribeRealtime();
+  const store = useAppStore;
+
+  realtimeChannel = supabase
+    .channel(`user-sync-${userId}`)
+    .on(
+      "postgres_changes",
+      { event: "*", schema: "public", table: "invoices", filter: `user_id=eq.${userId}` },
+      (payload) => {
+        const state = store.getState();
+        if (payload.eventType === "DELETE") {
+          const id = (payload.old as any)?.id;
+          if (id) store.setState({ invoices: state.invoices.filter((x) => x.id !== id) });
+          return;
+        }
+        const inv = rowToInvoice(payload.new);
+        const existing = state.invoices.find((x) => x.id === inv.id);
+        store.setState({
+          invoices: existing
+            ? state.invoices.map((x) => (x.id === inv.id ? inv : x))
+            : [inv, ...state.invoices],
+        });
+      },
+    )
+    .on(
+      "postgres_changes",
+      { event: "*", schema: "public", table: "clients", filter: `user_id=eq.${userId}` },
+      (payload) => {
+        const state = store.getState();
+        if (payload.eventType === "DELETE") {
+          const id = (payload.old as any)?.id;
+          if (id) store.setState({ clients: state.clients.filter((x) => x.id !== id) });
+          return;
+        }
+        const c = rowToClient(payload.new);
+        const existing = state.clients.find((x) => x.id === c.id);
+        store.setState({
+          clients: existing
+            ? state.clients.map((x) => (x.id === c.id ? c : x))
+            : [c, ...state.clients],
+        });
+      },
+    )
+    .on(
+      "postgres_changes",
+      { event: "*", schema: "public", table: "profiles", filter: `id=eq.${userId}` },
+      (payload) => {
+        if (payload.eventType === "DELETE") return;
+        store.setState({ settings: profileToSettings(payload.new) });
+      },
+    )
+    .subscribe();
+}
 
 // ---------- Helpers (unchanged exports) ----------
 
