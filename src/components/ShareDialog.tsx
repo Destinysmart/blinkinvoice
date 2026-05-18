@@ -142,7 +142,7 @@ export function PreviewDialog({ open, onOpenChange, invoice, settings }: Omit<Pr
         <div className="flex-1 bg-[#1a1a1a]">
           {PDFViewer && InvoicePDFComp ? (
             <PDFViewer width="100%" height="100%" showToolbar={false} style={{ border: 0 }}>
-              <InvoicePDFComp invoice={invoice} settings={settings} />
+              <InvoicePDFComp invoice={invoice} settings={settings} qrCodeDataURL={qrDataURL} />
             </PDFViewer>
           ) : (
             <div className="grid h-full place-items-center text-sm text-muted-foreground">Loading preview…</div>
