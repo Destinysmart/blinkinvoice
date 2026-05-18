@@ -108,12 +108,12 @@ function ClientsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
         <div>
-          <h1 className="font-display text-4xl font-bold">Clients</h1>
+          <h1 className="font-display text-2xl font-bold sm:text-4xl">Clients</h1>
           <p className="mt-1 text-sm text-muted-foreground">Manage who you bill and start new invoices in one click.</p>
         </div>
-        <Button onClick={openNew}>
+        <Button onClick={openNew} className="self-start sm:self-auto">
           <Plus className="mr-1.5 h-4 w-4" /> Add client
         </Button>
       </div>
