@@ -80,6 +80,26 @@ function InvoiceDetailPage() {
   const lnUri = invoice.paymentRequest ? `lightning:${invoice.paymentRequest}` : "";
   const missingKeys = !settings.apiKey || !settings.walletId;
 
+  const [shareOpen, setShareOpen] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+
+  const download = async () => {
+    setDownloading(true);
+    try { await downloadInvoicePDF(invoice, settings); toast.success("PDF downloaded"); }
+    catch (e: any) { toast.error(e?.message ?? "Failed to generate PDF"); }
+    finally { setDownloading(false); }
+  };
+
+  const onShared = (channel: "WhatsApp" | "Email") => {
+    const entry = { at: new Date().toISOString(), text: `Shared via ${channel}` };
+    const activity = [...(invoice.activity ?? []), entry];
+    const patch: Partial<typeof invoice> = { activity };
+    if (invoice.status === "draft") patch.status = "pending";
+    updateInvoice(id, patch);
+    toast.success(`Opened ${channel}`);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
