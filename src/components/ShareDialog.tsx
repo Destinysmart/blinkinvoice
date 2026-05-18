@@ -96,6 +96,16 @@ export function PreviewDialog({ open, onOpenChange, invoice, settings }: Omit<Pr
   const [PDFViewer, setPDFViewer] = useState<any>(null);
   const [InvoicePDFComp, setInvoicePDFComp] = useState<any>(null);
 
+  const downloadPreview = async () => {
+    try {
+      const { downloadInvoicePDF } = await import("./InvoicePDF");
+      await downloadInvoicePDF(invoice, settings);
+      toast.success("PDF downloaded");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Failed to generate PDF");
+    }
+  };
+
   // Lazy-load on open
   if (open && !PDFViewer) {
     Promise.all([
@@ -113,7 +123,7 @@ export function PreviewDialog({ open, onOpenChange, invoice, settings }: Omit<Pr
         <DialogHeader className="flex flex-row items-center justify-between border-b border-border px-5 py-3 space-y-0">
           <DialogTitle>Preview · {invoice.number}</DialogTitle>
           <div className="flex items-center gap-2">
-            <Button size="sm" variant="outline" onClick={download}>
+            <Button size="sm" variant="outline" onClick={downloadPreview}>
               <Download className="mr-1.5 h-3.5 w-3.5" /> Download
             </Button>
             <button onClick={() => onOpenChange(false)} className="rounded p-1 text-muted-foreground hover:bg-white/5 hover:text-foreground">
