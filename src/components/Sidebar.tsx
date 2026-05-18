@@ -1,11 +1,12 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import {
   Zap, LayoutDashboard, FileText, Users,
-  Package, FolderKanban, BarChart3, Settings, LogOut, Plus, Menu, Boxes,
+  Package, FolderKanban, BarChart3, Settings, LogOut, Plus, Menu, Boxes, Sun, Moon,
 } from "lucide-react";
 import { useState } from "react";
 import { useAppStore } from "@/lib/store";
 import { useAuth, signOut } from "@/lib/auth";
+import { useTheme } from "@/lib/theme";
 import { toast } from "sonner";
 import { HintWrap } from "./InfoHint";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
