@@ -54,7 +54,7 @@ export function Sidebar() {
     exact ? pathname === to : pathname === to || pathname.startsWith(to + "/");
 
   return (
-    <aside className="hidden md:flex sticky top-0 h-screen w-[240px] shrink-0 flex-col border-r border-border bg-[#0B0B0B]">
+    <aside className="hidden md:flex sticky top-0 h-screen w-[240px] shrink-0 flex-col border-r border-border bg-surface">
       {/* Logo */}
       <div className="px-5 pt-5 pb-6">
         <Link to="/" className="flex items-center gap-2.5">
