@@ -1,14 +1,18 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { Invoice, Settings } from "./types";
+import type { Client, Invoice, Settings } from "./types";
 
 interface AppState {
   invoices: Invoice[];
+  clients: Client[];
   settings: Settings;
   seeded: boolean;
   addInvoice: (i: Invoice) => void;
   updateInvoice: (id: string, patch: Partial<Invoice>) => void;
   deleteInvoice: (id: string) => void;
+  addClient: (c: Client) => void;
+  updateClient: (id: string, patch: Partial<Client>) => void;
+  deleteClient: (id: string) => void;
   saveSettings: (s: Partial<Settings>) => void;
   seedDemo: () => void;
 }
