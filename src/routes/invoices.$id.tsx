@@ -17,7 +17,6 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ShareDialog, PreviewDialog } from "@/components/ShareDialog";
-import { downloadInvoicePDF } from "@/components/InvoicePDF";
 import { fmtDate } from "@/lib/format";
 
 export const Route = createFileRoute("/invoices/$id")({
@@ -86,7 +85,11 @@ function InvoiceDetailPage() {
 
   const download = async () => {
     setDownloading(true);
-    try { await downloadInvoicePDF(invoice, settings); toast.success("PDF downloaded"); }
+    try {
+      const { downloadInvoicePDF } = await import("@/components/InvoicePDF");
+      await downloadInvoicePDF(invoice, settings);
+      toast.success("PDF downloaded");
+    }
     catch (e: any) { toast.error(e?.message ?? "Failed to generate PDF"); }
     finally { setDownloading(false); }
   };
