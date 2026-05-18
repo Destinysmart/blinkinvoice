@@ -1,4 +1,5 @@
 import { Document, Page, View, Text, Image, StyleSheet } from "@react-pdf/renderer";
+import QRCode from "qrcode";
 import type { Invoice, Settings } from "@/lib/types";
 import { invoiceTotal } from "@/lib/store";
 
@@ -29,6 +30,16 @@ const styles = StyleSheet.create({
   bolt11: { fontFamily: "Courier", fontSize: 8, color: "#333", backgroundColor: "#fafafa", padding: 8, borderWidth: 1, borderColor: BORDER },
   footer: { position: "absolute", bottom: 24, left: 40, right: 40, fontSize: 8, color: MUTED, textAlign: "center", borderTopWidth: 1, borderTopColor: BORDER, paddingTop: 8 },
   logo: { width: 48, height: 48, objectFit: "contain", marginBottom: 6 },
+  lightningSection: { marginTop: 24, padding: 16, backgroundColor: "#FFF8F0", borderRadius: 6, borderLeftWidth: 4, borderLeftColor: ORANGE, borderLeftStyle: "solid" },
+  lightningTitle: { fontSize: 10, fontFamily: "Helvetica-Bold", color: ORANGE, letterSpacing: 1, marginBottom: 12 },
+  lightningBody: { flexDirection: "row", alignItems: "center", gap: 20 },
+  qrBox: { alignItems: "center", flexShrink: 0 },
+  qrImage: { width: 110, height: 110 },
+  qrCaption: { fontSize: 7, color: "#888888", textAlign: "center", marginTop: 4 },
+  lightningInfo: { flex: 1 },
+  lightningAmount: { fontSize: 16, fontFamily: "Courier-Bold", color: ORANGE, marginBottom: 8 },
+  lightningInstructions: { fontSize: 9, color: "#444444", lineHeight: 1.5, marginBottom: 8 },
+  walletList: { fontSize: 8, color: "#888888", fontStyle: "italic" },
 });
 
 function fmtMoney(n: number, currency: "USD" | "BTC") {
@@ -40,7 +51,7 @@ function fmtDate(d?: string | null) {
   return new Date(d).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
 }
 
-export function InvoicePDF({ invoice, settings }: { invoice: Invoice; settings: Settings }) {
+export function InvoicePDF({ invoice, settings, qrCodeDataURL }: { invoice: Invoice; settings: Settings; qrCodeDataURL?: string | null }) {
   const { subtotal, tax, total } = invoiceTotal(invoice);
 
   return (
@@ -115,12 +126,28 @@ export function InvoicePDF({ invoice, settings }: { invoice: Invoice; settings: 
 
         {/* Lightning */}
         {invoice.paymentRequest ? (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>⚡ Pay via Bitcoin Lightning</Text>
-            <Text style={styles.bolt11}>{invoice.paymentRequest}</Text>
-            <Text style={{ color: MUTED, fontSize: 9, marginTop: 6 }}>
-              Scan the payment request in any Lightning wallet — Zeus, Phoenix, Muun, Blink, or any BOLT11-compatible wallet.
-            </Text>
+          <View style={styles.lightningSection}>
+            <Text style={styles.lightningTitle}>⚡  PAY VIA BITCOIN LIGHTNING</Text>
+            <View style={styles.lightningBody}>
+              {qrCodeDataURL ? (
+                <View style={styles.qrBox}>
+                  <Image src={qrCodeDataURL} style={styles.qrImage} />
+                  <Text style={styles.qrCaption}>Scan to pay instantly</Text>
+                </View>
+              ) : null}
+              <View style={styles.lightningInfo}>
+                {invoice.satoshis ? (
+                  <Text style={styles.lightningAmount}>{invoice.satoshis.toLocaleString()} sats</Text>
+                ) : null}
+                <Text style={styles.lightningInstructions}>
+                  Open any Lightning wallet, tap Scan or Pay Invoice, then scan this QR code.
+                </Text>
+                <Text style={styles.walletList}>
+                  Works with: Blink · Zeus · Phoenix · Muun · Blue Wallet · Wallet of Satoshi
+                </Text>
+              </View>
+            </View>
+            <Text style={[styles.bolt11, { marginTop: 10 }]}>{invoice.paymentRequest}</Text>
           </View>
         ) : null}
 
@@ -146,7 +173,15 @@ export function InvoicePDF({ invoice, settings }: { invoice: Invoice; settings: 
 
 export async function downloadInvoicePDF(invoice: Invoice, settings: Settings) {
   const { pdf } = await import("@react-pdf/renderer");
-  const blob = await pdf(<InvoicePDF invoice={invoice} settings={settings} />).toBlob();
+  let qrCodeDataURL: string | null = null;
+  if (invoice.paymentRequest) {
+    qrCodeDataURL = await QRCode.toDataURL(`lightning:${invoice.paymentRequest}`, {
+      width: 220,
+      margin: 2,
+      color: { dark: "#000000", light: "#FFFFFF" },
+    });
+  }
+  const blob = await pdf(<InvoicePDF invoice={invoice} settings={settings} qrCodeDataURL={qrCodeDataURL} />).toBlob();
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
