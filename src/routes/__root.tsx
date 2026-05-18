@@ -15,6 +15,7 @@ import { useEffect } from "react";
 import appCss from "../styles.css?url";
 import { Sidebar, MobileBar } from "../components/Sidebar";
 import { useAuth } from "@/lib/auth";
+import { useAppStore } from "@/lib/store";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -108,21 +109,34 @@ function RootComponent() {
 }
 
 function AppFrame() {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const router = useRouter();
   const isAuthRoute = AUTH_ROUTES.has(location.pathname);
+  const hydrate = useAppStore((s) => s.hydrate);
+  const resetStore = useAppStore((s) => s.reset);
+  const hydratedUserId = useAppStore((s) => s.userId);
+  const hydrated = useAppStore((s) => s.hydrated);
 
-  // Invalidate cache on auth state change
+  // Invalidate cache + sync local store on auth state change
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       queryClient.invalidateQueries();
       router.invalidate();
+      if (!session) resetStore();
     });
     return () => subscription.unsubscribe();
-  }, [queryClient, router]);
+  }, [queryClient, router, resetStore]);
+
+  // Hydrate the local store from Supabase whenever the signed-in user changes
+  useEffect(() => {
+    if (!user) return;
+    if (hydratedUserId !== user.id) {
+      hydrate(user.id);
+    }
+  }, [user, hydratedUserId, hydrate]);
 
   // Redirect rules
   useEffect(() => {
@@ -153,6 +167,17 @@ function AppFrame() {
     return (
       <div className="grid min-h-screen place-items-center bg-background">
         <p className="text-sm text-muted-foreground">Redirecting…</p>
+      </div>
+    );
+  }
+
+  if (!hydrated) {
+    return (
+      <div className="grid min-h-screen place-items-center bg-background">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+          <p className="text-xs uppercase tracking-widest text-muted-foreground">Syncing your data</p>
+        </div>
       </div>
     );
   }
