@@ -273,7 +273,8 @@ function Dashboard() {
             </Button>
           </div>
         ) : (
-          <table className="w-full">
+          <div className="-mx-5 overflow-x-auto px-5">
+          <table className="w-full min-w-[520px]">
             <thead className="border-b border-border text-[11px] uppercase tracking-wider text-muted-foreground">
               <tr>
                 <th className="py-2 text-left font-medium">Invoice</th>
