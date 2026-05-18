@@ -250,13 +250,6 @@ export function MobileBar() {
         </Link>
       </div>
 
-      <Link
-        to="/invoices/new"
-        aria-label="New invoice"
-        className="grid h-9 w-9 place-items-center rounded-md bg-primary text-primary-foreground transition active:scale-95"
-      >
-        <Plus className="h-4 w-4" />
-      </Link>
     </header>
   );
 }
