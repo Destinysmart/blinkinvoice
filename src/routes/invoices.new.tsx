@@ -183,7 +183,8 @@ function NewInvoicePage() {
           </div>
         </div>
 
-        <div className="mt-6 overflow-hidden rounded-md border border-border">
+        {/* Desktop table */}
+        <div className="mt-6 hidden overflow-hidden rounded-md border border-border md:block">
           <table className="w-full">
             <thead className="bg-[var(--surface)] text-xs uppercase tracking-wider text-muted-foreground">
               <tr>
@@ -210,6 +211,44 @@ function NewInvoicePage() {
               ))}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile card stack */}
+        <div className="mt-6 space-y-3 md:hidden">
+          {items.map((it, idx) => (
+            <div key={it.id} className="rounded-md border border-border bg-[var(--surface)] p-3 space-y-2.5">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Item {idx + 1}</span>
+                <button
+                  onClick={() => setItems((arr) => arr.filter((x) => x.id !== it.id))}
+                  disabled={items.length === 1}
+                  className="text-muted-foreground hover:text-destructive disabled:opacity-30"
+                  aria-label="Remove item"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
+              <Input
+                value={it.desc}
+                onChange={(e) => updateItem(it.id, { desc: e.target.value })}
+                placeholder="Item description"
+              />
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <Label className="text-[11px] text-muted-foreground">Qty</Label>
+                  <Input type="number" min={0} value={it.qty} onChange={(e) => updateItem(it.id, { qty: Number(e.target.value) })} />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-[11px] text-muted-foreground">Price ({unit})</Label>
+                  <Input type="number" min={0} value={it.price} onChange={(e) => updateItem(it.id, { price: Number(e.target.value) })} />
+                </div>
+              </div>
+              <div className="flex items-center justify-between border-t border-border pt-2 text-sm">
+                <span className="text-muted-foreground">Line total</span>
+                <span className="font-mono font-semibold">{(it.qty * it.price).toLocaleString()} {unit === "$" ? "USD" : "sats"}</span>
+              </div>
+            </div>
+          ))}
         </div>
         <Button variant="ghost" size="sm" onClick={() => setItems([...items, newItem()])} className="mt-2">
           <Plus className="mr-1 h-4 w-4" /> Add line

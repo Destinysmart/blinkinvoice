@@ -1,12 +1,14 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import {
   Zap, LayoutDashboard, FileText, Users,
-  Package, FolderKanban, BarChart3, Settings, LogOut, Plus,
+  Package, FolderKanban, BarChart3, Settings, LogOut, Plus, Menu,
 } from "lucide-react";
+import { useState } from "react";
 import { useAppStore } from "@/lib/store";
 import { useAuth, signOut } from "@/lib/auth";
 import { toast } from "sonner";
 import { HintWrap } from "./InfoHint";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 const groups = [
   {
@@ -141,28 +143,120 @@ export function Sidebar() {
   );
 }
 
-// Mobile top bar (sidebar collapses on small screens)
+// Mobile top bar: hamburger -> full sidebar drawer + quick new invoice CTA.
 export function MobileBar() {
+  const [open, setOpen] = useState(false);
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await signOut();
+    toast.success("Signed out");
+    setOpen(false);
+    navigate({ to: "/login" });
+  };
+
+  const isActive = (to: string, exact?: boolean) =>
+    exact ? pathname === to : pathname === to || pathname.startsWith(to + "/");
+
   return (
     <header className="md:hidden sticky top-0 z-40 flex h-14 items-center justify-between border-b border-border bg-[#0B0B0B] px-4">
-      <Link to="/" className="flex items-center gap-2">
-        <span className="grid h-7 w-7 place-items-center rounded bg-primary text-primary-foreground">
-          <Zap className="h-3.5 w-3.5 fill-current" />
-        </span>
-        <span className="font-display text-base font-semibold">BlinkPay</span>
+      <div className="flex items-center gap-2">
+        <Sheet open={open} onOpenChange={setOpen}>
+          <SheetTrigger asChild>
+            <button
+              aria-label="Open menu"
+              className="grid h-9 w-9 place-items-center rounded-md border border-border bg-card text-foreground transition active:scale-95"
+            >
+              <Menu className="h-4 w-4" />
+            </button>
+          </SheetTrigger>
+          <SheetContent side="left" className="w-[280px] border-r border-border bg-[#0B0B0B] p-0">
+            <div className="flex h-full flex-col">
+              <div className="px-5 pt-6 pb-5">
+                <Link to="/" onClick={() => setOpen(false)} className="flex items-center gap-2.5">
+                  <span className="grid h-8 w-8 place-items-center rounded-md bg-primary text-primary-foreground">
+                    <Zap className="h-4 w-4 fill-current" />
+                  </span>
+                  <div>
+                    <div className="font-display text-[15px] font-semibold leading-none tracking-tight">BlinkPay</div>
+                    <div className="mt-1 text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Bitcoin Invoicing</div>
+                  </div>
+                </Link>
+              </div>
+
+              <div className="px-3 pb-4">
+                <Link
+                  to="/invoices/new"
+                  onClick={() => setOpen(false)}
+                  className="flex w-full items-center justify-center gap-1.5 rounded-md bg-primary px-3 py-2.5 text-sm font-semibold text-primary-foreground"
+                >
+                  <Plus className="h-4 w-4" /> New invoice
+                </Link>
+              </div>
+
+              <nav className="flex-1 overflow-y-auto px-3">
+                {groups.map((g) => (
+                  <div key={g.label} className="mb-5">
+                    <div className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/60">
+                      {g.label}
+                    </div>
+                    <ul className="space-y-0.5">
+                      {g.items.map((it) => {
+                        const active = isActive(it.to, (it as any).exact);
+                        return (
+                          <li key={it.to}>
+                            <Link
+                              to={it.to}
+                              onClick={() => setOpen(false)}
+                              className={`flex items-center gap-2.5 rounded-md px-3 py-2.5 text-sm font-medium transition ${
+                                active
+                                  ? "bg-primary/10 text-primary"
+                                  : "text-muted-foreground hover:bg-white/[0.04] hover:text-foreground"
+                              }`}
+                            >
+                              <it.icon className="h-4 w-4" />
+                              <span>{it.label}</span>
+                            </Link>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                ))}
+              </nav>
+
+              {user && (
+                <div className="border-t border-border p-4">
+                  <div className="mb-2 truncate text-xs text-muted-foreground">{user.email}</div>
+                  <button
+                    onClick={handleSignOut}
+                    className="flex w-full items-center gap-2 rounded-md border border-border px-3 py-2 text-xs text-muted-foreground transition hover:text-foreground"
+                  >
+                    <LogOut className="h-3.5 w-3.5" /> Sign out
+                  </button>
+                </div>
+              )}
+            </div>
+          </SheetContent>
+        </Sheet>
+
+        <Link to="/" className="flex items-center gap-2">
+          <span className="grid h-7 w-7 place-items-center rounded bg-primary text-primary-foreground">
+            <Zap className="h-3.5 w-3.5 fill-current" />
+          </span>
+          <span className="font-display text-base font-semibold">BlinkPay</span>
+        </Link>
+      </div>
+
+      <Link
+        to="/invoices/new"
+        aria-label="New invoice"
+        className="grid h-9 w-9 place-items-center rounded-md bg-primary text-primary-foreground transition active:scale-95"
+      >
+        <Plus className="h-4 w-4" />
       </Link>
-      <nav className="flex items-center gap-1 text-xs">
-        {[
-          { to: "/", label: "Home" },
-          { to: "/invoices", label: "Invoices" },
-          { to: "/clients", label: "Clients" },
-          { to: "/settings", label: "Settings" },
-        ].map((t) => (
-          <Link key={t.to} to={t.to} className="rounded px-2 py-1 text-muted-foreground hover:text-foreground">
-            {t.label}
-          </Link>
-        ))}
-      </nav>
     </header>
   );
 }

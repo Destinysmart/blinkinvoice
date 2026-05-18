@@ -273,7 +273,8 @@ function Dashboard() {
             </Button>
           </div>
         ) : (
-          <table className="w-full">
+          <div className="-mx-5 overflow-x-auto px-5">
+          <table className="w-full min-w-[520px]">
             <thead className="border-b border-border text-[11px] uppercase tracking-wider text-muted-foreground">
               <tr>
                 <th className="py-2 text-left font-medium">Invoice</th>
@@ -303,6 +304,7 @@ function Dashboard() {
               })}
             </tbody>
           </table>
+          </div>
         )}
       </Card>
     </div>
@@ -363,7 +365,7 @@ function Card({
   className?: string;
 }) {
   return (
-    <div className={`rounded-xl border border-border bg-card p-5 ${className}`}>
+    <div className={`rounded-xl border border-border bg-card p-4 md:p-5 ${className}`}>
       <div className="mb-4 flex items-center justify-between gap-3">
         <div className="min-w-0">
           <div className="flex items-center gap-1.5">
