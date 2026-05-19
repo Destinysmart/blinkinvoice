@@ -1,6 +1,6 @@
 {
-  "name": "BlinkInvoice — Bitcoin Invoicing",
-  "short_name": "BlinkInvoice",
+  "name": "Blink Invoice",
+  "short_name": "Blink Invoice",
   "description": "Bitcoin Lightning invoicing for African businesses",
   "start_url": "/",
   "display": "standalone",
