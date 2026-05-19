@@ -61,6 +61,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "theme-color", content: "#F7931A" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { name: "apple-mobile-web-app-title", content: "BlinkInvoice" },
       { title: "Blink Invoice" },
       { name: "description", content: "Send invoices, get paid over Lightning." },
       { property: "og:title", content: "Blink Invoice" },
@@ -104,9 +108,44 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+
+  // Register service worker — only on real published origin, never in editor iframe / preview hosts
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!("serviceWorker" in navigator)) return;
+
+    let inIframe = false;
+    try { inIframe = window.self !== window.top; } catch { inIframe = true; }
+    const host = window.location.hostname;
+    const isPreview =
+      host.includes("id-preview--") ||
+      host.includes("lovableproject.com") ||
+      host.endsWith("lovable.dev") ||
+      host === "localhost";
+
+    if (inIframe || isPreview) {
+      navigator.serviceWorker.getRegistrations().then((rs) => rs.forEach((r) => r.unregister()));
+      return;
+    }
+
+    navigator.serviceWorker.register("/sw.js").then((reg) => {
+      reg.onupdatefound = () => {
+        const w = reg.installing;
+        if (!w) return;
+        w.onstatechange = () => {
+          if (w.state === "installed" && navigator.serviceWorker.controller) {
+            toast("Update available", { description: "Refresh to get the latest version." });
+          }
+        };
+      };
+    }).catch(() => {});
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
+      <OfflineBar />
       <AppFrame />
+      <InstallBanner />
       <Toaster theme="dark" position="bottom-right" richColors />
     </QueryClientProvider>
   );
