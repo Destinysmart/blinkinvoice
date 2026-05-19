@@ -9,8 +9,10 @@ import {
   Scripts,
   Link,
 } from "@tanstack/react-router";
-import { Toaster } from "sonner";
+import { Toaster, toast } from "sonner";
 import { useEffect } from "react";
+import { InstallBanner } from "@/components/InstallBanner";
+import { OfflineBar } from "@/components/OfflineBar";
 
 import appCss from "../styles.css?url";
 import { Sidebar, MobileBar } from "../components/Sidebar";
@@ -72,6 +74,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     ],
     links: [
       { rel: "stylesheet", href: appCss },
+      { rel: "manifest", href: "/manifest.json" },
+      { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
