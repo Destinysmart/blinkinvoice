@@ -171,19 +171,14 @@ function AppFrame() {
     );
   }
 
-  if (!hydrated) {
-    return (
-      <div className="grid min-h-screen place-items-center bg-background">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-          <p className="text-xs uppercase tracking-widest text-muted-foreground">Syncing your data</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-background text-foreground flex">
+      {!hydrated && (
+        <div className="fixed left-0 right-0 top-0 z-50 h-[2px] bg-primary/20">
+          <div className="h-full bg-primary animate-[topbar_1.2s_ease-out_infinite]" style={{ width: "40%" }} />
+          <style>{`@keyframes topbar { 0% { transform: translateX(-100%); } 100% { transform: translateX(350%); } }`}</style>
+        </div>
+      )}
       <Sidebar />
       <div className="flex-1 min-w-0 flex flex-col">
         <MobileBar />
