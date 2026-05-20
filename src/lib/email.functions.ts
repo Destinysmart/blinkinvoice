@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 const SENDER_DOMAIN = "notify.bitlance.work";
 const FROM_ADDRESS = "invoices@notify.bitlance.work";
