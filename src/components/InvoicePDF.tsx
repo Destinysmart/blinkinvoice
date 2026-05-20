@@ -333,7 +333,9 @@ export function InvoicePDF({
                   </Text>
                   <Text style={styles.bolt11Label}>Lightning Invoice (BOLT11)</Text>
                   <Text style={styles.bolt11}>{chunkBolt11(invoice.paymentRequest)}</Text>
-                  <Text style={styles.bolt11Hint}>Copy and paste into any Lightning wallet</Text>
+                  <Text style={styles.bolt11Hint}>
+                    Copy and paste into any Lightning wallet.{invoice.payToken ? `  QR expired? Pay online: ${origin()}/pay/${invoice.payToken}` : ""}
+                  </Text>
                 </View>
               </View>
             </View>
