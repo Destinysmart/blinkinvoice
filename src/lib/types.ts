@@ -23,6 +23,7 @@ export interface Invoice {
   paymentHash: string | null;
   satoshis: number | null;
   expiresAt: number | null;
+  payToken?: string;
   activity?: { at: string; text: string }[];
   createdAt: string;
 }
