@@ -125,7 +125,7 @@ export function SendInvoiceDialog({ open, onOpenChange, invoice, settings, onSen
           invoiceId: invoice.id,
           to,
           subject,
-          html: buildHtml(message, invoice, settings),
+          html: buildHtml(message, invoice, settings, invoice.payToken ? `${window.location.origin}/pay/${invoice.payToken}` : null),
           pdfBase64,
           pdfFilename: `${invoice.number}.pdf`,
           fromName: settings.businessName || undefined,
