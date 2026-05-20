@@ -79,11 +79,102 @@ function InvoicesPage() {
     setSelected(new Set());
   };
 
-  const duplicate = (id: string) => {
+  const navigate = useNavigate();
+
+  const sendAgain = (id: string) => {
     const inv = invoices.find((i) => i.id === id);
     if (!inv) return;
-    addInvoice({ ...inv, id: crypto.randomUUID(), number: `${inv.number}-COPY`, status: "draft", createdAt: new Date().toISOString(), paymentRequest: null, paymentHash: null, satoshis: null, expiresAt: null });
+    const newId = crypto.randomUUID();
+    const number = genInvoiceNumber(
+      invoices.map((i) => i.number),
+      settings.invoicePrefix || "INV",
+    );
+    addInvoice({
+      ...inv,
+      id: newId,
+      number,
+      status: "draft",
+      issueDate: new Date().toISOString(),
+      paymentRequest: null,
+      paymentHash: null,
+      satoshis: null,
+      expiresAt: null,
+      activity: [],
+      createdAt: new Date().toISOString(),
+    });
     toast.success("Invoice duplicated");
+    navigate({ to: "/invoices/$id", params: { id: newId }, search: { send: 1 } as any });
+  };
+
+  // CSV export state
+  const now = new Date();
+  const [exportMode, setExportMode] = useState<"month" | "all" | "range">("month");
+  const [exportMonth, setExportMonth] = useState<string>(
+    `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`,
+  );
+  const [exportFrom, setExportFrom] = useState<string>("");
+  const [exportTo, setExportTo] = useState<string>("");
+  const [exportOpen, setExportOpen] = useState(false);
+
+  const doExport = () => {
+    let from: Date | null = null;
+    let to: Date | null = null;
+    let filenameSuffix = "all";
+
+    if (exportMode === "month") {
+      const [y, m] = exportMonth.split("-").map(Number);
+      from = new Date(y, m - 1, 1);
+      to = new Date(y, m, 1);
+      filenameSuffix = exportMonth;
+    } else if (exportMode === "range") {
+      if (!exportFrom || !exportTo) {
+        toast.error("Pick a start and end date");
+        return;
+      }
+      from = new Date(exportFrom);
+      to = new Date(exportTo);
+      to.setDate(to.getDate() + 1); // inclusive end
+      filenameSuffix = `${exportFrom}-to-${exportTo}`;
+    }
+
+    const inRange = invoices.filter((inv) => {
+      if (!from || !to) return true;
+      const d = new Date(inv.issueDate ?? inv.createdAt);
+      return d >= from && d < to;
+    });
+
+    if (inRange.length === 0) {
+      toast.error("No invoices in that range");
+      return;
+    }
+
+    const headers = [
+      "Number", "Issue date", "Due date", "Client name", "Client email",
+      "Currency", "Subtotal", "Tax %", "Total", "Status", "Memo", "Payment hash",
+    ];
+    const rows = inRange.map((inv) => {
+      const { subtotal, total } = invoiceTotal(inv);
+      const fmt = (n: number) =>
+        inv.currency === "USD" ? n.toFixed(2) : String(Math.round(n));
+      return [
+        inv.number,
+        inv.issueDate ? inv.issueDate.slice(0, 10) : inv.createdAt.slice(0, 10),
+        inv.dueDate ? inv.dueDate.slice(0, 10) : "",
+        inv.client.name,
+        inv.client.email,
+        inv.currency,
+        fmt(subtotal),
+        String(inv.tax ?? 0),
+        fmt(total),
+        isOverdue(inv) ? "overdue" : inv.status,
+        inv.memo ?? "",
+        inv.paymentHash ?? "",
+      ];
+    });
+
+    downloadCsv(`invoices-${filenameSuffix}.csv`, toCsv(headers, rows));
+    toast.success(`Exported ${inRange.length} invoice${inRange.length > 1 ? "s" : ""}`);
+    setExportOpen(false);
   };
 
   const filters: { key: Filter; label: string }[] = [
