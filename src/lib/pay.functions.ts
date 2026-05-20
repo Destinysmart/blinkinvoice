@@ -3,7 +3,10 @@ import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { createLnBtcInvoice, fetchInvoiceStatus, usdCentsToSats } from "@/lib/blink";
 
-const TokenInput = z.object({ token: z.string().min(8).max(64).regex(/^[A-Za-z0-9_-]+$/) });
+const TokenInput = z.object({
+  token: z.string().min(8).max(64).regex(/^[A-Za-z0-9_-]+$/),
+  force: z.boolean().optional(),
+});
 
 function calcTotal(items: any[], taxPct: number) {
   const subtotal = (items ?? []).reduce(
@@ -13,6 +16,16 @@ function calcTotal(items: any[], taxPct: number) {
   const tax = subtotal * ((Number(taxPct) || 0) / 100);
   return { subtotal, tax, total: subtotal + tax };
 }
+
+// Normalize stored expires_at to milliseconds. Legacy rows stored seconds.
+function normalizeExpiresAtMs(v: unknown): number | null {
+  if (v == null) return null;
+  const n = Number(v);
+  if (!isFinite(n) || n <= 0) return null;
+  // Values < 10^11 are obviously seconds (Nov 2286 threshold in ms).
+  return n < 1e11 ? n * 1000 : n;
+}
+
 
 async function loadByToken(token: string) {
   const { data, error } = await supabaseAdmin
@@ -47,7 +60,7 @@ function publicInvoice(row: any, profile: any) {
     memo: (row.memo as string) ?? "",
     paymentRequest: row.payment_request as string | null,
     satoshis: row.satoshis != null ? Number(row.satoshis) : null,
-    expiresAt: row.expires_at != null ? Number(row.expires_at) : null,
+    expiresAt: normalizeExpiresAtMs(row.expires_at),
     paidAt: row.paid_at as string | null,
     businessName: (profile?.business_name as string) || "BlinkInvoice",
     logoUrl: (profile?.logo_url as string) || null,
@@ -71,13 +84,13 @@ export const refreshPayInvoice = createServerFn({ method: "POST" })
       return publicInvoice(row, profile);
     }
 
-    const nowSec = Math.floor(Date.now() / 1000);
+    const nowMs = Date.now();
     const expiresSoon =
       !row.payment_request ||
       !row.expires_at ||
-      Number(row.expires_at) - nowSec < 60;
+      Number(row.expires_at) - nowMs < 60 * 1000;
 
-    if (!expiresSoon) {
+    if (!data.force && !expiresSoon) {
       const profile = await loadOwnerProfile(row.user_id);
       return publicInvoice(row, profile);
     }
@@ -100,7 +113,7 @@ export const refreshPayInvoice = createServerFn({ method: "POST" })
     }
 
     const ln = await createLnBtcInvoice(apiKey, walletId, sats, memo);
-    const expiresAt = Math.floor(Date.now() / 1000) + 60 * 60; // 1h default
+    const expiresAt = Date.now() + 60 * 60 * 1000; // 1h default, milliseconds
 
     const { error: upErr } = await supabaseAdmin
       .from("invoices")

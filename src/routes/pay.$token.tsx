@@ -40,8 +40,12 @@ function PayPage() {
   });
 
   const refresh = useMutation({
-    mutationFn: () => refreshFn({ data: { token } }),
-    onSuccess: (data) => info.refetch(),
+    mutationFn: (vars: { force?: boolean } = {}) =>
+      refreshFn({ data: { token, force: vars.force } }),
+    onSuccess: (_data, vars) => {
+      info.refetch();
+      if (vars?.force) toast.success("New Lightning invoice generated");
+    },
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -50,9 +54,9 @@ function PayPage() {
   useEffect(() => {
     if (!data) return;
     if (data.status === "paid") return;
-    const nowSec = Math.floor(Date.now() / 1000);
-    const soon = !data.paymentRequest || !data.expiresAt || data.expiresAt - nowSec < 60;
-    if (soon && !refresh.isPending) refresh.mutate();
+    const nowMs = Date.now();
+    const soon = !data.paymentRequest || !data.expiresAt || data.expiresAt - nowMs < 60_000;
+    if (soon && !refresh.isPending) refresh.mutate({});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data?.paymentRequest, data?.expiresAt, data?.status]);
 
@@ -68,22 +72,22 @@ function PayPage() {
     return () => clearInterval(iv);
   }, [data?.status, token]);
 
-  // Countdown
-  const [now, setNow] = useState(() => Math.floor(Date.now() / 1000));
+  // Countdown (milliseconds)
+  const [nowMs, setNowMs] = useState(() => Date.now());
   useEffect(() => {
-    const iv = setInterval(() => setNow(Math.floor(Date.now() / 1000)), 1000);
+    const iv = setInterval(() => setNowMs(Date.now()), 1000);
     return () => clearInterval(iv);
   }, []);
 
   // Auto-refresh ~30s before expiry
   useEffect(() => {
     if (!data || data.status === "paid" || !data.expiresAt) return;
-    const remaining = data.expiresAt - now;
-    if (remaining < 30 && remaining > -5 && !refresh.isPending) {
-      refresh.mutate();
+    const remainingMs = data.expiresAt - nowMs;
+    if (remainingMs < 30_000 && remainingMs > -5_000 && !refresh.isPending) {
+      refresh.mutate({});
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [now, data?.expiresAt, data?.status]);
+  }, [nowMs, data?.expiresAt, data?.status]);
 
   if (info.isLoading) {
     return (
@@ -104,9 +108,10 @@ function PayPage() {
     );
   }
 
-  const remaining = data.expiresAt ? Math.max(0, data.expiresAt - now) : 0;
-  const mins = Math.floor(remaining / 60);
-  const secs = remaining % 60;
+  const remainingMs = data.expiresAt ? Math.max(0, data.expiresAt - nowMs) : 0;
+  const remainingSec = Math.floor(remainingMs / 1000);
+  const mins = Math.floor(remainingSec / 60);
+  const secs = remainingSec % 60;
   const lnUri = data.paymentRequest ? `lightning:${data.paymentRequest}` : "";
 
   const copyBolt11 = () => {
@@ -175,9 +180,9 @@ function PayPage() {
                 <Zap className="h-3.5 w-3.5 text-primary" />
                 Scan with any Lightning wallet
               </div>
-              {data.expiresAt && remaining > 0 && (
+              {data.expiresAt && remainingMs > 0 && (
                 <div className="text-muted-foreground font-mono">
-                  Refreshes in {mins}:{String(secs).padStart(2, "0")}
+                  New QR in {mins}m {String(secs).padStart(2, "0")}s
                 </div>
               )}
             </div>
@@ -190,7 +195,7 @@ function PayPage() {
             <Copy className="mr-1.5 h-4 w-4" /> Copy invoice
           </Button>
           <Button
-            onClick={() => refresh.mutate()}
+            onClick={() => refresh.mutate({ force: true })}
             variant="ghost"
             size="sm"
             className="w-full text-xs"
