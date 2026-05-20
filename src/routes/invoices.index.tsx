@@ -327,6 +327,14 @@ function InvoicesPage() {
                         {inv.currency === "USD" ? fmtUsd(total) : `${Math.round(total).toLocaleString()} sats`}
                       </span>
                       <StatusBadge status={overdue ? "overdue" : inv.status} />
+                      {emailStatusByInvoice[inv.id] && (
+                        <EmailStatusBadge
+                          status={emailStatusByInvoice[inv.id].delivery_status}
+                          recipient={emailStatusByInvoice[inv.id].recipient_email}
+                          error={emailStatusByInvoice[inv.id].delivery_error}
+                          compact
+                        />
+                      )}
                       {inv.paymentRequest && <Zap className="h-3.5 w-3.5 fill-primary text-primary" />}
                     </div>
                   </div>
