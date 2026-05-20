@@ -24,6 +24,7 @@ import { Route as InvoicesIndexRouteImport } from './routes/invoices.index'
 import { Route as PayTokenRouteImport } from './routes/pay.$token'
 import { Route as InvoicesNewRouteImport } from './routes/invoices.new'
 import { Route as InvoicesIdRouteImport } from './routes/invoices.$id'
+import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -100,6 +101,12 @@ const InvoicesIdRoute = InvoicesIdRouteImport.update({
   path: '/invoices/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LovableEmailQueueProcessRoute =
+  LovableEmailQueueProcessRouteImport.update({
+    id: '/lovable/email/queue/process',
+    path: '/lovable/email/queue/process',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -117,6 +124,7 @@ export interface FileRoutesByFullPath {
   '/invoices/new': typeof InvoicesNewRoute
   '/pay/$token': typeof PayTokenRoute
   '/invoices/': typeof InvoicesIndexRoute
+  '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -134,6 +142,7 @@ export interface FileRoutesByTo {
   '/invoices/new': typeof InvoicesNewRoute
   '/pay/$token': typeof PayTokenRoute
   '/invoices': typeof InvoicesIndexRoute
+  '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -152,6 +161,7 @@ export interface FileRoutesById {
   '/invoices/new': typeof InvoicesNewRoute
   '/pay/$token': typeof PayTokenRoute
   '/invoices/': typeof InvoicesIndexRoute
+  '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -171,6 +181,7 @@ export interface FileRouteTypes {
     | '/invoices/new'
     | '/pay/$token'
     | '/invoices/'
+    | '/lovable/email/queue/process'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -188,6 +199,7 @@ export interface FileRouteTypes {
     | '/invoices/new'
     | '/pay/$token'
     | '/invoices'
+    | '/lovable/email/queue/process'
   id:
     | '__root__'
     | '/'
@@ -205,6 +217,7 @@ export interface FileRouteTypes {
     | '/invoices/new'
     | '/pay/$token'
     | '/invoices/'
+    | '/lovable/email/queue/process'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -223,6 +236,7 @@ export interface RootRouteChildren {
   InvoicesNewRoute: typeof InvoicesNewRoute
   PayTokenRoute: typeof PayTokenRoute
   InvoicesIndexRoute: typeof InvoicesIndexRoute
+  LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -332,6 +346,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InvoicesIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/lovable/email/queue/process': {
+      id: '/lovable/email/queue/process'
+      path: '/lovable/email/queue/process'
+      fullPath: '/lovable/email/queue/process'
+      preLoaderRoute: typeof LovableEmailQueueProcessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -351,6 +372,7 @@ const rootRouteChildren: RootRouteChildren = {
   InvoicesNewRoute: InvoicesNewRoute,
   PayTokenRoute: PayTokenRoute,
   InvoicesIndexRoute: InvoicesIndexRoute,
+  LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
