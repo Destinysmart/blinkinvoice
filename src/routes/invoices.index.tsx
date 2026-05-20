@@ -189,7 +189,62 @@ function InvoicesPage() {
         subtitle="Create, send, and track your invoices in one place."
         hint="Each invoice can be paid in USD or Bitcoin over the Lightning Network. Click any invoice to see details."
         actions={
-          <Button asChild size="sm"><Link to="/invoices/new"><Plus className="mr-1.5 h-3.5 w-3.5" /> New invoice</Link></Button>
+          <div className="flex items-center gap-2">
+            <Popover open={exportOpen} onOpenChange={setExportOpen}>
+              <PopoverTrigger asChild>
+                <Button size="sm" variant="outline">
+                  <Download className="mr-1.5 h-3.5 w-3.5" /> Export CSV
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-72 space-y-3">
+                <div className="space-y-2">
+                  <Label className="text-xs">Range</Label>
+                  <div className="flex gap-1">
+                    {(["month", "range", "all"] as const).map((m) => (
+                      <button
+                        key={m}
+                        onClick={() => setExportMode(m)}
+                        className={`flex-1 rounded-md px-2 py-1 text-xs font-medium capitalize transition ${
+                          exportMode === m
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-muted text-muted-foreground hover:bg-muted/70"
+                        }`}
+                      >
+                        {m === "all" ? "All time" : m}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {exportMode === "month" && (
+                  <div className="space-y-1.5">
+                    <Label htmlFor="export-month" className="text-xs">Month</Label>
+                    <Input
+                      id="export-month"
+                      type="month"
+                      value={exportMonth}
+                      onChange={(e) => setExportMonth(e.target.value)}
+                    />
+                  </div>
+                )}
+                {exportMode === "range" && (
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="export-from" className="text-xs">From</Label>
+                      <Input id="export-from" type="date" value={exportFrom} onChange={(e) => setExportFrom(e.target.value)} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="export-to" className="text-xs">To</Label>
+                      <Input id="export-to" type="date" value={exportTo} onChange={(e) => setExportTo(e.target.value)} />
+                    </div>
+                  </div>
+                )}
+                <Button size="sm" className="w-full" onClick={doExport}>
+                  <Download className="mr-1.5 h-3.5 w-3.5" /> Download CSV
+                </Button>
+              </PopoverContent>
+            </Popover>
+            <Button asChild size="sm"><Link to="/invoices/new"><Plus className="mr-1.5 h-3.5 w-3.5" /> New invoice</Link></Button>
+          </div>
         }
       />
 
