@@ -4,6 +4,7 @@ import { Plus, Search, Zap, MoreHorizontal, FileText, Download, Send } from "luc
 import { useAppStore, invoiceTotal, genInvoiceNumber } from "@/lib/store";
 import { fmtUsd, fmtDate, isOverdue } from "@/lib/format";
 import { StatusBadge } from "@/components/StatusBadge";
+import { EmailStatusBadge } from "@/components/EmailStatusBadge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,6 +14,9 @@ import { InfoHint } from "@/components/InfoHint";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { toCsv, downloadCsv } from "@/lib/csv";
 import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { getInvoicesEmailStatus } from "@/lib/email.functions";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
