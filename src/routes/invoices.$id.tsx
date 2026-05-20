@@ -85,6 +85,58 @@ function InvoiceDetailPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const [shareOpen, setShareOpen] = useState(false);
+  const [sendOpen, setSendOpen] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+  const [justPaid, setJustPaid] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const p = new URLSearchParams(window.location.search);
+    if (p.get("send") === "1") {
+      setSendOpen(true);
+      p.delete("send");
+      const q = p.toString();
+      window.history.replaceState(null, "", window.location.pathname + (q ? `?${q}` : ""));
+    }
+  }, [id]);
+
+  // Poll Lightning payment status every 5s while invoice is outstanding
+  const polling =
+    !!invoice?.paymentRequest &&
+    invoice?.status !== "paid" &&
+    !!settings.apiKey &&
+    (!invoice?.expiresAt || invoice.expiresAt > Date.now());
+
+  useEffect(() => {
+    if (!polling || !invoice?.paymentRequest || !settings.apiKey) return;
+    let cancelled = false;
+    const check = async () => {
+      try {
+        const status = await fetchInvoiceStatus(settings.apiKey!, invoice.paymentRequest!);
+        if (cancelled) return;
+        if (status === "PAID") {
+          updateInvoice(id, {
+            status: "paid",
+            activity: [
+              ...(invoice.activity ?? []),
+              { at: new Date().toISOString(), text: "Payment received via Lightning" },
+            ],
+          });
+          setJustPaid(true);
+          toast.success("Payment received");
+        }
+      } catch {
+        /* ignore transient errors and keep polling */
+      }
+    };
+    check();
+    const iv = setInterval(check, 5000);
+    return () => { cancelled = true; clearInterval(iv); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [polling, invoice?.paymentRequest, settings.apiKey, id]);
+
   if (!invoice) {
     return (
       <div className="text-center py-20">
@@ -110,22 +162,6 @@ function InvoiceDetailPage() {
   const lnUri = invoice.paymentRequest ? `lightning:${invoice.paymentRequest}` : "";
   const missingKeys = !settings.apiKey || !settings.walletId;
 
-  const [shareOpen, setShareOpen] = useState(false);
-  const [sendOpen, setSendOpen] = useState(false);
-  const [previewOpen, setPreviewOpen] = useState(false);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const p = new URLSearchParams(window.location.search);
-    if (p.get("send") === "1") {
-      setSendOpen(true);
-      p.delete("send");
-      const q = p.toString();
-      window.history.replaceState(null, "", window.location.pathname + (q ? `?${q}` : ""));
-    }
-  }, [id]);
-  const [downloading, setDownloading] = useState(false);
-
   const download = async () => {
     setDownloading(true);
     try {
@@ -145,43 +181,6 @@ function InvoiceDetailPage() {
     updateInvoice(id, patch);
     toast.success(`Opened ${channel}`);
   };
-
-  // Poll Lightning payment status every 5s while invoice is outstanding
-  const [justPaid, setJustPaid] = useState(false);
-  const polling =
-    !!invoice.paymentRequest &&
-    invoice.status !== "paid" &&
-    !!settings.apiKey &&
-    (!invoice.expiresAt || invoice.expiresAt > Date.now());
-
-  useEffect(() => {
-    if (!polling || !invoice.paymentRequest || !settings.apiKey) return;
-    let cancelled = false;
-    const check = async () => {
-      try {
-        const status = await fetchInvoiceStatus(settings.apiKey!, invoice.paymentRequest!);
-        if (cancelled) return;
-        if (status === "PAID") {
-          updateInvoice(id, {
-            status: "paid",
-            activity: [
-              ...(invoice.activity ?? []),
-              { at: new Date().toISOString(), text: "Payment received via Lightning" },
-            ],
-          });
-
-          setJustPaid(true);
-          toast.success("Payment received");
-        }
-      } catch {
-        /* ignore transient errors and keep polling */
-      }
-    };
-    check();
-    const iv = setInterval(check, 5000);
-    return () => { cancelled = true; clearInterval(iv); };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [polling, invoice.paymentRequest, settings.apiKey, id]);
 
 
   return (
