@@ -1,104 +1,36 @@
-## Goal
+## Problem
 
-Make BlinkInvoice feel like a serious, niche invoicing tool — Invoice → Send → Get paid — without throwing away the work already shipped. Hide advanced modules behind a toggle, calm down the UI, and make the app installable in one click from any device.
+On `/settings`, every input, textarea, and `<select>` sits inside a `bg-card` panel but uses `bg-transparent` (see `src/components/ui/input.tsx`, `textarea.tsx`, and the inline `<select>` in `settings.tsx`). On a dark card, transparent fields disappear into the surface — they read as flat labels, not editable slots. The uploaded reference (Framer-style settings panel) solves this by giving the field a slightly lighter fill than the card so it pops as an input target.
 
-You didn't pick a distribution option, so I'm proposing the cheapest first step (PWA — works on Mac, Windows, iOS, Android, Linux from the browser, no app store) and flagging real native desktop/mobile builds as a clear follow-up step.
+## Fix
 
----
+Give form fields on the Settings page a dedicated "input surface" tone that's a step lighter than the card in dark mode and a step darker than the card in light mode — same idea as the attached screenshot.
 
-## 1. Scope: hide advanced, keep data
+### 1. Token
 
-Add a single setting: **Settings → "Show advanced features"** (off by default for new users, on for existing users so nothing disappears unexpectedly).
+In `src/styles.css`, repurpose / clarify `--input` so it's an actual fill color (not just a border-ish neutral):
 
-When OFF, the sidebar shows only:
+- Dark: `--input: oklch(0.255 0 0)` (one step lighter than `--card` at 0.21)
+- Light: `--input: oklch(0.955 0 0)` (one step darker than `--card` at 1.0)
 
-- Dashboard
-- Invoices
-- Clients
-- Settings
-- Products
+Keep `--border` as-is so the subtle outline remains.
 
-When ON, also show:
+### 2. Apply to field primitives (page-wide, not just one input)
 
-- Projects
-- Expenses
-- Reports
+Since the user said "the entire page," update the shared primitives so every field on Settings (and elsewhere) benefits consistently:
 
-note products is a defaul feature not an advance so it shouldnt go to the advance toogle
+- `src/components/ui/input.tsx`: swap `bg-transparent` → `bg-input`
+- `src/components/ui/textarea.tsx`: swap `bg-transparent` → `bg-input`
+- `src/routes/settings.tsx`: the inline `<select>` (payment terms) currently uses `bg-background` — change to `bg-input` so it matches the rest of the fields on the card.
 
-Implementation:
+That's it — no logic, no layout changes, just the fill tone. After this, every editable slot on `/settings` (Business name, Email, Address, API key, Wallet ID, Invoice prefix, Next invoice number, Net terms select, Tax rate, Footer) will have the same subtly lighter fill, making them clearly distinguishable from the surrounding card.
 
-- Store `show_advanced` boolean on `profiles` (default `false`, set `true` for existing rows in the migration so current users don't lose anything).
-- `Sidebar.tsx` reads the flag and filters nav items.
-- Routes for hidden features stay live (typing the URL still works) — only the nav entry disappears. Database tables untouched.
-- Dashboard hides the Expenses/Projects widgets when the flag is off.
+### Files touched
+- `src/styles.css` — adjust `--input` value in `:root` and `.dark`
+- `src/components/ui/input.tsx` — `bg-transparent` → `bg-input`
+- `src/components/ui/textarea.tsx` — `bg-transparent` → `bg-input`
+- `src/routes/settings.tsx` — inline `<select>` `bg-background` → `bg-input`
 
-## 2. Visual tone: serious & trustworthy
-
-Not a clone of Invoice Ninja — just the tone. Targeted, low-risk changes:
-
-- Tighten the sidebar: smaller icons, denser spacing, single accent color, neutral grays for everything else.
-- Replace any playful gradients / glow with flat surfaces + subtle 1px borders.
-- Invoice list: convert to a dense, sortable data table (Number · Client · Issued · Due · Amount · Status) — Invoice Ninja's strongest pattern.
-- Status badges: muted neutrals + one clear "paid" green and one clear "overdue" red.
-- Typography: keep current body font, swap display font to something more businesslike (Inter or similar) if our current heading font is decorative.
-- Remove any "fun" copy / emoji from empty states; use plain, direct language ("No invoices yet. Create one.").
-
-This is presentational only — no logic changes.
-
-## 3. One-click install (Phase 1: PWA)
-
-Ship an installable PWA so users on Mac, Windows, Linux, iOS, and Android can install BlinkInvoice from a single button:
-
-- Add a proper `manifest.json` (already exists — verify name, icons, theme color, `display: "standalone"`, `start_url: "/invoices"`).
-- Add an **"Install app"** button in the sidebar footer and on Settings → About. Uses the `beforeinstallprompt` event on desktop/Android; shows iOS-specific "Add to Home Screen" instructions on iOS Safari.
-- Generate proper PWA icons (192, 512, maskable, Apple touch icon).
-- A landing/download section on Settings that says: *"Install BlinkInvoice on this device"* with one button — same UX across all platforms.
-- **No service worker** for caching (Lovable preview restriction). PWA = installable + standalone window, not offline.
-
-This is the "one click, anyone can download and use" boss is asking for, today.
-
-## 4. Native downloads (Phase 2 — separate effort, called out only)
-
-True downloadable installers (`.dmg`, `.exe`, `.AppImage`, App Store, Play Store) are real work and I will NOT bundle them in this round. When you're ready, the path is:
-
-- **Desktop (Mac/Win/Linux)**: wrap the app in Electron, ship `.dmg` / `.exe` / `.AppImage` from a Downloads page.
-- **iOS/Android**: wrap with Capacitor, requires Apple ($99/yr) + Google ($25 one-time) developer accounts and store review.
-
-I'll flag this in the Settings → About page as "Native apps coming soon" so the intent is visible to users.
-
----
-
-## Files touched
-
-**Migration**
-
-- Add `profiles.show_advanced boolean not null default false`; backfill existing rows to `true`.
-
-**Edited**
-
-- `src/components/Sidebar.tsx` — filter nav by `show_advanced`.
-- `src/routes/settings.tsx` — add "Show advanced features" toggle + "Install app" button + "Native apps coming soon" note.
-- `src/routes/index.tsx` (Dashboard) — hide expense/project widgets when advanced is off.
-- `src/routes/invoices.index.tsx` — switch card/grid layout to dense sortable table.
-- `src/styles.css` — calmer tokens (flatten gradients, neutralize accents, tighten radii).
-- `src/components/StatusBadge.tsx` — muted palette.
-- `public/manifest.json` — verify PWA fields.
-- `src/components/InstallBanner.tsx` — repurpose as the cross-platform install button (already exists).
-
-**Created**
-
-- `src/hooks/use-install-prompt.ts` — wraps `beforeinstallprompt` + iOS detection.
-- PWA icon set in `public/icons/`.
-
-## Out of scope (deferred)
-
-- Electron / Capacitor builds (Phase 2).
-- Removing any database tables.
-- Rewriting Reports/Expenses/Projects/Products — they keep working, just hidden.
-- Service worker / offline mode.
-
-## Risks
-
-- The "Show advanced features" toggle is the only way to find hidden modules — if a user turns it off and forgets, they may think features were deleted. Mitigation: clear helper text under the toggle: *"Hide Expenses, Projects, Products and Reports from the sidebar. You can turn them back on anytime."*
-- PWA install on iOS still requires the "Share → Add to Home Screen" tap — there's no programmatic install on iOS. We show clear instructions instead of a fake button.
+### Not in scope
+- Other pages' visual audit (the token change will cascade naturally, but I'm not redesigning anything else)
+- Border, radius, focus ring, or typography changes
