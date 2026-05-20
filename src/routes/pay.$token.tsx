@@ -195,7 +195,7 @@ function PayPage() {
             <Copy className="mr-1.5 h-4 w-4" /> Copy invoice
           </Button>
           <Button
-            onClick={() => refresh.mutate()}
+            onClick={() => refresh.mutate({ force: true })}
             variant="ghost"
             size="sm"
             className="w-full text-xs"
