@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { CheckCircle2, Eye, EyeOff } from "lucide-react";
+import { CheckCircle2, Eye, EyeOff, ClipboardPaste, Lock, ExternalLink } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import { fetchMe, type MeWallet } from "@/lib/blink";
 import type { Currency } from "@/lib/types";
