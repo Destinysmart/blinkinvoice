@@ -35,6 +35,17 @@ function InvoicesPage() {
   const addInvoice = useAppStore((s) => s.addInvoice);
   const settings = useAppStore((s) => s.settings);
 
+  const invoiceIds = useMemo(() => invoices.map((i) => i.id), [invoices]);
+  const fetchEmailStatuses = useServerFn(getInvoicesEmailStatus);
+  const { data: emailStatusData } = useQuery({
+    queryKey: ["invoices_email_status", invoiceIds],
+    queryFn: () => fetchEmailStatuses({ data: { invoiceIds } }),
+    enabled: invoiceIds.length > 0,
+    refetchInterval: 15_000,
+    staleTime: 10_000,
+  });
+  const emailStatusByInvoice = emailStatusData?.byInvoice ?? {};
+
   const downloadPdf = async (id: string) => {
     const inv = invoices.find((i) => i.id === id);
     if (!inv) return;
