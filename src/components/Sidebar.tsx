@@ -149,6 +149,7 @@ export function Sidebar() {
 export function MobileBar() {
   const [open, setOpen] = useState(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const { theme, toggle: toggleTheme } = useTheme();
   const { user } = useAuth();
   const navigate = useNavigate();
 
