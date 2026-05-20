@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { CheckCircle2, Eye, EyeOff } from "lucide-react";
+import { CheckCircle2, Eye, EyeOff, ClipboardPaste, Lock, ExternalLink } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import { fetchMe, type MeWallet } from "@/lib/blink";
 import type { Currency } from "@/lib/types";
@@ -29,9 +29,43 @@ function SettingsPage() {
       if (!form.apiKey) throw new Error("Enter an API key first");
       return fetchMe(form.apiKey);
     },
-    onSuccess: (w) => { setWallets(w); toast.success("Connection successful"); },
+    onSuccess: (w) => {
+      setWallets(w);
+      // Auto-select BTC wallet (fallback to first wallet) so the user
+      // never has to copy/paste a Wallet ID manually.
+      const btc = w.find((x) => x.walletCurrency === "BTC") ?? w[0];
+      if (btc && !form.walletId) {
+        setForm((f) => ({ ...f, walletId: btc.id }));
+      }
+      toast.success("Connection successful");
+    },
     onError: (e: Error) => { setWallets(null); toast.error(e.message); },
   });
+
+  // Silently fetch wallets on load if we have a key but no walletId yet.
+  useEffect(() => {
+    if (form.apiKey && !form.walletId && !wallets) {
+      fetchMe(form.apiKey)
+        .then((w) => {
+          setWallets(w);
+          const btc = w.find((x) => x.walletCurrency === "BTC") ?? w[0];
+          if (btc) setForm((f) => ({ ...f, walletId: btc.id }));
+        })
+        .catch(() => {});
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const pasteApiKey = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      if (!text) { toast.error("Clipboard is empty"); return; }
+      setForm({ ...form, apiKey: text.trim() });
+      toast.success("API key pasted");
+    } catch {
+      toast.error("Unable to read clipboard");
+    }
+  };
 
   const save = () => { saveSettings(form); toast.success("Settings saved"); };
 
@@ -49,21 +83,58 @@ function SettingsPage() {
       </Card>
 
       <Card title="Blink Lightning">
+        <Field label="Wallet name">
+          <Input
+            placeholder="e.g. Main BTC wallet"
+            value={form.walletName ?? ""}
+            onChange={(e) => setForm({ ...form, walletName: e.target.value })}
+          />
+        </Field>
+
         <Field label="API key">
-          <div className="flex gap-2">
+          <div className="relative">
             <Input
               type={showKey ? "text" : "password"}
               placeholder="blink_..."
               value={form.apiKey}
               onChange={(e) => setForm({ ...form, apiKey: e.target.value })}
-              className="font-mono"
+              className="font-mono pr-20"
             />
-            <Button type="button" variant="outline" size="icon" onClick={() => setShowKey((v) => !v)}>
-              {showKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </Button>
+            <div className="absolute inset-y-0 right-1 flex items-center gap-0.5">
+              <Button type="button" variant="ghost" size="icon" className="h-7 w-7" onClick={() => setShowKey((v) => !v)} aria-label={showKey ? "Hide key" : "Show key"}>
+                {showKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </Button>
+              <Button type="button" variant="ghost" size="icon" className="h-7 w-7" onClick={pasteApiKey} aria-label="Paste from clipboard">
+                <ClipboardPaste className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </Field>
-        <Field label="Wallet ID"><Input value={form.walletId} onChange={(e) => setForm({ ...form, walletId: e.target.value })} className="font-mono" /></Field>
+
+        <div className="rounded-md border border-border bg-[var(--surface)] p-3 text-xs">
+          <p className="mb-2 font-semibold uppercase tracking-wider text-muted-foreground">How to get your API key</p>
+          <ol className="space-y-1.5 list-decimal pl-4 text-foreground/90">
+            <li>
+              Sign in at{" "}
+              <a href="https://dashboard.blink.sv" target="_blank" rel="noreferrer" className="inline-flex items-center gap-0.5 text-primary hover:underline">
+                dashboard.blink.sv <ExternalLink className="h-3 w-3" />
+              </a>
+            </li>
+            <li>
+              Open{" "}
+              <a href="https://dashboard.blink.sv/api-keys" target="_blank" rel="noreferrer" className="inline-flex items-center gap-0.5 text-primary hover:underline">
+                API Keys <ExternalLink className="h-3 w-3" />
+              </a>{" "}
+              and click <span className="font-medium">Create API Key</span>
+            </li>
+            <li>Copy the key and paste it in the field above</li>
+          </ol>
+        </div>
+
+        <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <Lock className="h-3 w-3" /> Your API key is encrypted and stored securely.
+        </p>
+
 
         <div className="flex items-center gap-3">
           <Button variant="outline" onClick={() => test.mutate()} disabled={test.isPending}>

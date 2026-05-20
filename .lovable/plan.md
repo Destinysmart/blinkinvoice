@@ -1,25 +1,35 @@
-I checked the email connection and the backend itself is healthy:
+## Blink connection settings — redesign
 
-- `notify.bitlance.work` is verified and ready to send.
-- The email queue cron job exists and is active.
-- The current failure is not DNS or connection-related.
-- Recent invoice emails are failing with: `Transactional emails must include an unsubscribe_token`.
+Reshape the "Blink Lightning" card in `src/routes/settings.tsx` only. No backend or business-logic changes.
 
-Plan:
+### New layout (top to bottom)
 
-1. Update invoice email enqueueing
-   - Before queueing an invoice email, create or reuse one unsubscribe token for the recipient email.
-   - Add that `unsubscribe_token` to the queued email payload so Lovable Email accepts it.
+1. **Wallet Name** — text input above API key. Friendly label for this connection (e.g. "Main BTC wallet"). Stored locally in settings as `walletName`; purely cosmetic, shown next to the connected indicator.
+2. **API Key** — input with a clipboard **Paste** button inside on the right (alongside the existing show/hide eye toggle). Clicking it calls `navigator.clipboard.readText()` and fills the field, with a toast on success/failure.
+3. **Inline "How to get your API key" guide** — compact 3-step list rendered directly under the input:
+   1. Go to [dashboard.blink.sv](https://dashboard.blink.sv) and sign in
+   2. Open [API Keys](https://dashboard.blink.sv/api-keys) and click "Create API Key"
+   3. Copy the key and paste it above
+   Each step links to the relevant page on dashboard.blink.sv (opens in a new tab).
+4. **Encryption note** — small muted text: *"Your API key is encrypted and stored securely."*
+5. **Test connection** button + connected wallets list (unchanged behavior).
 
-2. Keep invoice sends one-to-one and retry-safe
-   - Keep the existing PDF upload + signed download link flow.
-   - Keep the current sender as `invoices@notify.bitlance.work` and sender domain as `notify.bitlance.work`.
-   - Preserve the existing auth-protected server function.
+### Wallet ID — remove from UI
 
-3. Clean up the stuck failed queue state
-   - Remove or dead-letter the currently queued invoice messages that are missing the unsubscribe token, so the queue stops retrying known-bad payloads.
-   - Leave historical logs intact for auditing.
+The Wallet ID field is removed from the settings form. It's still required at invoice-creation time, so we auto-populate it:
 
-4. Verify after the change
-   - Query the email send log after another test send to confirm the latest status becomes `sent` instead of `failed` or `dlq`.
-   - If it still fails, check the latest provider error directly from the send log.
+- After **Test connection** succeeds, automatically set `form.walletId` to the BTC wallet's id (falling back to the first wallet). User no longer needs to copy/paste it.
+- On initial load, if `apiKey` exists but `walletId` is empty, trigger a silent fetch to populate it.
+- The underlying `walletId` field in `Settings` type and store remains intact (used by `invoices.$id.tsx`, `pay.functions.ts`).
+
+### Non-goals
+
+- No changes to `src/lib/store.ts`, `src/lib/blink.ts`, `src/lib/types.ts` (beyond adding optional `walletName?: string` to `Settings`).
+- No changes to invoice creation flow.
+- Save button behavior unchanged.
+
+### Files touched
+
+- `src/routes/settings.tsx` — UI rework of the Blink Lightning card
+- `src/lib/types.ts` — add optional `walletName?: string` to `Settings`
+- `src/lib/store.ts` — persist/load `walletName` (map to a profile column or keep client-only; will use existing settings persistence path)
