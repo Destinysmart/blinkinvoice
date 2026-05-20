@@ -125,6 +125,7 @@ export const sendInvoiceEmail = createServerFn({ method: "POST" })
         subject: data.subject,
         status: "failed",
         error: enqErr.message,
+        message_id: messageId,
       });
       throw new Error(`Failed to queue email: ${enqErr.message}`);
     }
@@ -136,6 +137,7 @@ export const sendInvoiceEmail = createServerFn({ method: "POST" })
       subject: data.subject,
       status: "sent",
       error: null,
+      message_id: messageId,
     });
 
     return { ok: true };
