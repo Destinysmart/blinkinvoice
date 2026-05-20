@@ -29,9 +29,43 @@ function SettingsPage() {
       if (!form.apiKey) throw new Error("Enter an API key first");
       return fetchMe(form.apiKey);
     },
-    onSuccess: (w) => { setWallets(w); toast.success("Connection successful"); },
+    onSuccess: (w) => {
+      setWallets(w);
+      // Auto-select BTC wallet (fallback to first wallet) so the user
+      // never has to copy/paste a Wallet ID manually.
+      const btc = w.find((x) => x.walletCurrency === "BTC") ?? w[0];
+      if (btc && !form.walletId) {
+        setForm((f) => ({ ...f, walletId: btc.id }));
+      }
+      toast.success("Connection successful");
+    },
     onError: (e: Error) => { setWallets(null); toast.error(e.message); },
   });
+
+  // Silently fetch wallets on load if we have a key but no walletId yet.
+  useEffect(() => {
+    if (form.apiKey && !form.walletId && !wallets) {
+      fetchMe(form.apiKey)
+        .then((w) => {
+          setWallets(w);
+          const btc = w.find((x) => x.walletCurrency === "BTC") ?? w[0];
+          if (btc) setForm((f) => ({ ...f, walletId: btc.id }));
+        })
+        .catch(() => {});
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const pasteApiKey = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      if (!text) { toast.error("Clipboard is empty"); return; }
+      setForm({ ...form, apiKey: text.trim() });
+      toast.success("API key pasted");
+    } catch {
+      toast.error("Unable to read clipboard");
+    }
+  };
 
   const save = () => { saveSettings(form); toast.success("Settings saved"); };
 
