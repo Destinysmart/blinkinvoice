@@ -74,13 +74,13 @@ export const refreshPayInvoice = createServerFn({ method: "POST" })
       return publicInvoice(row, profile);
     }
 
-    const nowSec = Math.floor(Date.now() / 1000);
+    const nowMs = Date.now();
     const expiresSoon =
       !row.payment_request ||
       !row.expires_at ||
-      Number(row.expires_at) - nowSec < 60;
+      Number(row.expires_at) - nowMs < 60 * 1000;
 
-    if (!expiresSoon) {
+    if (!data.force && !expiresSoon) {
       const profile = await loadOwnerProfile(row.user_id);
       return publicInvoice(row, profile);
     }
@@ -103,7 +103,7 @@ export const refreshPayInvoice = createServerFn({ method: "POST" })
     }
 
     const ln = await createLnBtcInvoice(apiKey, walletId, sats, memo);
-    const expiresAt = Math.floor(Date.now() / 1000) + 60 * 60; // 1h default
+    const expiresAt = Date.now() + 60 * 60 * 1000; // 1h default, milliseconds
 
     const { error: upErr } = await supabaseAdmin
       .from("invoices")
