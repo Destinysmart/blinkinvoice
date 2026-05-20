@@ -29,9 +29,35 @@ function InvoiceDetailPage() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
   const invoice = useAppStore((s) => s.invoices.find((i) => i.id === id));
+  const allInvoices = useAppStore((s) => s.invoices);
   const settings = useAppStore((s) => s.settings);
   const updateInvoice = useAppStore((s) => s.updateInvoice);
   const deleteInvoice = useAppStore((s) => s.deleteInvoice);
+  const addInvoice = useAppStore((s) => s.addInvoice);
+
+  const sendAgain = () => {
+    if (!invoice) return;
+    const newId = crypto.randomUUID();
+    const number = genInvoiceNumber(
+      allInvoices.map((i) => i.number),
+      settings.invoicePrefix || "INV",
+    );
+    addInvoice({
+      ...invoice,
+      id: newId,
+      number,
+      status: "draft",
+      issueDate: new Date().toISOString(),
+      paymentRequest: null,
+      paymentHash: null,
+      satoshis: null,
+      expiresAt: null,
+      activity: [],
+      createdAt: new Date().toISOString(),
+    });
+    toast.success("Invoice duplicated");
+    navigate({ to: "/invoices/$id", params: { id: newId }, search: { send: 1 } as any });
+  };
 
   const ln = useMutation({
     mutationFn: async () => {
