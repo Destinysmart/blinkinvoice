@@ -111,7 +111,7 @@ function SettingsPage() {
             <select
               value={form.defaultPaymentTermsDays ?? 14}
               onChange={(e) => setForm({ ...form, defaultPaymentTermsDays: Number(e.target.value) })}
-              className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+              className="h-9 w-full rounded-md border border-border bg-input px-3 text-sm"
             >
               {[7, 14, 30, 60].map((d) => <option key={d} value={d}>Net {d}</option>)}
             </select>
