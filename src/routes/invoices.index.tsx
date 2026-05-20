@@ -1,14 +1,17 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Plus, Search, Zap, MoreHorizontal, FileText, Download } from "lucide-react";
-import { useAppStore, invoiceTotal } from "@/lib/store";
-import { fmtUsd, fmtDate, isOverdue } from "@/lib/format";
+import { Plus, Search, Zap, MoreHorizontal, FileText, Download, Send } from "lucide-react";
+import { useAppStore, invoiceTotal, genInvoiceNumber } from "@/lib/store";
+import { fmtUsd, fmtSats, fmtDate, isOverdue } from "@/lib/format";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { EmptyState } from "@/components/EmptyState";
 import { PageHeader } from "@/components/PageHeader";
 import { InfoHint } from "@/components/InfoHint";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { toCsv, downloadCsv } from "@/lib/csv";
 import { toast } from "sonner";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
