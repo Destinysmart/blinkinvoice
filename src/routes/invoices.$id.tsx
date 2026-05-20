@@ -220,6 +220,9 @@ function InvoiceDetailPage() {
           <Button size="sm" variant="outline" onClick={() => setShareOpen(true)} aria-label="Share" className="hidden sm:inline-flex">
             <Share2 className="h-3.5 w-3.5 sm:mr-1.5" /> <span className="hidden sm:inline">Share</span>
           </Button>
+          <Button size="sm" variant="outline" onClick={sendAgain} aria-label="Send again" className="hidden sm:inline-flex">
+            <Send className="h-3.5 w-3.5 sm:mr-1.5" /> <span className="hidden sm:inline">Send again</span>
+          </Button>
 
           {/* Mobile: collapse secondary actions into one menu */}
           <DropdownMenu>
@@ -243,8 +246,12 @@ function InvoiceDetailPage() {
               <DropdownMenuItem onClick={() => setShareOpen(true)}>
                 <Share2 className="mr-2 h-4 w-4" /> Share
               </DropdownMenuItem>
+              <DropdownMenuItem onClick={sendAgain}>
+                <Send className="mr-2 h-4 w-4" /> Send again
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+
 
           <AlertDialog>
             <AlertDialogTrigger asChild>
