@@ -68,6 +68,7 @@ export type Database = {
           error: string | null
           id: string
           invoice_id: string
+          message_id: string | null
           recipient_email: string
           status: string
           subject: string | null
@@ -78,6 +79,7 @@ export type Database = {
           error?: string | null
           id?: string
           invoice_id: string
+          message_id?: string | null
           recipient_email: string
           status?: string
           subject?: string | null
@@ -88,6 +90,7 @@ export type Database = {
           error?: string | null
           id?: string
           invoice_id?: string
+          message_id?: string | null
           recipient_email?: string
           status?: string
           subject?: string | null
