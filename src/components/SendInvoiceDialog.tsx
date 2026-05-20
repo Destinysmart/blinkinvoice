@@ -197,22 +197,32 @@ export function EmailHistory({ invoiceId }: { invoiceId: string }) {
     <div className="rounded-lg border border-border bg-card p-6">
       <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Email history</h2>
       <ul className="space-y-2">
-        {logs.map((l: any) => (
-          <li key={l.id} className="flex items-start gap-3 text-sm">
-            {l.status === "sent"
-              ? <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-              : <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />}
-            <div className="flex-1 min-w-0">
-              <div className="truncate">
-                {l.status === "sent" ? "Sent to " : "Failed to "}
-                <span className="font-medium">{l.recipient_email}</span>
+        {logs.map((l: any) => {
+          const s: "queued" | "sent" | "failed" | "suppressed" = l.delivery_status ?? "queued";
+          const icon = s === "sent"
+            ? <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+            : s === "failed" || s === "suppressed"
+              ? <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
+              : <Mail className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />;
+          const label = s === "sent" ? "Sent to "
+            : s === "failed" ? "Failed sending to "
+            : s === "suppressed" ? "Suppressed — not sent to "
+            : "Queued for ";
+          return (
+            <li key={l.id} className="flex items-start gap-3 text-sm">
+              {icon}
+              <div className="flex-1 min-w-0">
+                <div className="truncate">
+                  {label}
+                  <span className="font-medium">{l.recipient_email}</span>
+                </div>
+                {l.subject && <div className="truncate text-xs text-muted-foreground">{l.subject}</div>}
+                {l.delivery_error && <div className="text-xs text-destructive break-words">{l.delivery_error}</div>}
               </div>
-              {l.subject && <div className="truncate text-xs text-muted-foreground">{l.subject}</div>}
-              {l.error && <div className="text-xs text-destructive">{l.error}</div>}
-            </div>
-            <span className="text-xs text-muted-foreground whitespace-nowrap">{fmtDate(l.created_at)}</span>
-          </li>
-        ))}
+              <span className="text-xs text-muted-foreground whitespace-nowrap">{fmtDate(l.created_at)}</span>
+            </li>
+          );
+        })}
       </ul>
     </div>
   );
