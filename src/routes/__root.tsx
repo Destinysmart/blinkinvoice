@@ -158,6 +158,7 @@ function AppFrame() {
   const queryClient = useQueryClient();
   const router = useRouter();
   const isAuthRoute = AUTH_ROUTES.has(location.pathname);
+  const isPublicRoute = location.pathname.startsWith("/pay/");
   const hydrate = useAppStore((s) => s.hydrate);
   const resetStore = useAppStore((s) => s.reset);
   const hydratedUserId = useAppStore((s) => s.userId);
