@@ -113,6 +113,17 @@ function InvoiceDetailPage() {
   const [shareOpen, setShareOpen] = useState(false);
   const [sendOpen, setSendOpen] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const p = new URLSearchParams(window.location.search);
+    if (p.get("send") === "1") {
+      setSendOpen(true);
+      p.delete("send");
+      const q = p.toString();
+      window.history.replaceState(null, "", window.location.pathname + (q ? `?${q}` : ""));
+    }
+  }, [id]);
   const [downloading, setDownloading] = useState(false);
 
   const download = async () => {
