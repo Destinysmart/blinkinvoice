@@ -59,7 +59,6 @@ export function Sidebar() {
     navigate({ to: "/login" });
   };
 
-  const isActive = (to: string, exact?: boolean) =>
   const groups = useNavGroups();
   const isActive = (to: string, exact?: boolean) =>
     exact ? pathname === to : pathname === to || pathname.startsWith(to + "/");
