@@ -169,8 +169,9 @@ export function SendInvoiceDialog({ open, onOpenChange, invoice, settings, onSen
             <Textarea id="msg" rows={7} value={message} onChange={(e) => setMessage(e.target.value)} />
           </div>
           <p className="text-xs text-muted-foreground">
-            The PDF (with Lightning QR) is attached automatically. Sent from <span className="font-mono">onboarding@resend.dev</span> — verify your domain at resend.com/domains to send from your own address.
+            The PDF (with Lightning QR) is uploaded and linked from the email. Sent from <span className="font-mono">invoices@notify.bitlance.work</span>.
           </p>
+
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={send.isPending}>Cancel</Button>
