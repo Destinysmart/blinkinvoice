@@ -3,7 +3,10 @@ import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { createLnBtcInvoice, fetchInvoiceStatus, usdCentsToSats } from "@/lib/blink";
 
-const TokenInput = z.object({ token: z.string().min(8).max(64).regex(/^[A-Za-z0-9_-]+$/) });
+const TokenInput = z.object({
+  token: z.string().min(8).max(64).regex(/^[A-Za-z0-9_-]+$/),
+  force: z.boolean().optional(),
+});
 
 function calcTotal(items: any[], taxPct: number) {
   const subtotal = (items ?? []).reduce(
