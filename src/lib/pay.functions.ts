@@ -24,6 +24,8 @@ function normalizeExpiresAtMs(v: unknown): number | null {
   if (!isFinite(n) || n <= 0) return null;
   // Values < 10^11 are obviously seconds (Nov 2286 threshold in ms).
   return n < 1e11 ? n * 1000 : n;
+}
+
 
 async function loadByToken(token: string) {
   const { data, error } = await supabaseAdmin
