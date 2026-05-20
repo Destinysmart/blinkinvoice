@@ -239,6 +239,15 @@ export function MobileBar() {
         </Link>
       </div>
 
+      <HintWrap hint={`Switch to ${theme === "dark" ? "light" : "dark"} theme`} side="bottom">
+        <button
+          onClick={toggleTheme}
+          className="grid h-9 w-9 place-items-center rounded-md border border-border bg-card text-foreground transition active:scale-95"
+          aria-label="Toggle theme"
+        >
+          {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+        </button>
+      </HintWrap>
     </header>
   );
 }
