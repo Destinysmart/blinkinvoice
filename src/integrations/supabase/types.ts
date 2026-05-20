@@ -118,6 +118,7 @@ export type Database = {
           memo: string | null
           number: string
           paid_at: string | null
+          pay_token: string
           payment_hash: string | null
           payment_request: string | null
           satoshis: number | null
@@ -141,6 +142,7 @@ export type Database = {
           memo?: string | null
           number: string
           paid_at?: string | null
+          pay_token?: string
           payment_hash?: string | null
           payment_request?: string | null
           satoshis?: number | null
@@ -164,6 +166,7 @@ export type Database = {
           memo?: string | null
           number?: string
           paid_at?: string | null
+          pay_token?: string
           payment_hash?: string | null
           payment_request?: string | null
           satoshis?: number | null
