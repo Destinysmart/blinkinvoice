@@ -2,7 +2,8 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-const GATEWAY_URL = "https://connector-gateway.lovable.dev/resend";
+const SENDER_DOMAIN = "notify.bitlance.work";
+const FROM_ADDRESS = "invoices@notify.bitlance.work";
 
 const SendInput = z.object({
   invoiceId: z.string().uuid(),
@@ -19,44 +20,79 @@ export const sendInvoiceEmail = createServerFn({ method: "POST" })
   .inputValidator((d) => SendInput.parse(d))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const lovableKey = process.env.LOVABLE_API_KEY;
-    const resendKey = process.env.RESEND_API_KEY;
-    if (!lovableKey) throw new Error("LOVABLE_API_KEY is not configured");
-    if (!resendKey) throw new Error("RESEND_API_KEY is not configured");
+
+    // 1. Upload PDF to private storage and sign a long-lived URL.
+    const pdfBytes = Uint8Array.from(atob(data.pdfBase64), (c) => c.charCodeAt(0));
+    const safeName = data.pdfFilename.replace(/[^a-zA-Z0-9._-]/g, "_");
+    const path = `${userId}/${data.invoiceId}/${Date.now()}-${safeName}`;
+
+    const { error: upErr } = await supabase.storage
+      .from("invoice-pdfs")
+      .upload(path, pdfBytes, { contentType: "application/pdf", upsert: true });
+    if (upErr) throw new Error(`Failed to upload PDF: ${upErr.message}`);
+
+    const { data: signed, error: signErr } = await supabase.storage
+      .from("invoice-pdfs")
+      .createSignedUrl(path, 60 * 60 * 24 * 60); // 60 days
+    if (signErr || !signed?.signedUrl) throw new Error(`Failed to sign PDF URL: ${signErr?.message ?? "unknown"}`);
+    const pdfUrl = signed.signedUrl;
+
+    // 2. Inject download button into the HTML (replaces the {{PDF_URL}} placeholder
+    //    or appends a button right before </body> as a fallback).
+    const downloadBlock = `
+<table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 8px">
+  <tr><td align="center" style="padding:8px 28px 20px">
+    <a href="${pdfUrl}" style="display:inline-block;background:#1c1c1c;border:1px solid #2a2a2a;color:#F7931A;font-weight:600;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:14px">📄 Download invoice PDF</a>
+  </td></tr>
+</table>`.trim();
+
+    let html = data.html.includes("{{PDF_URL}}")
+      ? data.html.replaceAll("{{PDF_URL}}", pdfUrl)
+      : data.html.replace("</body>", `${downloadBlock}</body>`);
+    if (!html.includes(pdfUrl)) html = html + downloadBlock;
 
     const fromName = (data.fromName || "BlinkInvoice").replace(/[<>"]/g, "");
-    const from = `${fromName} <onboarding@resend.dev>`;
+    const fromHeader = `${fromName} <${FROM_ADDRESS}>`;
+    const messageId = crypto.randomUUID();
 
-    const res = await fetch(`${GATEWAY_URL}/emails`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${lovableKey}`,
-        "X-Connection-Api-Key": resendKey,
-      },
-      body: JSON.stringify({
-        from,
-        to: [data.to],
+    // 3. Enqueue via Lovable Email queue (auto-retried, rate-limit aware).
+    const { error: enqErr } = await supabase.rpc("enqueue_email", {
+      queue_name: "transactional_emails",
+      payload: {
+        to: data.to,
+        from: fromHeader,
+        sender_domain: SENDER_DOMAIN,
         subject: data.subject,
-        html: data.html,
-        attachments: [{ filename: data.pdfFilename, content: data.pdfBase64 }],
-      }),
+        html,
+        purpose: "transactional",
+        label: "invoice",
+        message_id: messageId,
+        idempotency_key: `invoice-${data.invoiceId}-${data.to}-${messageId}`,
+        queued_at: new Date().toISOString(),
+      },
     });
 
-    const body = await res.json().catch(() => ({}));
-    const ok = res.ok && !body?.error;
-    const errorMsg = ok ? null : (body?.error?.message || body?.message || `Resend ${res.status}`);
+    if (enqErr) {
+      await supabase.from("email_logs").insert({
+        user_id: userId,
+        invoice_id: data.invoiceId,
+        recipient_email: data.to,
+        subject: data.subject,
+        status: "failed",
+        error: enqErr.message,
+      });
+      throw new Error(`Failed to queue email: ${enqErr.message}`);
+    }
 
     await supabase.from("email_logs").insert({
       user_id: userId,
       invoice_id: data.invoiceId,
       recipient_email: data.to,
       subject: data.subject,
-      status: ok ? "sent" : "failed",
-      error: errorMsg,
+      status: "sent",
+      error: null,
     });
 
-    if (!ok) throw new Error(errorMsg ?? "Failed to send email");
     return { ok: true };
   });
 
