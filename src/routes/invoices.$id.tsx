@@ -3,8 +3,8 @@ import { useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { QRCodeSVG } from "qrcode.react";
 import { toast } from "sonner";
-import { ArrowLeft, Copy, Zap, AlertTriangle, RefreshCw, Trash2, Download, Share2, Eye, MoreHorizontal, CheckCircle2 } from "lucide-react";
-import { useAppStore, invoiceTotal } from "@/lib/store";
+import { ArrowLeft, Copy, Zap, AlertTriangle, RefreshCw, Trash2, Download, Share2, Eye, MoreHorizontal, CheckCircle2, Send } from "lucide-react";
+import { useAppStore, invoiceTotal, genInvoiceNumber } from "@/lib/store";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { createLnUsdInvoice, createLnBtcInvoice, fetchInvoiceStatus, usdCentsToSats } from "@/lib/blink";
@@ -29,9 +29,35 @@ function InvoiceDetailPage() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
   const invoice = useAppStore((s) => s.invoices.find((i) => i.id === id));
+  const allInvoices = useAppStore((s) => s.invoices);
   const settings = useAppStore((s) => s.settings);
   const updateInvoice = useAppStore((s) => s.updateInvoice);
   const deleteInvoice = useAppStore((s) => s.deleteInvoice);
+  const addInvoice = useAppStore((s) => s.addInvoice);
+
+  const sendAgain = () => {
+    if (!invoice) return;
+    const newId = crypto.randomUUID();
+    const number = genInvoiceNumber(
+      allInvoices.map((i) => i.number),
+      settings.invoicePrefix || "INV",
+    );
+    addInvoice({
+      ...invoice,
+      id: newId,
+      number,
+      status: "draft",
+      issueDate: new Date().toISOString(),
+      paymentRequest: null,
+      paymentHash: null,
+      satoshis: null,
+      expiresAt: null,
+      activity: [],
+      createdAt: new Date().toISOString(),
+    });
+    toast.success("Invoice duplicated");
+    navigate({ to: "/invoices/$id", params: { id: newId }, search: { send: 1 } as any });
+  };
 
   const ln = useMutation({
     mutationFn: async () => {
@@ -87,6 +113,17 @@ function InvoiceDetailPage() {
   const [shareOpen, setShareOpen] = useState(false);
   const [sendOpen, setSendOpen] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const p = new URLSearchParams(window.location.search);
+    if (p.get("send") === "1") {
+      setSendOpen(true);
+      p.delete("send");
+      const q = p.toString();
+      window.history.replaceState(null, "", window.location.pathname + (q ? `?${q}` : ""));
+    }
+  }, [id]);
   const [downloading, setDownloading] = useState(false);
 
   const download = async () => {
@@ -183,6 +220,9 @@ function InvoiceDetailPage() {
           <Button size="sm" variant="outline" onClick={() => setShareOpen(true)} aria-label="Share" className="hidden sm:inline-flex">
             <Share2 className="h-3.5 w-3.5 sm:mr-1.5" /> <span className="hidden sm:inline">Share</span>
           </Button>
+          <Button size="sm" variant="outline" onClick={sendAgain} aria-label="Send again" className="hidden sm:inline-flex">
+            <Send className="h-3.5 w-3.5 sm:mr-1.5" /> <span className="hidden sm:inline">Send again</span>
+          </Button>
 
           {/* Mobile: collapse secondary actions into one menu */}
           <DropdownMenu>
@@ -206,8 +246,12 @@ function InvoiceDetailPage() {
               <DropdownMenuItem onClick={() => setShareOpen(true)}>
                 <Share2 className="mr-2 h-4 w-4" /> Share
               </DropdownMenuItem>
+              <DropdownMenuItem onClick={sendAgain}>
+                <Send className="mr-2 h-4 w-4" /> Send again
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+
 
           <AlertDialog>
             <AlertDialogTrigger asChild>

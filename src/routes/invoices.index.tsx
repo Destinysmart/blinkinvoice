@@ -1,14 +1,17 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Plus, Search, Zap, MoreHorizontal, FileText, Download } from "lucide-react";
-import { useAppStore, invoiceTotal } from "@/lib/store";
+import { Plus, Search, Zap, MoreHorizontal, FileText, Download, Send } from "lucide-react";
+import { useAppStore, invoiceTotal, genInvoiceNumber } from "@/lib/store";
 import { fmtUsd, fmtDate, isOverdue } from "@/lib/format";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { EmptyState } from "@/components/EmptyState";
 import { PageHeader } from "@/components/PageHeader";
 import { InfoHint } from "@/components/InfoHint";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { toCsv, downloadCsv } from "@/lib/csv";
 import { toast } from "sonner";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
@@ -76,11 +79,102 @@ function InvoicesPage() {
     setSelected(new Set());
   };
 
-  const duplicate = (id: string) => {
+  const navigate = useNavigate();
+
+  const sendAgain = (id: string) => {
     const inv = invoices.find((i) => i.id === id);
     if (!inv) return;
-    addInvoice({ ...inv, id: crypto.randomUUID(), number: `${inv.number}-COPY`, status: "draft", createdAt: new Date().toISOString(), paymentRequest: null, paymentHash: null, satoshis: null, expiresAt: null });
+    const newId = crypto.randomUUID();
+    const number = genInvoiceNumber(
+      invoices.map((i) => i.number),
+      settings.invoicePrefix || "INV",
+    );
+    addInvoice({
+      ...inv,
+      id: newId,
+      number,
+      status: "draft",
+      issueDate: new Date().toISOString(),
+      paymentRequest: null,
+      paymentHash: null,
+      satoshis: null,
+      expiresAt: null,
+      activity: [],
+      createdAt: new Date().toISOString(),
+    });
     toast.success("Invoice duplicated");
+    navigate({ to: "/invoices/$id", params: { id: newId }, search: { send: 1 } as any });
+  };
+
+  // CSV export state
+  const now = new Date();
+  const [exportMode, setExportMode] = useState<"month" | "all" | "range">("month");
+  const [exportMonth, setExportMonth] = useState<string>(
+    `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`,
+  );
+  const [exportFrom, setExportFrom] = useState<string>("");
+  const [exportTo, setExportTo] = useState<string>("");
+  const [exportOpen, setExportOpen] = useState(false);
+
+  const doExport = () => {
+    let from: Date | null = null;
+    let to: Date | null = null;
+    let filenameSuffix = "all";
+
+    if (exportMode === "month") {
+      const [y, m] = exportMonth.split("-").map(Number);
+      from = new Date(y, m - 1, 1);
+      to = new Date(y, m, 1);
+      filenameSuffix = exportMonth;
+    } else if (exportMode === "range") {
+      if (!exportFrom || !exportTo) {
+        toast.error("Pick a start and end date");
+        return;
+      }
+      from = new Date(exportFrom);
+      to = new Date(exportTo);
+      to.setDate(to.getDate() + 1); // inclusive end
+      filenameSuffix = `${exportFrom}-to-${exportTo}`;
+    }
+
+    const inRange = invoices.filter((inv) => {
+      if (!from || !to) return true;
+      const d = new Date(inv.issueDate ?? inv.createdAt);
+      return d >= from && d < to;
+    });
+
+    if (inRange.length === 0) {
+      toast.error("No invoices in that range");
+      return;
+    }
+
+    const headers = [
+      "Number", "Issue date", "Due date", "Client name", "Client email",
+      "Currency", "Subtotal", "Tax %", "Total", "Status", "Memo", "Payment hash",
+    ];
+    const rows = inRange.map((inv) => {
+      const { subtotal, total } = invoiceTotal(inv);
+      const fmt = (n: number) =>
+        inv.currency === "USD" ? n.toFixed(2) : String(Math.round(n));
+      return [
+        inv.number,
+        inv.issueDate ? inv.issueDate.slice(0, 10) : inv.createdAt.slice(0, 10),
+        inv.dueDate ? inv.dueDate.slice(0, 10) : "",
+        inv.client.name,
+        inv.client.email,
+        inv.currency,
+        fmt(subtotal),
+        String(inv.tax ?? 0),
+        fmt(total),
+        isOverdue(inv) ? "overdue" : inv.status,
+        inv.memo ?? "",
+        inv.paymentHash ?? "",
+      ];
+    });
+
+    downloadCsv(`invoices-${filenameSuffix}.csv`, toCsv(headers, rows));
+    toast.success(`Exported ${inRange.length} invoice${inRange.length > 1 ? "s" : ""}`);
+    setExportOpen(false);
   };
 
   const filters: { key: Filter; label: string }[] = [
@@ -95,7 +189,62 @@ function InvoicesPage() {
         subtitle="Create, send, and track your invoices in one place."
         hint="Each invoice can be paid in USD or Bitcoin over the Lightning Network. Click any invoice to see details."
         actions={
-          <Button asChild size="sm"><Link to="/invoices/new"><Plus className="mr-1.5 h-3.5 w-3.5" /> New invoice</Link></Button>
+          <div className="flex items-center gap-2">
+            <Popover open={exportOpen} onOpenChange={setExportOpen}>
+              <PopoverTrigger asChild>
+                <Button size="sm" variant="outline">
+                  <Download className="mr-1.5 h-3.5 w-3.5" /> Export CSV
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-72 space-y-3">
+                <div className="space-y-2">
+                  <Label className="text-xs">Range</Label>
+                  <div className="flex gap-1">
+                    {(["month", "range", "all"] as const).map((m) => (
+                      <button
+                        key={m}
+                        onClick={() => setExportMode(m)}
+                        className={`flex-1 rounded-md px-2 py-1 text-xs font-medium capitalize transition ${
+                          exportMode === m
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-muted text-muted-foreground hover:bg-muted/70"
+                        }`}
+                      >
+                        {m === "all" ? "All time" : m}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {exportMode === "month" && (
+                  <div className="space-y-1.5">
+                    <Label htmlFor="export-month" className="text-xs">Month</Label>
+                    <Input
+                      id="export-month"
+                      type="month"
+                      value={exportMonth}
+                      onChange={(e) => setExportMonth(e.target.value)}
+                    />
+                  </div>
+                )}
+                {exportMode === "range" && (
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="export-from" className="text-xs">From</Label>
+                      <Input id="export-from" type="date" value={exportFrom} onChange={(e) => setExportFrom(e.target.value)} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="export-to" className="text-xs">To</Label>
+                      <Input id="export-to" type="date" value={exportTo} onChange={(e) => setExportTo(e.target.value)} />
+                    </div>
+                  </div>
+                )}
+                <Button size="sm" className="w-full" onClick={doExport}>
+                  <Download className="mr-1.5 h-3.5 w-3.5" /> Download CSV
+                </Button>
+              </PopoverContent>
+            </Popover>
+            <Button asChild size="sm"><Link to="/invoices/new"><Plus className="mr-1.5 h-3.5 w-3.5" /> New invoice</Link></Button>
+          </div>
         }
       />
 
@@ -178,7 +327,7 @@ function InvoicesPage() {
                           <Link to="/invoices/$id" params={{ id: inv.id }}>View</Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => updateInvoice(inv.id, { status: "paid" })}>Mark as paid</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => duplicate(inv.id)}>Duplicate</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => sendAgain(inv.id)}><Send className="mr-2 h-3.5 w-3.5" /> Send again</DropdownMenuItem>
                         <DropdownMenuItem onClick={() => downloadPdf(inv.id)}>
                           <Download className="mr-2 h-3.5 w-3.5" /> Download PDF
                         </DropdownMenuItem>
@@ -253,7 +402,7 @@ function InvoicesPage() {
                               <Link to="/invoices/$id" params={{ id: inv.id }}>View</Link>
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => updateInvoice(inv.id, { status: "paid" })}>Mark as paid</DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => duplicate(inv.id)}>Duplicate</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => sendAgain(inv.id)}><Send className="mr-2 h-3.5 w-3.5" /> Send again</DropdownMenuItem>
                             <DropdownMenuItem onClick={() => downloadPdf(inv.id)}>
                               <Download className="mr-2 h-3.5 w-3.5" /> Download PDF
                             </DropdownMenuItem>
