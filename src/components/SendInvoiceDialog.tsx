@@ -88,7 +88,7 @@ function escapeHtml(s: string) {
 
 export function SendInvoiceDialog({ open, onOpenChange, invoice, settings, onSent }: Props) {
   const defaultSubject = `Invoice ${invoice.number} from ${settings.businessName || "BlinkInvoice"}`;
-  const defaultMessage = `Hi ${invoice.client.name},\n\nPlease find your invoice ${invoice.number} for ${fmtAmount(invoice)} attached.\n\nYou can pay instantly via Bitcoin Lightning — the QR code is included in the attached PDF.\n\nThank you for your business.\n${settings.businessName || ""}`;
+  const defaultMessage = `Hi ${invoice.client.name},\n\nPlease find your invoice ${invoice.number} for ${fmtAmount(invoice)} below. You can download the full PDF from the button in the email.\n\nYou can also pay instantly via Bitcoin Lightning — just tap the Pay button.\n\nThank you for your business.\n${settings.businessName || ""}`;
 
   const [to, setTo] = useState(invoice.client.email || "");
   const [subject, setSubject] = useState(defaultSubject);
