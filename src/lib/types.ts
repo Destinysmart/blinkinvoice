@@ -34,6 +34,7 @@ export interface Settings {
   businessAddress: string;
   apiKey: string;
   walletId: string;
+  walletName?: string;
   defaultCurrency: Currency;
   invoicePrefix?: string;
   nextInvoiceNumber?: number;
