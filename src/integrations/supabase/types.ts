@@ -253,6 +253,7 @@ export type Database = {
           logo_url: string | null
           next_invoice_number: number
           phone: string | null
+          show_advanced: boolean
           updated_at: string
           usd_wallet_id: string | null
           vat_number: string | null
@@ -278,6 +279,7 @@ export type Database = {
           logo_url?: string | null
           next_invoice_number?: number
           phone?: string | null
+          show_advanced?: boolean
           updated_at?: string
           usd_wallet_id?: string | null
           vat_number?: string | null
@@ -303,6 +305,7 @@ export type Database = {
           logo_url?: string | null
           next_invoice_number?: number
           phone?: string | null
+          show_advanced?: boolean
           updated_at?: string
           usd_wallet_id?: string | null
           vat_number?: string | null

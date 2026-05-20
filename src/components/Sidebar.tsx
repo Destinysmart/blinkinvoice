@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { HintWrap } from "./InfoHint";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
-const groups = [
+const baseGroups = [
   {
     label: "Workspace",
     items: [
@@ -22,20 +22,28 @@ const groups = [
       { to: "/clients", icon: Users, label: "Clients", hint: "Saved customers — reuse their details when creating invoices." },
     ],
   },
-
-  {
-    label: "Finance",
-    items: [
-      { to: "/expenses", icon: Package, label: "Expenses", hint: "Log business expenses to track profit and prep for taxes." },
-      { to: "/projects", icon: FolderKanban, label: "Projects", hint: "Group invoices and expenses by project." },
-      { to: "/reports", icon: BarChart3, label: "Reports", hint: "Revenue, profit and tax summaries you can export." },
-    ],
-  },
-  {
-    label: "Account",
-    items: [{ to: "/settings", icon: Settings, label: "Settings", hint: "Business info, Lightning wallet connection, email and tax defaults." }],
-  },
 ] as const;
+
+const advancedGroup = {
+  label: "Finance",
+  items: [
+    { to: "/expenses", icon: Package, label: "Expenses", hint: "Log business expenses to track profit and prep for taxes." },
+    { to: "/projects", icon: FolderKanban, label: "Projects", hint: "Group invoices and expenses by project." },
+    { to: "/reports", icon: BarChart3, label: "Reports", hint: "Revenue, profit and tax summaries you can export." },
+  ],
+} as const;
+
+const accountGroup = {
+  label: "Account",
+  items: [{ to: "/settings", icon: Settings, label: "Settings", hint: "Business info, Lightning wallet connection, email and tax defaults." }],
+} as const;
+
+function useNavGroups() {
+  const showAdvanced = useAppStore((s) => s.settings.showAdvanced);
+  return showAdvanced
+    ? [...baseGroups, advancedGroup, accountGroup]
+    : [...baseGroups, accountGroup];
+}
 
 export function Sidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -51,6 +59,7 @@ export function Sidebar() {
     navigate({ to: "/login" });
   };
 
+  const groups = useNavGroups();
   const isActive = (to: string, exact?: boolean) =>
     exact ? pathname === to : pathname === to || pathname.startsWith(to + "/");
 
@@ -159,6 +168,8 @@ export function MobileBar() {
     setOpen(false);
     navigate({ to: "/login" });
   };
+
+  const groups = useNavGroups();
 
   const isActive = (to: string, exact?: boolean) =>
     exact ? pathname === to : pathname === to || pathname.startsWith(to + "/");

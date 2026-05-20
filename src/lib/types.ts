@@ -41,6 +41,7 @@ export interface Settings {
   defaultTaxRate?: number;
   invoiceFooter?: string;
   logo?: string; // base64 data URL
+  showAdvanced?: boolean;
 }
 
 export interface Client {
