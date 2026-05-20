@@ -185,14 +185,15 @@ function AppFrame() {
   // Redirect rules
   useEffect(() => {
     if (loading) return;
+    if (isPublicRoute) return;
     if (!isAuthenticated && !isAuthRoute) {
       navigate({ to: "/login" });
     } else if (isAuthenticated && isAuthRoute && location.pathname !== "/reset-password") {
       navigate({ to: "/" });
     }
-  }, [loading, isAuthenticated, isAuthRoute, location.pathname, navigate]);
+  }, [loading, isAuthenticated, isAuthRoute, isPublicRoute, location.pathname, navigate]);
 
-  if (loading) {
+  if (loading && !isPublicRoute) {
     return (
       <div className="grid min-h-screen place-items-center bg-background">
         <div className="flex flex-col items-center gap-3">
@@ -203,7 +204,7 @@ function AppFrame() {
     );
   }
 
-  if (isAuthRoute) {
+  if (isAuthRoute || isPublicRoute) {
     return <Outlet />;
   }
 
