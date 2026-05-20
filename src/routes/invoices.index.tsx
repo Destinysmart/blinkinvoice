@@ -4,6 +4,7 @@ import { Plus, Search, Zap, MoreHorizontal, FileText, Download, Send } from "luc
 import { useAppStore, invoiceTotal, genInvoiceNumber } from "@/lib/store";
 import { fmtUsd, fmtDate, isOverdue } from "@/lib/format";
 import { StatusBadge } from "@/components/StatusBadge";
+import { EmailStatusBadge } from "@/components/EmailStatusBadge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,6 +14,9 @@ import { InfoHint } from "@/components/InfoHint";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { toCsv, downloadCsv } from "@/lib/csv";
 import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { getInvoicesEmailStatus } from "@/lib/email.functions";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -30,6 +34,17 @@ function InvoicesPage() {
   const deleteInvoice = useAppStore((s) => s.deleteInvoice);
   const addInvoice = useAppStore((s) => s.addInvoice);
   const settings = useAppStore((s) => s.settings);
+
+  const invoiceIds = useMemo(() => invoices.map((i) => i.id), [invoices]);
+  const fetchEmailStatuses = useServerFn(getInvoicesEmailStatus);
+  const { data: emailStatusData } = useQuery({
+    queryKey: ["invoices_email_status", invoiceIds],
+    queryFn: () => fetchEmailStatuses({ data: { invoiceIds } }),
+    enabled: invoiceIds.length > 0,
+    refetchInterval: 15_000,
+    staleTime: 10_000,
+  });
+  const emailStatusByInvoice = emailStatusData?.byInvoice ?? {};
 
   const downloadPdf = async (id: string) => {
     const inv = invoices.find((i) => i.id === id);
@@ -312,6 +327,14 @@ function InvoicesPage() {
                         {inv.currency === "USD" ? fmtUsd(total) : `${Math.round(total).toLocaleString()} sats`}
                       </span>
                       <StatusBadge status={overdue ? "overdue" : inv.status} />
+                      {emailStatusByInvoice[inv.id] && (
+                        <EmailStatusBadge
+                          status={emailStatusByInvoice[inv.id].delivery_status}
+                          recipient={emailStatusByInvoice[inv.id].recipient_email}
+                          error={emailStatusByInvoice[inv.id].delivery_error}
+                          compact
+                        />
+                      )}
                       {inv.paymentRequest && <Zap className="h-3.5 w-3.5 fill-primary text-primary" />}
                     </div>
                   </div>
@@ -382,7 +405,18 @@ function InvoicesPage() {
                       <td className="px-3 py-3 text-right font-mono text-sm">
                         {inv.currency === "USD" ? fmtUsd(total) : `${Math.round(total).toLocaleString()} sats`}
                       </td>
-                      <td className="px-3 py-3"><StatusBadge status={overdue ? "overdue" : inv.status} /></td>
+                      <td className="px-3 py-3">
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <StatusBadge status={overdue ? "overdue" : inv.status} />
+                          {emailStatusByInvoice[inv.id] && (
+                            <EmailStatusBadge
+                              status={emailStatusByInvoice[inv.id].delivery_status}
+                              recipient={emailStatusByInvoice[inv.id].recipient_email}
+                              error={emailStatusByInvoice[inv.id].delivery_error}
+                            />
+                          )}
+                        </div>
+                      </td>
                       <td className="px-3 py-3 text-center">
                         {inv.paymentRequest ? (
                           <Zap className="mx-auto h-4 w-4 fill-primary text-primary" />
