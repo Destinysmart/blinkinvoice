@@ -405,7 +405,18 @@ function InvoicesPage() {
                       <td className="px-3 py-3 text-right font-mono text-sm">
                         {inv.currency === "USD" ? fmtUsd(total) : `${Math.round(total).toLocaleString()} sats`}
                       </td>
-                      <td className="px-3 py-3"><StatusBadge status={overdue ? "overdue" : inv.status} /></td>
+                      <td className="px-3 py-3">
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <StatusBadge status={overdue ? "overdue" : inv.status} />
+                          {emailStatusByInvoice[inv.id] && (
+                            <EmailStatusBadge
+                              status={emailStatusByInvoice[inv.id].delivery_status}
+                              recipient={emailStatusByInvoice[inv.id].recipient_email}
+                              error={emailStatusByInvoice[inv.id].delivery_error}
+                            />
+                          )}
+                        </div>
+                      </td>
                       <td className="px-3 py-3 text-center">
                         {inv.paymentRequest ? (
                           <Zap className="mx-auto h-4 w-4 fill-primary text-primary" />
