@@ -55,6 +55,20 @@ export const sendInvoiceEmail = createServerFn({ method: "POST" })
     const fromHeader = `${fromName} <${FROM_ADDRESS}>`;
     const messageId = crypto.randomUUID();
 
+    // Plain-text fallback derived from the HTML (Lovable Email API requires `text`).
+    const text = html
+      .replace(/<style[\s\S]*?<\/style>/gi, "")
+      .replace(/<script[\s\S]*?<\/script>/gi, "")
+      .replace(/<br\s*\/?>/gi, "\n")
+      .replace(/<\/p>/gi, "\n\n")
+      .replace(/<[^>]+>/g, "")
+      .replace(/&nbsp;/g, " ")
+      .replace(/&amp;/g, "&")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim() + `\n\nDownload invoice PDF: ${pdfUrl}\n`;
+
     // 3. Enqueue via Lovable Email queue (auto-retried, rate-limit aware).
     const { error: enqErr } = await supabase.rpc("enqueue_email", {
       queue_name: "transactional_emails",
@@ -64,6 +78,7 @@ export const sendInvoiceEmail = createServerFn({ method: "POST" })
         sender_domain: SENDER_DOMAIN,
         subject: data.subject,
         html,
+        text,
         purpose: "transactional",
         label: "invoice",
         message_id: messageId,
