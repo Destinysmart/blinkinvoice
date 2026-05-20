@@ -46,6 +46,12 @@ function buildHtml(message: string, inv: Invoice, settings: Settings, payUrl: st
         <div style="color:#888;font-size:12px;margin-top:10px">The Lightning QR refreshes automatically — never expires.</div>
       </td></tr>
     </table>` : "";
+  const pdfButton = `
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin:8px 0 0">
+      <tr><td align="center">
+        <a href="{{PDF_URL}}" style="display:inline-block;background:#1c1c1c;border:1px solid #2a2a2a;color:#F7931A;font-weight:600;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:14px">📄 Download invoice PDF</a>
+      </td></tr>
+    </table>`;
   return `<!doctype html><html><body style="margin:0;padding:0;background:#0a0a0a;font-family:-apple-system,Segoe UI,Roboto,sans-serif">
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#0a0a0a;padding:24px 0">
 <tr><td align="center">
@@ -65,7 +71,9 @@ function buildHtml(message: string, inv: Invoice, settings: Settings, payUrl: st
           <td align="right" style="padding:0 18px 16px;color:#cccccc;font-size:13px">${escapeHtml(inv.client.name)}</td></tr>
     </table>
     ${payButton}
-    <p style="color:#888;font-size:13px;margin:16px 0 0">The full invoice is also attached as a PDF.</p>
+    ${pdfButton}
+    <p style="color:#888;font-size:13px;margin:16px 0 0">Tap the button above to download the full invoice PDF (with Lightning QR).</p>
+
   </td></tr>
   <tr><td style="padding:18px 28px;border-top:1px solid #2a2a2a;color:#666;font-size:11px;text-align:center">
     ${escapeHtml(settings.businessName || "BlinkInvoice")} · Bitcoin-native invoicing
