@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { InstallAppCard } from "@/components/InstallAppCard";
 
 export const Route = createFileRoute("/settings")({
   component: SettingsPage,
@@ -166,6 +168,23 @@ function SettingsPage() {
             ))}
           </div>
         </Field>
+
+        <div className="flex items-start justify-between gap-4 rounded-md border border-border p-3">
+          <div className="min-w-0">
+            <div className="text-sm font-medium">Show advanced features</div>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Show Expenses, Projects and Reports in the sidebar. You can turn them back on anytime.
+            </p>
+          </div>
+          <Switch
+            checked={Boolean(form.showAdvanced)}
+            onCheckedChange={(v) => setForm({ ...form, showAdvanced: v })}
+          />
+        </div>
+      </Card>
+
+      <Card title="Install">
+        <InstallAppCard />
       </Card>
 
       <div className="flex justify-end">
