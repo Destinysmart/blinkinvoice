@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { Plus, Search, Zap, MoreHorizontal, FileText, Download, Send } from "lucide-react";
 import { useAppStore, invoiceTotal, genInvoiceNumber } from "@/lib/store";
-import { fmtUsd, fmtSats, fmtDate, isOverdue } from "@/lib/format";
+import { fmtUsd, fmtDate, isOverdue } from "@/lib/format";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
