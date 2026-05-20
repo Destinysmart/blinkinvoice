@@ -69,6 +69,34 @@ export const sendInvoiceEmail = createServerFn({ method: "POST" })
       .replace(/\n{3,}/g, "\n\n")
       .trim() + `\n\nDownload invoice PDF: ${pdfUrl}\n`;
 
+    // Ensure an unsubscribe token exists for this recipient (Lovable Email requires it for transactional sends).
+    let unsubscribeToken: string;
+    const { data: existingTok } = await supabase
+      .from("email_unsubscribe_tokens")
+      .select("token")
+      .eq("email", data.to)
+      .maybeSingle();
+    if (existingTok?.token) {
+      unsubscribeToken = existingTok.token;
+    } else {
+      const newTok = crypto.randomUUID().replace(/-/g, "") + crypto.randomUUID().replace(/-/g, "");
+      const { data: inserted, error: tokErr } = await supabase
+        .from("email_unsubscribe_tokens")
+        .insert({ email: data.to, token: newTok })
+        .select("token")
+        .maybeSingle();
+      if (tokErr) {
+        const { data: retry } = await supabase
+          .from("email_unsubscribe_tokens")
+          .select("token")
+          .eq("email", data.to)
+          .maybeSingle();
+        unsubscribeToken = retry?.token ?? newTok;
+      } else {
+        unsubscribeToken = inserted?.token ?? newTok;
+      }
+    }
+
     // 3. Enqueue via Lovable Email queue (auto-retried, rate-limit aware).
     const { error: enqErr } = await supabase.rpc("enqueue_email", {
       queue_name: "transactional_emails",
@@ -82,6 +110,7 @@ export const sendInvoiceEmail = createServerFn({ method: "POST" })
         purpose: "transactional",
         label: "invoice",
         message_id: messageId,
+        unsubscribe_token: unsubscribeToken,
         idempotency_key: `invoice-${data.invoiceId}-${data.to}-${messageId}`,
         queued_at: new Date().toISOString(),
       },
