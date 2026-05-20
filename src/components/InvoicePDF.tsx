@@ -197,6 +197,11 @@ function chunkBolt11(s: string, size = 64) {
   return out.join("\n");
 }
 
+function getOrigin() {
+  if (typeof window !== "undefined" && window.location?.origin) return window.location.origin;
+  return "https://blinkinvoice.lovable.app";
+}
+
 export function InvoicePDF({
   invoice, settings, qrCodeDataURL,
 }: { invoice: Invoice; settings: Settings; qrCodeDataURL?: string | null }) {
