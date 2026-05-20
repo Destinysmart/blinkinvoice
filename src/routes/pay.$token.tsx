@@ -108,9 +108,10 @@ function PayPage() {
     );
   }
 
-  const remaining = data.expiresAt ? Math.max(0, data.expiresAt - now) : 0;
-  const mins = Math.floor(remaining / 60);
-  const secs = remaining % 60;
+  const remainingMs = data.expiresAt ? Math.max(0, data.expiresAt - nowMs) : 0;
+  const remainingSec = Math.floor(remainingMs / 1000);
+  const mins = Math.floor(remainingSec / 60);
+  const secs = remainingSec % 60;
   const lnUri = data.paymentRequest ? `lightning:${data.paymentRequest}` : "";
 
   const copyBolt11 = () => {
