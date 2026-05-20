@@ -50,7 +50,7 @@ function publicInvoice(row: any, profile: any) {
     memo: (row.memo as string) ?? "",
     paymentRequest: row.payment_request as string | null,
     satoshis: row.satoshis != null ? Number(row.satoshis) : null,
-    expiresAt: row.expires_at != null ? Number(row.expires_at) : null,
+    expiresAt: normalizeExpiresAtMs(row.expires_at),
     paidAt: row.paid_at as string | null,
     businessName: (profile?.business_name as string) || "BlinkInvoice",
     logoUrl: (profile?.logo_url as string) || null,
