@@ -41,6 +41,7 @@ const defaultSettings: Settings = {
   defaultTaxRate: 0,
   invoiceFooter: "Thank you for your business.",
   logo: "",
+  showAdvanced: false,
 };
 
 // ---------- Mappers (DB <-> in-memory) ----------
@@ -62,6 +63,7 @@ function profileToSettings(p: DbProfile | null): Settings {
     defaultTaxRate: Number(p.default_tax_rate ?? 0),
     invoiceFooter: p.invoice_footer ?? "",
     logo: p.logo_url ?? "",
+    showAdvanced: Boolean(p.show_advanced),
   };
 }
 
@@ -79,6 +81,7 @@ function settingsPatchToProfile(s: Partial<Settings>): DbProfile {
   if (s.defaultTaxRate !== undefined) out.default_tax_rate = s.defaultTaxRate;
   if (s.invoiceFooter !== undefined) out.invoice_footer = s.invoiceFooter;
   if (s.logo !== undefined) out.logo_url = s.logo;
+  if (s.showAdvanced !== undefined) out.show_advanced = s.showAdvanced;
   return out;
 }
 
