@@ -180,9 +180,9 @@ function PayPage() {
                 <Zap className="h-3.5 w-3.5 text-primary" />
                 Scan with any Lightning wallet
               </div>
-              {data.expiresAt && remaining > 0 && (
+              {data.expiresAt && remainingMs > 0 && (
                 <div className="text-muted-foreground font-mono">
-                  Refreshes in {mins}:{String(secs).padStart(2, "0")}
+                  New QR in {mins}m {String(secs).padStart(2, "0")}s
                 </div>
               )}
             </div>
