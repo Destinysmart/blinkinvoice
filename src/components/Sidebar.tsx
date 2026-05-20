@@ -60,6 +60,8 @@ export function Sidebar() {
   };
 
   const isActive = (to: string, exact?: boolean) =>
+  const groups = useNavGroups();
+  const isActive = (to: string, exact?: boolean) =>
     exact ? pathname === to : pathname === to || pathname.startsWith(to + "/");
 
   return (
@@ -167,6 +169,8 @@ export function MobileBar() {
     setOpen(false);
     navigate({ to: "/login" });
   };
+
+  const groups = useNavGroups();
 
   const isActive = (to: string, exact?: boolean) =>
     exact ? pathname === to : pathname === to || pathname.startsWith(to + "/");
