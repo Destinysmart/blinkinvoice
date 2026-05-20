@@ -1,71 +1,104 @@
 ## Goal
 
-Solve the expiring Lightning invoice problem. Today the BOLT11 is generated when you click "Send" and embedded directly into the email PDF — it dies in 5 min (USD/stablesats) or ~24h (BTC). Instead, the email will link to a hosted pay page that mints a fresh BOLT11 on every load and auto-refreshes before expiry.
+Make BlinkInvoice feel like a serious, niche invoicing tool — Invoice → Send → Get paid — without throwing away the work already shipped. Hide advanced modules behind a toggle, calm down the UI, and make the app installable in one click from any device.
 
-## What changes for the user
+You didn't pick a distribution option, so I'm proposing the cheapest first step (PWA — works on Mac, Windows, iOS, Android, Linux from the browser, no app store) and flagging real native desktop/mobile builds as a clear follow-up step.
 
-- Emails get a big **"Pay invoice"** button linking to `https://blinkinvoice.lovable.app/pay/<token>`
-- That page shows: amount, business name, client name, due date, live QR + copyable BOLT11, and a countdown
-- QR auto-regenerates ~30s before expiry — client never sees a dead invoice
-- When the invoice is paid, the page flips to a green "Paid ✓" state in real-time (polls every 3s)
-- PDF still includes a snapshot QR for offline/print use, with the pay-link printed underneath as fallback
+---
 
-## Technical design
+## 1. Scope: hide advanced, keep data
 
-### 1. Schema change
-Add to `invoices` table:
-- `pay_token text unique` — random 32-char URL-safe token, generated on insert via trigger or in the app
-- Backfill existing rows with random tokens
+Add a single setting: **Settings → "Show advanced features"** (off by default for new users, on for existing users so nothing disappears unexpectedly).
 
-No PII in the token. Token grants pay-only access — not edit access.
+When OFF, the sidebar shows only:
 
-### 2. New public server route
-`src/routes/api/public/pay.$token.tsx` (uses TSS server fn pattern, not edge function):
+- Dashboard
+- Invoices
+- Clients
+- Settings
+- Products
 
-- **`getPayInfo({ token })`** — returns `{ businessName, clientName, number, currency, total, dueDate, status, paymentRequest, expiresAt, satoshis }` for a token. Uses `supabaseAdmin` (bypasses RLS — token IS the auth). Returns minimal info, no email/address.
-- **`refreshPayInvoice({ token })`** — if status≠paid and (no `paymentRequest` or `expiresAt` within 60s), looks up owner's `blink_api_key` + wallet from `profiles`, mints a fresh BOLT11 via `createLnBtcInvoice` (USD invoices use `usdCentsToSats` first), writes new `payment_request` + `payment_hash` + `expires_at` back to the invoice row, returns the new bolt11.
-- **`checkPayStatus({ token })`** — polls Blink `lnInvoicePaymentStatus`; if PAID, marks invoice paid + sets `paid_at`.
+When ON, also show:
 
-All three are `createServerFn` (no auth middleware) that validate the token against the DB. No `requireSupabaseAuth` since payers aren't logged in.
+- Projects
+- Expenses
+- Reports
 
-### 3. New public page route
-`src/routes/pay.$token.tsx`:
-- Calls `getPayInfo` on mount
-- If unpaid: shows QR + BOLT11 + countdown, auto-calls `refreshPayInvoice` 30s before expiry
-- Polls `checkPayStatus` every 3s while unpaid
-- On paid: confetti + "Payment received" + receipt summary
-- Clean standalone layout (no app sidebar) — branded with the business name + logo
-- SEO: `noindex` (pay pages shouldn't be crawled)
+note products is a defaul feature not an advance so it shouldnt go to the advance toogle
 
-### 4. Email + PDF updates
-`src/components/SendInvoiceDialog.tsx` `buildHtml`:
-- Add prominent **"Pay invoice"** CTA button → `https://<host>/pay/<token>`
-- Keep amount/due date summary
-- Drop reliance on embedded QR being scannable later — text says "Open this page to pay — the QR refreshes automatically"
+Implementation:
 
-`src/components/InvoicePDF.tsx`:
-- Keep current QR (works for immediate scans / printed invoices)
-- Add a small line under the QR: "QR expired? Pay online at /pay/<token>"
+- Store `show_advanced` boolean on `profiles` (default `false`, set `true` for existing rows in the migration so current users don't lose anything).
+- `Sidebar.tsx` reads the flag and filters nav items.
+- Routes for hidden features stay live (typing the URL still works) — only the nav entry disappears. Database tables untouched.
+- Dashboard hides the Expenses/Projects widgets when the flag is off.
 
-### 5. Files touched
+## 2. Visual tone: serious & trustworthy
 
-**Created**
-- `supabase` migration: add `pay_token` column + unique index + backfill
-- `src/routes/api/public/pay.functions.ts` — the 3 server fns
-- `src/routes/pay.$token.tsx` — the public pay page
+Not a clone of Invoice Ninja — just the tone. Targeted, low-risk changes:
+
+- Tighten the sidebar: smaller icons, denser spacing, single accent color, neutral grays for everything else.
+- Replace any playful gradients / glow with flat surfaces + subtle 1px borders.
+- Invoice list: convert to a dense, sortable data table (Number · Client · Issued · Due · Amount · Status) — Invoice Ninja's strongest pattern.
+- Status badges: muted neutrals + one clear "paid" green and one clear "overdue" red.
+- Typography: keep current body font, swap display font to something more businesslike (Inter or similar) if our current heading font is decorative.
+- Remove any "fun" copy / emoji from empty states; use plain, direct language ("No invoices yet. Create one.").
+
+This is presentational only — no logic changes.
+
+## 3. One-click install (Phase 1: PWA)
+
+Ship an installable PWA so users on Mac, Windows, Linux, iOS, and Android can install BlinkInvoice from a single button:
+
+- Add a proper `manifest.json` (already exists — verify name, icons, theme color, `display: "standalone"`, `start_url: "/invoices"`).
+- Add an **"Install app"** button in the sidebar footer and on Settings → About. Uses the `beforeinstallprompt` event on desktop/Android; shows iOS-specific "Add to Home Screen" instructions on iOS Safari.
+- Generate proper PWA icons (192, 512, maskable, Apple touch icon).
+- A landing/download section on Settings that says: *"Install BlinkInvoice on this device"* with one button — same UX across all platforms.
+- **No service worker** for caching (Lovable preview restriction). PWA = installable + standalone window, not offline.
+
+This is the "one click, anyone can download and use" boss is asking for, today.
+
+## 4. Native downloads (Phase 2 — separate effort, called out only)
+
+True downloadable installers (`.dmg`, `.exe`, `.AppImage`, App Store, Play Store) are real work and I will NOT bundle them in this round. When you're ready, the path is:
+
+- **Desktop (Mac/Win/Linux)**: wrap the app in Electron, ship `.dmg` / `.exe` / `.AppImage` from a Downloads page.
+- **iOS/Android**: wrap with Capacitor, requires Apple ($99/yr) + Google ($25 one-time) developer accounts and store review.
+
+I'll flag this in the Settings → About page as "Native apps coming soon" so the intent is visible to users.
+
+---
+
+## Files touched
+
+**Migration**
+
+- Add `profiles.show_advanced boolean not null default false`; backfill existing rows to `true`.
 
 **Edited**
-- `src/components/SendInvoiceDialog.tsx` — pass pay URL into `buildHtml`, add CTA
-- `src/components/InvoicePDF.tsx` — add pay URL fallback line
-- `src/lib/types.ts` — add `payToken: string` to `Invoice`
-- `src/lib/store.ts` — load/save `pay_token`
 
-### 6. Out of scope (for this plan)
-- LNURL-pay / Lightning Address support (could be a follow-up)
-- Webhook from Blink (current 3s polling is fine for v1)
-- Auth on the pay page (token is the auth — same model as Stripe payment links)
+- `src/components/Sidebar.tsx` — filter nav by `show_advanced`.
+- `src/routes/settings.tsx` — add "Show advanced features" toggle + "Install app" button + "Native apps coming soon" note.
+- `src/routes/index.tsx` (Dashboard) — hide expense/project widgets when advanced is off.
+- `src/routes/invoices.index.tsx` — switch card/grid layout to dense sortable table.
+- `src/styles.css` — calmer tokens (flatten gradients, neutralize accents, tighten radii).
+- `src/components/StatusBadge.tsx` — muted palette.
+- `public/manifest.json` — verify PWA fields.
+- `src/components/InstallBanner.tsx` — repurpose as the cross-platform install button (already exists).
 
-### 7. Risks
-- The pay-page calls Blink using the **invoice owner's** API key (fetched server-side via service role). That key never leaves the server. Safe.
-- If owner rotates their Blink key, old pay links keep working as long as the new key is in `profiles`.
-- Cloudflare Worker runtime is fine — only `fetch` calls to Blink, no Node-only deps.
+**Created**
+
+- `src/hooks/use-install-prompt.ts` — wraps `beforeinstallprompt` + iOS detection.
+- PWA icon set in `public/icons/`.
+
+## Out of scope (deferred)
+
+- Electron / Capacitor builds (Phase 2).
+- Removing any database tables.
+- Rewriting Reports/Expenses/Projects/Products — they keep working, just hidden.
+- Service worker / offline mode.
+
+## Risks
+
+- The "Show advanced features" toggle is the only way to find hidden modules — if a user turns it off and forgets, they may think features were deleted. Mitigation: clear helper text under the toggle: *"Hide Expenses, Projects, Products and Reports from the sidebar. You can turn them back on anytime."*
+- PWA install on iOS still requires the "Share → Add to Home Screen" tap — there's no programmatic install on iOS. We show clear instructions instead of a fake button.
