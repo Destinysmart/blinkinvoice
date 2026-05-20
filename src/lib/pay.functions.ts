@@ -17,6 +17,14 @@ function calcTotal(items: any[], taxPct: number) {
   return { subtotal, tax, total: subtotal + tax };
 }
 
+// Normalize stored expires_at to milliseconds. Legacy rows stored seconds.
+function normalizeExpiresAtMs(v: unknown): number | null {
+  if (v == null) return null;
+  const n = Number(v);
+  if (!isFinite(n) || n <= 0) return null;
+  // Values < 10^11 are obviously seconds (Nov 2286 threshold in ms).
+  return n < 1e11 ? n * 1000 : n;
+
 async function loadByToken(token: string) {
   const { data, error } = await supabaseAdmin
     .from("invoices")
