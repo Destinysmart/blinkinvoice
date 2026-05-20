@@ -327,7 +327,7 @@ function InvoicesPage() {
                           <Link to="/invoices/$id" params={{ id: inv.id }}>View</Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => updateInvoice(inv.id, { status: "paid" })}>Mark as paid</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => duplicate(inv.id)}>Duplicate</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => sendAgain(inv.id)}><Send className="mr-2 h-3.5 w-3.5" /> Send again</DropdownMenuItem>
                         <DropdownMenuItem onClick={() => downloadPdf(inv.id)}>
                           <Download className="mr-2 h-3.5 w-3.5" /> Download PDF
                         </DropdownMenuItem>
@@ -402,7 +402,7 @@ function InvoicesPage() {
                               <Link to="/invoices/$id" params={{ id: inv.id }}>View</Link>
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => updateInvoice(inv.id, { status: "paid" })}>Mark as paid</DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => duplicate(inv.id)}>Duplicate</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => sendAgain(inv.id)}><Send className="mr-2 h-3.5 w-3.5" /> Send again</DropdownMenuItem>
                             <DropdownMenuItem onClick={() => downloadPdf(inv.id)}>
                               <Download className="mr-2 h-3.5 w-3.5" /> Download PDF
                             </DropdownMenuItem>
