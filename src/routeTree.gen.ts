@@ -21,6 +21,7 @@ import { Route as ExpensesRouteImport } from './routes/expenses'
 import { Route as ClientsRouteImport } from './routes/clients'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as InvoicesIndexRouteImport } from './routes/invoices.index'
+import { Route as PayTokenRouteImport } from './routes/pay.$token'
 import { Route as InvoicesNewRouteImport } from './routes/invoices.new'
 import { Route as InvoicesIdRouteImport } from './routes/invoices.$id'
 
@@ -84,6 +85,11 @@ const InvoicesIndexRoute = InvoicesIndexRouteImport.update({
   path: '/invoices/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PayTokenRoute = PayTokenRouteImport.update({
+  id: '/pay/$token',
+  path: '/pay/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const InvoicesNewRoute = InvoicesNewRouteImport.update({
   id: '/invoices/new',
   path: '/invoices/new',
@@ -109,6 +115,7 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/invoices/$id': typeof InvoicesIdRoute
   '/invoices/new': typeof InvoicesNewRoute
+  '/pay/$token': typeof PayTokenRoute
   '/invoices/': typeof InvoicesIndexRoute
 }
 export interface FileRoutesByTo {
@@ -125,6 +132,7 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/invoices/$id': typeof InvoicesIdRoute
   '/invoices/new': typeof InvoicesNewRoute
+  '/pay/$token': typeof PayTokenRoute
   '/invoices': typeof InvoicesIndexRoute
 }
 export interface FileRoutesById {
@@ -142,6 +150,7 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/invoices/$id': typeof InvoicesIdRoute
   '/invoices/new': typeof InvoicesNewRoute
+  '/pay/$token': typeof PayTokenRoute
   '/invoices/': typeof InvoicesIndexRoute
 }
 export interface FileRouteTypes {
@@ -160,6 +169,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/invoices/$id'
     | '/invoices/new'
+    | '/pay/$token'
     | '/invoices/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -176,6 +186,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/invoices/$id'
     | '/invoices/new'
+    | '/pay/$token'
     | '/invoices'
   id:
     | '__root__'
@@ -192,6 +203,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/invoices/$id'
     | '/invoices/new'
+    | '/pay/$token'
     | '/invoices/'
   fileRoutesById: FileRoutesById
 }
@@ -209,6 +221,7 @@ export interface RootRouteChildren {
   SignupRoute: typeof SignupRoute
   InvoicesIdRoute: typeof InvoicesIdRoute
   InvoicesNewRoute: typeof InvoicesNewRoute
+  PayTokenRoute: typeof PayTokenRoute
   InvoicesIndexRoute: typeof InvoicesIndexRoute
 }
 
@@ -298,6 +311,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InvoicesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/pay/$token': {
+      id: '/pay/$token'
+      path: '/pay/$token'
+      fullPath: '/pay/$token'
+      preLoaderRoute: typeof PayTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/invoices/new': {
       id: '/invoices/new'
       path: '/invoices/new'
@@ -329,6 +349,7 @@ const rootRouteChildren: RootRouteChildren = {
   SignupRoute: SignupRoute,
   InvoicesIdRoute: InvoicesIdRoute,
   InvoicesNewRoute: InvoicesNewRoute,
+  PayTokenRoute: PayTokenRoute,
   InvoicesIndexRoute: InvoicesIndexRoute,
 }
 export const routeTree = rootRouteImport

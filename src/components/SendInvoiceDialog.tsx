@@ -36,9 +36,16 @@ function applyVars(s: string, inv: Invoice, settings: Settings) {
     .replaceAll("{dueDate}", dueDate);
 }
 
-function buildHtml(message: string, inv: Invoice, settings: Settings) {
+function buildHtml(message: string, inv: Invoice, settings: Settings, payUrl: string | null) {
   const dueDate = inv.dueDate ? new Date(inv.dueDate).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "—";
   const para = applyVars(message, inv, settings).split("\n").map(l => `<p style="margin:0 0 12px;color:#cccccc;font-size:14px;line-height:1.6">${escapeHtml(l)}</p>`).join("");
+  const payButton = payUrl ? `
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin:18px 0">
+      <tr><td align="center">
+        <a href="${escapeHtml(payUrl)}" style="display:inline-block;background:#F7931A;color:#0a0a0a;font-weight:700;text-decoration:none;padding:14px 32px;border-radius:8px;font-size:15px">⚡ Pay invoice</a>
+        <div style="color:#888;font-size:12px;margin-top:10px">The Lightning QR refreshes automatically — never expires.</div>
+      </td></tr>
+    </table>` : "";
   return `<!doctype html><html><body style="margin:0;padding:0;background:#0a0a0a;font-family:-apple-system,Segoe UI,Roboto,sans-serif">
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#0a0a0a;padding:24px 0">
 <tr><td align="center">
@@ -57,7 +64,8 @@ function buildHtml(message: string, inv: Invoice, settings: Settings) {
       <tr><td style="padding:0 18px 16px;color:#888;font-size:12px">Bill to</td>
           <td align="right" style="padding:0 18px 16px;color:#cccccc;font-size:13px">${escapeHtml(inv.client.name)}</td></tr>
     </table>
-    <p style="color:#888;font-size:13px;margin:16px 0 0">The full invoice with a Lightning QR code is attached as a PDF.</p>
+    ${payButton}
+    <p style="color:#888;font-size:13px;margin:16px 0 0">The full invoice is also attached as a PDF.</p>
   </td></tr>
   <tr><td style="padding:18px 28px;border-top:1px solid #2a2a2a;color:#666;font-size:11px;text-align:center">
     ${escapeHtml(settings.businessName || "BlinkInvoice")} · Bitcoin-native invoicing
@@ -117,7 +125,7 @@ export function SendInvoiceDialog({ open, onOpenChange, invoice, settings, onSen
           invoiceId: invoice.id,
           to,
           subject,
-          html: buildHtml(message, invoice, settings),
+          html: buildHtml(message, invoice, settings, invoice.payToken ? `${window.location.origin}/pay/${invoice.payToken}` : null),
           pdfBase64,
           pdfFilename: `${invoice.number}.pdf`,
           fromName: settings.businessName || undefined,

@@ -197,6 +197,11 @@ function chunkBolt11(s: string, size = 64) {
   return out.join("\n");
 }
 
+function getOrigin() {
+  if (typeof window !== "undefined" && window.location?.origin) return window.location.origin;
+  return "https://blinkinvoice.lovable.app";
+}
+
 export function InvoicePDF({
   invoice, settings, qrCodeDataURL,
 }: { invoice: Invoice; settings: Settings; qrCodeDataURL?: string | null }) {
@@ -333,7 +338,9 @@ export function InvoicePDF({
                   </Text>
                   <Text style={styles.bolt11Label}>Lightning Invoice (BOLT11)</Text>
                   <Text style={styles.bolt11}>{chunkBolt11(invoice.paymentRequest)}</Text>
-                  <Text style={styles.bolt11Hint}>Copy and paste into any Lightning wallet</Text>
+                  <Text style={styles.bolt11Hint}>
+                    Copy and paste into any Lightning wallet.{invoice.payToken ? `  QR expired? Pay online: ${getOrigin()}/pay/${invoice.payToken}` : ""}
+                  </Text>
                 </View>
               </View>
             </View>
