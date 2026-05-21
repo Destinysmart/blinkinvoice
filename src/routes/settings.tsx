@@ -159,10 +159,76 @@ function SettingsPage() {
 
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-lg border border-border bg-card p-6 space-y-4">
-      <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{title}</h2>
+    <div className="rounded-lg border border-border bg-card p-6 space-y-3">
+      <h2 className="sticky top-0 -mx-6 -mt-6 mb-1 rounded-t-lg bg-card/95 px-6 pt-6 pb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground backdrop-blur z-10">
+        {title}
+      </h2>
       {children}
     </div>
+  );
+}
+
+/**
+ * Wallet section is isolated in its own component so that re-renders triggered
+ * by `useWalletConnect()` (connect / disconnect / reconnect) never bubble up
+ * into the SettingsPage form state. The business profile fields stay intact.
+ */
+function WalletCard() {
+  const { connect, disconnect, isConnected, walletInfo, connectionType } = useWalletConnect();
+  return (
+    <>
+      {isConnected && walletInfo ? (
+        <div className="space-y-3">
+          <div className="rounded-md border border-success/30 bg-success/10 p-4">
+            <div className="flex items-start gap-3">
+              <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary/15 text-primary">
+                <Zap className="h-5 w-5 fill-primary" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm font-semibold">
+                  <span className="truncate">{walletInfo.name}</span>
+                  <span className="inline-flex items-center gap-1 text-xs font-normal text-success">
+                    <CheckCircle2 className="h-3.5 w-3.5" /> Connected
+                  </span>
+                </div>
+                <div className="text-xs text-muted-foreground font-mono truncate">{walletInfo.address}</div>
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground mt-0.5">
+                  {connectionType?.replace("-", " ")} · {walletInfo.currency}
+                </div>
+              </div>
+            </div>
+            <Button variant="outline" size="sm" onClick={disconnect} className="mt-3 w-full sm:w-auto">
+              <LogOut className="mr-1.5 h-3.5 w-3.5" /> Disconnect
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Your wallet credentials are encrypted and stored locally in this browser.
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          <p className="text-sm text-muted-foreground">
+            Connect a Lightning wallet to start accepting Bitcoin payments on your invoices.
+            Supports Blink Lightning Address, Nostr Wallet Connect (NWC), and Blink API key.
+          </p>
+          <Button onClick={connect} className="w-full sm:w-auto">
+            <Zap className="mr-1.5 h-4 w-4" /> Connect wallet
+          </Button>
+        </div>
+      )}
+
+      <LightningConnect
+        theme={{
+          primary: "#F7931A",
+          background: "#0A0A0A",
+          foreground: "#F2F2F2",
+          border: "#2A2A2A",
+          radius: "12px",
+          muted: "#A1A1AA",
+        }}
+        onConnect={(c) => toast.success(`Connected ${c.type.replace("-", " ")} wallet`)}
+      />
+    </>
   );
 }
 
