@@ -32,8 +32,6 @@ const defaultSettings: Settings = {
   businessName: "",
   businessEmail: "",
   businessAddress: "",
-  apiKey: "",
-  walletId: "",
   defaultCurrency: "USD",
   invoicePrefix: "INV",
   nextInvoiceNumber: 1,
@@ -54,8 +52,6 @@ function profileToSettings(p: DbProfile | null): Settings {
     businessName: p.business_name ?? "",
     businessEmail: p.business_email ?? "",
     businessAddress: p.address ?? "",
-    apiKey: p.blink_api_key ?? "",
-    walletId: p.btc_wallet_id ?? p.usd_wallet_id ?? "",
     defaultCurrency: (p.default_currency as Settings["defaultCurrency"]) ?? "USD",
     invoicePrefix: p.invoice_prefix ?? "INV",
     nextInvoiceNumber: p.next_invoice_number ?? 1,
@@ -72,8 +68,6 @@ function settingsPatchToProfile(s: Partial<Settings>): DbProfile {
   if (s.businessName !== undefined) out.business_name = s.businessName;
   if (s.businessEmail !== undefined) out.business_email = s.businessEmail;
   if (s.businessAddress !== undefined) out.address = s.businessAddress;
-  if (s.apiKey !== undefined) out.blink_api_key = s.apiKey;
-  if (s.walletId !== undefined) out.btc_wallet_id = s.walletId;
   if (s.defaultCurrency !== undefined) out.default_currency = s.defaultCurrency;
   if (s.invoicePrefix !== undefined) out.invoice_prefix = s.invoicePrefix;
   if (s.nextInvoiceNumber !== undefined) out.next_invoice_number = s.nextInvoiceNumber;
@@ -116,6 +110,7 @@ function rowToInvoice(r: any): Invoice {
     paymentHash: r.payment_hash ?? null,
     satoshis: r.satoshis != null ? Number(r.satoshis) : null,
     expiresAt: r.expires_at != null ? Number(r.expires_at) : null,
+    verifyUrl: r.verify_url ?? null,
     payToken: r.pay_token ?? undefined,
     activity: Array.isArray(r.activity) ? r.activity : [],
     createdAt: r.created_at ?? new Date().toISOString(),
@@ -139,6 +134,7 @@ function invoiceToRow(inv: Invoice, userId: string) {
     payment_hash: inv.paymentHash,
     satoshis: inv.satoshis,
     expires_at: inv.expiresAt,
+    verify_url: inv.verifyUrl ?? null,
     activity: inv.activity ?? [],
     created_at: inv.createdAt,
   };
@@ -159,6 +155,7 @@ function invoicePatchToRow(patch: Partial<Invoice>) {
   if (patch.paymentHash !== undefined) out.payment_hash = patch.paymentHash;
   if (patch.satoshis !== undefined) out.satoshis = patch.satoshis;
   if (patch.expiresAt !== undefined) out.expires_at = patch.expiresAt;
+  if (patch.verifyUrl !== undefined) out.verify_url = patch.verifyUrl;
   if (patch.activity !== undefined) out.activity = patch.activity;
   return out;
 }

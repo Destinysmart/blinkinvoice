@@ -6,6 +6,7 @@ import {
 import logoUrl from "@/assets/blinkinvoice-logo.png";
 import { useState } from "react";
 import { useAppStore } from "@/lib/store";
+import { useWalletConnect } from "lightningconnect";
 import { useAuth, signOut } from "@/lib/auth";
 import { useTheme } from "@/lib/theme";
 import { toast } from "sonner";
@@ -47,8 +48,7 @@ function useNavGroups() {
 
 export function Sidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const apiKey = useAppStore((s) => s.settings.apiKey);
-  const connected = Boolean(apiKey);
+  const { isConnected: connected } = useWalletConnect();
   const { user } = useAuth();
   const navigate = useNavigate();
   const { theme, toggle: toggleTheme } = useTheme();

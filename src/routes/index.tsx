@@ -5,6 +5,7 @@ import {
   Wallet, Building2, Users, TrendingUp, Clock, AlertTriangle, DollarSign,
 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid } from "recharts";
+import { useWalletConnect } from "lightningconnect";
 import { useAppStore, invoiceTotal } from "@/lib/store";
 import { fmtUsd, fmtSats, fmtDate, isOverdue } from "@/lib/format";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -12,7 +13,6 @@ import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/PageHeader";
 import { InfoHint } from "@/components/InfoHint";
 import { useAuth } from "@/lib/auth";
-import { usdCentsToSats } from "@/lib/blink";
 
 export const Route = createFileRoute("/")({
   component: Dashboard,
@@ -24,34 +24,19 @@ function Dashboard() {
   const settings = useAppStore((s) => s.settings);
   const seedDemo = useAppStore((s) => s.seedDemo);
   const { user } = useAuth();
+  const { isConnected: walletConnected } = useWalletConnect();
   useEffect(() => { seedDemo(); }, [seedDemo]);
 
-  // Current sats-per-USD rate (sats per 1 USD), fetched once. Used as a
-  // fallback for invoices that don't carry a stored sats snapshot (e.g.
-  // historical BTC invoices have no recorded USD value).
-  const [satsPerUsd, setSatsPerUsd] = useState<number | null>(null);
-  useEffect(() => {
-    if (!settings.apiKey) return;
-    let cancelled = false;
-    usdCentsToSats(settings.apiKey, 100)
-      .then((s) => { if (!cancelled) setSatsPerUsd(s); })
-      .catch(() => {});
-    return () => { cancelled = true; };
-  }, [settings.apiKey]);
-
   // Per-invoice {sats, usd} pair using the value recorded when the money came
-  // in (invoice.satoshis snapshot) when available, else current rate.
+  // in (invoice.satoshis snapshot). USD totals for BTC invoices without a
+  // recorded fiat snapshot are reported as 0 — we no longer maintain a live
+  // FX rate on the dashboard.
   const pairOf = (inv: typeof invoices[number]) => {
     const t = invoiceTotal(inv).total;
     if (inv.currency === "BTC") {
-      const sats = t;
-      const usd = satsPerUsd ? sats / satsPerUsd : 0;
-      return { sats, usd };
+      return { sats: t, usd: 0 };
     }
-    // USD invoice
-    const usd = t;
-    const sats = inv.satoshis ?? (satsPerUsd ? Math.round(usd * satsPerUsd) : 0);
-    return { sats, usd };
+    return { sats: inv.satoshis ?? 0, usd: t };
   };
 
   const [showUsd, setShowUsd] = useState(false);
@@ -85,7 +70,7 @@ function Dashboard() {
     const last = paidLastMonth.sats;
     const trend = last === 0 ? null : ((paidThisMonth.sats - last) / last) * 100;
     return { total, paidThisMonth, outstanding, overdue, trend };
-  }, [invoices, satsPerUsd]);
+  }, [invoices, walletConnected]);
 
   // Combined formatter: sats by default, USD on toggle.
   const fmtCombined = (b: { sats: number; usd: number }) =>
@@ -146,7 +131,7 @@ function Dashboard() {
       icon: Building2,
     },
     {
-      done: Boolean(settings.apiKey),
+      done: walletConnected,
       label: "Connect your Lightning wallet",
       desc: "Required to accept Bitcoin payments.",
       to: "/settings",
