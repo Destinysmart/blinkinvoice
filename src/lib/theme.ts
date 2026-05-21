@@ -7,7 +7,8 @@ export function getInitialTheme(): Theme {
   if (typeof window === "undefined") return "dark";
   const stored = window.localStorage.getItem(KEY) as Theme | null;
   if (stored === "light" || stored === "dark") return stored;
-  return window.matchMedia?.("(prefers-color-scheme: light)").matches ? "light" : "dark";
+  // Dark by default — Bitcoin-native aesthetic. User can toggle to light.
+  return "dark";
 }
 
 export function applyTheme(theme: Theme) {
