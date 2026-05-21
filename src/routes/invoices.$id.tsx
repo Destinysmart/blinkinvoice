@@ -67,7 +67,12 @@ function InvoiceDetailPage() {
       if (!invoice) throw new Error("Invoice not found");
       if (!isConnected) throw new Error("Connect your wallet in Settings first");
       const { total } = invoiceTotal(invoice);
-      const memo = `${invoice.number} — ${invoice.client.name}`;
+      if (!invoice.items.length || total <= 0) {
+        throw new Error("Add at least one item with a price before generating a payment link.");
+      }
+      const memo = (invoice.memo && invoice.memo.trim())
+        ? invoice.memo.trim()
+        : `${invoice.number} — ${invoice.client.name}`;
       // BTC invoices: pass sats. USD invoices: pass cents.
       const amount = invoice.currency === "USD" ? Math.round(total * 100) : Math.round(total);
       return makeInvoice(amount, invoice.currency, memo);
@@ -82,7 +87,13 @@ function InvoiceDetailPage() {
       });
       toast.success("Lightning invoice generated");
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => {
+      // Friendly fallback — never surface raw BOLT11/wallet errors.
+      const msg = e.message?.includes("item with a price") || e.message?.includes("Settings")
+        ? e.message
+        : "Couldn't generate a payment link right now. Please try again.";
+      toast.error(msg);
+    },
   });
 
   const [shareOpen, setShareOpen] = useState(false);
