@@ -409,9 +409,44 @@ function InvoiceDetailPage() {
           </div>
         )}
 
+        {!hasAmount && !invoice.paymentRequest && (
+          <div className="mb-4 flex items-start gap-3 rounded-lg border border-primary/30 bg-primary/10 p-4 text-sm">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+            <div className="space-y-1">
+              <p className="font-medium text-foreground">No amount set yet</p>
+              <p className="text-muted-foreground">Add at least one item with a price before generating a payment link.</p>
+            </div>
+          </div>
+        )}
+
+        {/* Payment note for client — editable, defaults to invoice number + client name */}
+        {!invoice.paymentRequest && (
+          <div className="mb-4 space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground">Payment note for client</label>
+            <input
+              type="text"
+              value={invoice.memo ?? ""}
+              onChange={(e) => updateInvoice(id, { memo: e.target.value })}
+              placeholder={`${invoice.number} — ${invoice.client.name}`}
+              className="w-full rounded-md border border-border bg-input px-3 py-2 text-sm placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/40"
+            />
+            <p className="text-[11px] text-muted-foreground">
+              Shown on the payment page and in the Lightning invoice memo. Leave blank to auto-fill with the invoice number and client name.
+            </p>
+          </div>
+        )}
+
         {!invoice.paymentRequest ? (
-          <Button onClick={() => ln.mutate()} disabled={ln.isPending || walletMissing} className="w-full sm:w-auto"
-            title={walletMissing ? "Connect your wallet in Settings first" : undefined}>
+          <Button
+            onClick={() => ln.mutate()}
+            disabled={ln.isPending || walletMissing || !hasAmount}
+            className="w-full sm:w-auto"
+            title={
+              walletMissing ? "Connect your wallet in Settings first"
+              : !hasAmount ? "Add at least one item with a price"
+              : undefined
+            }
+          >
             {ln.isPending ? "Generating…" : "Generate Lightning Invoice"}
           </Button>
         ) : (
