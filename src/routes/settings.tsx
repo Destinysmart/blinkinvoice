@@ -58,16 +58,16 @@ function SettingsPage() {
         <div className="grid gap-4 md:grid-cols-2">
           <Field label="Invoice prefix">
             <Input value={form.invoicePrefix ?? ""} placeholder="INV"
-              onChange={(e) => setForm({ ...form, invoicePrefix: e.target.value.toUpperCase() })} />
+              onChange={(e) => update({ invoicePrefix: e.target.value.toUpperCase() })} />
           </Field>
           <Field label="Next invoice number">
             <Input type="number" min={1} value={form.nextInvoiceNumber ?? 1}
-              onChange={(e) => setForm({ ...form, nextInvoiceNumber: Number(e.target.value) })} className="font-mono" />
+              onChange={(e) => update({ nextInvoiceNumber: Number(e.target.value) })} className="font-mono" />
           </Field>
           <Field label="Default payment terms">
             <select
               value={form.defaultPaymentTermsDays ?? 14}
-              onChange={(e) => setForm({ ...form, defaultPaymentTermsDays: Number(e.target.value) })}
+              onChange={(e) => update({ defaultPaymentTermsDays: Number(e.target.value) })}
               className="h-9 w-full rounded-md border border-border bg-input px-3 text-sm"
             >
               {[7, 14, 30, 60].map((d) => <option key={d} value={d}>Net {d}</option>)}
@@ -75,12 +75,12 @@ function SettingsPage() {
           </Field>
           <Field label="Default tax rate (%)">
             <Input type="number" min={0} value={form.defaultTaxRate ?? 0}
-              onChange={(e) => setForm({ ...form, defaultTaxRate: Number(e.target.value) })} />
+              onChange={(e) => update({ defaultTaxRate: Number(e.target.value) })} />
           </Field>
         </div>
         <Field label="Invoice footer">
           <Textarea rows={2} value={form.invoiceFooter ?? ""}
-            onChange={(e) => setForm({ ...form, invoiceFooter: e.target.value })} />
+            onChange={(e) => update({ invoiceFooter: e.target.value })} />
         </Field>
         <Field label="Business logo">
           <div className="flex items-center gap-4">
@@ -96,12 +96,12 @@ function SettingsPage() {
                   onChange={(e) => {
                     const f = e.target.files?.[0]; if (!f) return;
                     const r = new FileReader();
-                    r.onload = () => setForm({ ...form, logo: String(r.result) });
+                    r.onload = () => update({ logo: String(r.result) });
                     r.readAsDataURL(f);
                   }} />
               </label>
               {form.logo && (
-                <Button type="button" variant="ghost" size="sm" onClick={() => setForm({ ...form, logo: "" })}>Remove</Button>
+                <Button type="button" variant="ghost" size="sm" onClick={() => update({ logo: "" })}>Remove</Button>
               )}
             </div>
           </div>
@@ -115,7 +115,7 @@ function SettingsPage() {
               <button
                 key={c}
                 type="button"
-                onClick={() => setForm({ ...form, defaultCurrency: c as Currency })}
+                onClick={() => update({ defaultCurrency: c as Currency })}
                 className={`rounded-sm px-4 py-1.5 text-sm font-medium transition ${
                   form.defaultCurrency === c ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
                 }`}
@@ -135,7 +135,7 @@ function SettingsPage() {
           </div>
           <Switch
             checked={Boolean(form.showAdvanced)}
-            onCheckedChange={(v) => setForm({ ...form, showAdvanced: v })}
+            onCheckedChange={(v) => update({ showAdvanced: v })}
           />
         </div>
       </Card>
