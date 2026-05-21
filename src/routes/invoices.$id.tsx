@@ -182,6 +182,10 @@ function InvoiceDetailPage() {
 
   const lnUri = invoice.paymentRequest ? `lightning:${invoice.paymentRequest}` : "";
   const walletMissing = !isConnected;
+  const hasAmount = invoice.items.length > 0 && total > 0;
+  const memoForClient = (invoice.memo && invoice.memo.trim())
+    ? invoice.memo.trim()
+    : `${invoice.number} — ${invoice.client.name}`;
 
   const download = async () => {
     setDownloading(true);
