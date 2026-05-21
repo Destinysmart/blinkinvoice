@@ -217,6 +217,7 @@ export type Database = {
           tax: number
           updated_at: string
           user_id: string
+          verify_url: string | null
         }
         Insert: {
           activity?: Json
@@ -241,6 +242,7 @@ export type Database = {
           tax?: number
           updated_at?: string
           user_id: string
+          verify_url?: string | null
         }
         Update: {
           activity?: Json
@@ -265,6 +267,7 @@ export type Database = {
           tax?: number
           updated_at?: string
           user_id?: string
+          verify_url?: string | null
         }
         Relationships: [
           {
