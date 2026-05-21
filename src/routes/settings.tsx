@@ -1,10 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useState } from "react";
 import { toast } from "sonner";
-import { CheckCircle2, Eye, EyeOff, ClipboardPaste, Lock, ExternalLink } from "lucide-react";
+import { LightningConnect, useWalletConnect } from "lightningconnect";
+import { CheckCircle2, Zap, LogOut } from "lucide-react";
 import { useAppStore } from "@/lib/store";
-import { fetchMe, type MeWallet } from "@/lib/blink";
 import type { Currency } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,51 +20,8 @@ function SettingsPage() {
   const settings = useAppStore((s) => s.settings);
   const saveSettings = useAppStore((s) => s.saveSettings);
   const [form, setForm] = useState(settings);
-  const [showKey, setShowKey] = useState(false);
-  const [wallets, setWallets] = useState<MeWallet[] | null>(null);
 
-  const test = useMutation({
-    mutationFn: () => {
-      if (!form.apiKey) throw new Error("Enter an API key first");
-      return fetchMe(form.apiKey);
-    },
-    onSuccess: (w) => {
-      setWallets(w);
-      // Auto-select BTC wallet (fallback to first wallet) so the user
-      // never has to copy/paste a Wallet ID manually.
-      const btc = w.find((x) => x.walletCurrency === "BTC") ?? w[0];
-      if (btc && !form.walletId) {
-        setForm((f) => ({ ...f, walletId: btc.id }));
-      }
-      toast.success("Connection successful");
-    },
-    onError: (e: Error) => { setWallets(null); toast.error(e.message); },
-  });
-
-  // Silently fetch wallets on load if we have a key but no walletId yet.
-  useEffect(() => {
-    if (form.apiKey && !form.walletId && !wallets) {
-      fetchMe(form.apiKey)
-        .then((w) => {
-          setWallets(w);
-          const btc = w.find((x) => x.walletCurrency === "BTC") ?? w[0];
-          if (btc) setForm((f) => ({ ...f, walletId: btc.id }));
-        })
-        .catch(() => {});
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const pasteApiKey = async () => {
-    try {
-      const text = await navigator.clipboard.readText();
-      if (!text) { toast.error("Clipboard is empty"); return; }
-      setForm({ ...form, apiKey: text.trim() });
-      toast.success("API key pasted");
-    } catch {
-      toast.error("Unable to read clipboard");
-    }
-  };
+  const { connect, disconnect, isConnected, walletInfo, connectionType } = useWalletConnect();
 
   const save = () => { saveSettings(form); toast.success("Settings saved"); };
 
@@ -73,7 +29,7 @@ function SettingsPage() {
     <div className="space-y-8 max-w-3xl">
       <div>
         <h1 className="font-display text-2xl font-bold sm:text-4xl">Settings</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Configure your business and Blink connection.</p>
+        <p className="mt-1 text-sm text-muted-foreground">Configure your business and Lightning wallet.</p>
       </div>
 
       <Card title="Business">
@@ -82,90 +38,58 @@ function SettingsPage() {
         <Field label="Address"><Textarea rows={2} value={form.businessAddress} onChange={(e) => setForm({ ...form, businessAddress: e.target.value })} /></Field>
       </Card>
 
-      <Card title="Blink Lightning">
-        <Field label="Wallet name">
-          <Input
-            placeholder="e.g. Main BTC wallet"
-            value={form.walletName ?? ""}
-            onChange={(e) => setForm({ ...form, walletName: e.target.value })}
-          />
-        </Field>
-
-        <Field label="API key">
-          <div className="relative">
-            <Input
-              type={showKey ? "text" : "password"}
-              placeholder="blink_..."
-              value={form.apiKey}
-              onChange={(e) => setForm({ ...form, apiKey: e.target.value })}
-              className="font-mono pr-20"
-            />
-            <div className="absolute inset-y-0 right-1 flex items-center gap-0.5">
-              <Button type="button" variant="ghost" size="icon" className="h-7 w-7" onClick={() => setShowKey((v) => !v)} aria-label={showKey ? "Hide key" : "Show key"}>
-                {showKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </Button>
-              <Button type="button" variant="ghost" size="icon" className="h-7 w-7" onClick={pasteApiKey} aria-label="Paste from clipboard">
-                <ClipboardPaste className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </Field>
-
-        <div className="rounded-md border border-border bg-[var(--surface)] p-3 text-xs">
-          <p className="mb-2 font-semibold uppercase tracking-wider text-muted-foreground">How to get your API key</p>
-          <ol className="space-y-1.5 list-decimal pl-4 text-foreground/90">
-            <li>
-              Sign in at{" "}
-              <a href="https://dashboard.blink.sv" target="_blank" rel="noreferrer" className="inline-flex items-center gap-0.5 text-primary hover:underline">
-                dashboard.blink.sv <ExternalLink className="h-3 w-3" />
-              </a>
-            </li>
-            <li>
-              Open{" "}
-              <a href="https://dashboard.blink.sv/api-keys" target="_blank" rel="noreferrer" className="inline-flex items-center gap-0.5 text-primary hover:underline">
-                API Keys <ExternalLink className="h-3 w-3" />
-              </a>{" "}
-              and click <span className="font-medium">Create API Key</span>
-            </li>
-            <li>Copy the key and paste it in the field above</li>
-          </ol>
-        </div>
-
-        <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <Lock className="h-3 w-3" /> Your API key is encrypted and stored securely.
-        </p>
-
-
-        <div className="flex items-center gap-3">
-          <Button variant="outline" onClick={() => test.mutate()} disabled={test.isPending}>
-            {test.isPending ? "Testing…" : "Test connection"}
-          </Button>
-          {wallets && (
-            <div className="flex items-center gap-2 text-sm text-success">
-              <CheckCircle2 className="h-4 w-4" /> Connected
-            </div>
-          )}
-        </div>
-
-        {wallets && (
-          <div className="rounded-md border border-border bg-[var(--surface)] p-3">
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Wallets</p>
-            <div className="space-y-1.5">
-              {wallets.map((w) => (
-                <div key={w.id} className="flex items-center justify-between font-mono text-sm">
-                  <span className="text-muted-foreground">{w.walletCurrency}</span>
-                  <span className="font-bold text-primary">
-                    {w.balance.toLocaleString()} {w.walletCurrency === "BTC" ? "sats" : "¢"}
-                  </span>
+      <Card title="Lightning wallet">
+        {isConnected && walletInfo ? (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between rounded-md border border-success/30 bg-success/10 p-4">
+              <div className="flex items-center gap-3">
+                <div className="grid h-10 w-10 place-items-center rounded-full bg-primary/15 text-primary">
+                  <Zap className="h-5 w-5 fill-primary" />
                 </div>
-              ))}
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 text-sm font-semibold">
+                    {walletInfo.name}
+                    <span className="inline-flex items-center gap-1 text-xs font-normal text-success">
+                      <CheckCircle2 className="h-3.5 w-3.5" /> Connected
+                    </span>
+                  </div>
+                  <div className="text-xs text-muted-foreground font-mono truncate">{walletInfo.address}</div>
+                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground mt-0.5">
+                    {connectionType?.replace("-", " ")} · {walletInfo.currency}
+                  </div>
+                </div>
+              </div>
+              <Button variant="outline" size="sm" onClick={disconnect}>
+                <LogOut className="mr-1.5 h-3.5 w-3.5" /> Disconnect
+              </Button>
             </div>
+            <p className="text-xs text-muted-foreground">
+              Your wallet credentials are encrypted and stored locally in this browser.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              Connect a Lightning wallet to start accepting Bitcoin payments on your invoices.
+              Supports Blink Lightning Address, Nostr Wallet Connect (NWC), and Blink API key.
+            </p>
+            <Button onClick={connect} className="w-full sm:w-auto">
+              <Zap className="mr-1.5 h-4 w-4" /> Connect wallet
+            </Button>
           </div>
         )}
 
-        <div className="rounded-md border border-warning/30 bg-warning/10 p-3 text-xs" style={{ color: "var(--warning)" }}>
-          <strong>Production note:</strong> Browser-side API key usage is for demo only. In production, proxy these calls through a backend to keep your key private.
-        </div>
+        <LightningConnect
+          theme={{
+            primary: "#F7931A",
+            background: "#0A0A0A",
+            foreground: "#F2F2F2",
+            border: "#2A2A2A",
+            radius: "12px",
+            muted: "#A1A1AA",
+          }}
+          onConnect={(c) => toast.success(`Connected ${c.type.replace("-", " ")} wallet`)}
+        />
       </Card>
 
       <Card title="Invoice defaults">

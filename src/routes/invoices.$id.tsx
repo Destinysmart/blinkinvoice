@@ -4,10 +4,10 @@ import { useMutation } from "@tanstack/react-query";
 import { QRCodeSVG } from "qrcode.react";
 import { toast } from "sonner";
 import { ArrowLeft, Copy, Zap, AlertTriangle, RefreshCw, Trash2, Download, Share2, Eye, MoreHorizontal, CheckCircle2, Send } from "lucide-react";
+import { useWalletConnect } from "lightningconnect";
 import { useAppStore, invoiceTotal, genInvoiceNumber } from "@/lib/store";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
-import { createLnUsdInvoice, createLnBtcInvoice, fetchInvoiceStatus, usdCentsToSats } from "@/lib/blink";
 import type { InvoiceStatus } from "@/lib/types";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -35,6 +35,8 @@ function InvoiceDetailPage() {
   const deleteInvoice = useAppStore((s) => s.deleteInvoice);
   const addInvoice = useAppStore((s) => s.addInvoice);
 
+  const { isConnected, makeInvoice, lookupInvoice, connect } = useWalletConnect();
+
   const sendAgain = () => {
     if (!invoice) return;
     const newId = crypto.randomUUID();
@@ -52,6 +54,7 @@ function InvoiceDetailPage() {
       paymentHash: null,
       satoshis: null,
       expiresAt: null,
+      verifyUrl: null,
       activity: [],
       createdAt: new Date().toISOString(),
     });
@@ -62,23 +65,20 @@ function InvoiceDetailPage() {
   const ln = useMutation({
     mutationFn: async () => {
       if (!invoice) throw new Error("Invoice not found");
-      if (!settings.apiKey || !settings.walletId) throw new Error("Configure API key & wallet in Settings");
+      if (!isConnected) throw new Error("Connect your wallet in Settings first");
       const { total } = invoiceTotal(invoice);
       const memo = `${invoice.number} — ${invoice.client.name}`;
-      if (invoice.currency === "USD") {
-        // Convert USD → sats via Blink's realtime price, then create a BTC LN invoice.
-        // This works with any wallet type (BTC or USD) instead of requiring a USD wallet.
-        const sats = await usdCentsToSats(settings.apiKey, Math.round(total * 100));
-        return createLnBtcInvoice(settings.apiKey, settings.walletId, sats, memo);
-      }
-      return createLnBtcInvoice(settings.apiKey, settings.walletId, Math.round(total), memo);
+      // BTC invoices: pass sats. USD invoices: pass cents.
+      const amount = invoice.currency === "USD" ? Math.round(total * 100) : Math.round(total);
+      return makeInvoice(amount, invoice.currency, memo);
     },
     onSuccess: (inv) => {
       updateInvoice(id, {
-        paymentRequest: inv.paymentRequest,
+        paymentRequest: inv.bolt11,
         paymentHash: inv.paymentHash,
-        satoshis: inv.satoshis,
-        expiresAt: Date.now() + 1000 * 60 * 60,
+        satoshis: inv.amount,
+        expiresAt: inv.expiresAt * 1000,
+        verifyUrl: (inv as any).verify ?? null,
       });
       toast.success("Lightning invoice generated");
     },
@@ -102,19 +102,29 @@ function InvoiceDetailPage() {
     }
   }, [id]);
 
-  // Poll Lightning payment status every 5s while invoice is outstanding
+  // Poll Lightning payment status every 5s while invoice is outstanding.
+  // Requires either an active wallet connection OR a stored verify URL.
   const polling =
     !!invoice?.paymentRequest &&
+    !!invoice?.paymentHash &&
     invoice?.status !== "paid" &&
-    !!settings.apiKey &&
+    (isConnected || !!invoice?.verifyUrl) &&
     (!invoice?.expiresAt || invoice.expiresAt > Date.now());
 
   useEffect(() => {
-    if (!polling || !invoice?.paymentRequest || !settings.apiKey) return;
+    if (!polling || !invoice?.paymentHash) return;
     let cancelled = false;
     const check = async () => {
       try {
-        const status = await fetchInvoiceStatus(settings.apiKey!, invoice.paymentRequest!);
+        const status = await lookupInvoice(invoice.paymentHash!, {
+          bolt11: invoice.paymentRequest!,
+          paymentHash: invoice.paymentHash!,
+          amount: invoice.satoshis ?? 0,
+          memo: "",
+          createdAt: 0,
+          expiresAt: invoice.expiresAt ? Math.floor(invoice.expiresAt / 1000) : 0,
+          verify: invoice.verifyUrl ?? undefined,
+        });
         if (cancelled) return;
         if (status === "PAID") {
           updateInvoice(id, {
@@ -135,7 +145,7 @@ function InvoiceDetailPage() {
     const iv = setInterval(check, 5000);
     return () => { cancelled = true; clearInterval(iv); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [polling, invoice?.paymentRequest, settings.apiKey, id]);
+  }, [polling, invoice?.paymentHash, id]);
 
   if (!invoice) {
     return (
@@ -160,7 +170,7 @@ function InvoiceDetailPage() {
   };
 
   const lnUri = invoice.paymentRequest ? `lightning:${invoice.paymentRequest}` : "";
-  const missingKeys = !settings.apiKey || !settings.walletId;
+  const walletMissing = !isConnected;
 
   const download = async () => {
     setDownloading(true);
@@ -372,18 +382,21 @@ function InvoiceDetailPage() {
         )}
 
 
-        {missingKeys && (
+        {walletMissing && (
           <div className="mb-4 flex items-start gap-2 rounded-md border border-warning/30 bg-warning/10 p-3 text-sm text-warning" style={{ color: "var(--warning)" }}>
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
             <span>
-              Add your Blink API key and Wallet ID in{" "}
-              <Link to="/settings" className="underline font-medium">Settings</Link> before generating an invoice.
+              Connect a Lightning wallet in{" "}
+              <Link to="/settings" className="underline font-medium">Settings</Link> before generating an invoice,
+              or{" "}
+              <button onClick={connect} className="underline font-medium">connect now</button>.
             </span>
           </div>
         )}
 
         {!invoice.paymentRequest ? (
-          <Button onClick={() => ln.mutate()} disabled={ln.isPending || missingKeys} className="w-full sm:w-auto">
+          <Button onClick={() => ln.mutate()} disabled={ln.isPending || walletMissing} className="w-full sm:w-auto"
+            title={walletMissing ? "Connect your wallet in Settings first" : undefined}>
             {ln.isPending ? "Generating…" : "Generate Lightning Invoice"}
           </Button>
         ) : (
