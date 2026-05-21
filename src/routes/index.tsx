@@ -223,12 +223,13 @@ function Dashboard() {
       )}
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Kpi
           icon={DollarSign}
           label="Total invoiced"
           value={fmtCombined(stats.total)}
           onClick={() => setShowUsd((v) => !v)}
+          accent
           hint="All invoice amounts across every status, combined. Click to toggle between sats and the USD value recorded when each payment came in."
         />
         <Kpi
