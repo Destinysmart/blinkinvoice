@@ -131,7 +131,7 @@ function Dashboard() {
       icon: Building2,
     },
     {
-      done: Boolean(settings.apiKey),
+      done: walletConnected,
       label: "Connect your Lightning wallet",
       desc: "Required to accept Bitcoin payments.",
       to: "/settings",
