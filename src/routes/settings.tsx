@@ -41,14 +41,14 @@ function SettingsPage() {
       <Card title="Lightning wallet">
         {isConnected && walletInfo ? (
           <div className="space-y-3">
-            <div className="flex items-center justify-between rounded-md border border-success/30 bg-success/10 p-4">
-              <div className="flex items-center gap-3">
-                <div className="grid h-10 w-10 place-items-center rounded-full bg-primary/15 text-primary">
+            <div className="rounded-md border border-success/30 bg-success/10 p-4">
+              <div className="flex items-start gap-3">
+                <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary/15 text-primary">
                   <Zap className="h-5 w-5 fill-primary" />
                 </div>
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2 text-sm font-semibold">
-                    {walletInfo.name}
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm font-semibold">
+                    <span className="truncate">{walletInfo.name}</span>
                     <span className="inline-flex items-center gap-1 text-xs font-normal text-success">
                       <CheckCircle2 className="h-3.5 w-3.5" /> Connected
                     </span>
@@ -59,7 +59,7 @@ function SettingsPage() {
                   </div>
                 </div>
               </div>
-              <Button variant="outline" size="sm" onClick={disconnect}>
+              <Button variant="outline" size="sm" onClick={disconnect} className="mt-3 w-full sm:w-auto">
                 <LogOut className="mr-1.5 h-3.5 w-3.5" /> Disconnect
               </Button>
             </div>
