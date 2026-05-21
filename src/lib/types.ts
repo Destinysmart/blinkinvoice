@@ -23,6 +23,7 @@ export interface Invoice {
   paymentHash: string | null;
   satoshis: number | null;
   expiresAt: number | null;
+  verifyUrl?: string | null;
   payToken?: string;
   activity?: { at: string; text: string }[];
   createdAt: string;
@@ -32,8 +33,8 @@ export interface Settings {
   businessName: string;
   businessEmail: string;
   businessAddress: string;
-  apiKey: string;
-  walletId: string;
+  apiKey?: string;
+  walletId?: string;
   walletName?: string;
   defaultCurrency: Currency;
   invoicePrefix?: string;
