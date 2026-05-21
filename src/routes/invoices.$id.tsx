@@ -67,9 +67,15 @@ function InvoiceDetailPage() {
       if (!invoice) throw new Error("Invoice not found");
       if (!isConnected) throw new Error("Connect your wallet in Settings first");
       const { total } = invoiceTotal(invoice);
-      const memo = `${invoice.number} — ${invoice.client.name}`;
+      if (!total || total <= 0) throw new Error("Add at least one item with a price before generating a payment link.");
+      const fallbackMemo = `${invoice.number} — ${invoice.client.name}`;
+      const memo = (invoice.memo && invoice.memo.trim()) ? invoice.memo.trim() : fallbackMemo;
       // BTC invoices: pass sats. USD invoices: pass cents.
       const amount = invoice.currency === "USD" ? Math.round(total * 100) : Math.round(total);
+      // Persist the memo we actually used so the pay page shows the same text.
+      if (!invoice.memo || !invoice.memo.trim()) {
+        updateInvoice(id, { memo: fallbackMemo });
+      }
       return makeInvoice(amount, invoice.currency, memo);
     },
     onSuccess: (inv) => {
@@ -394,9 +400,34 @@ function InvoiceDetailPage() {
           </div>
         )}
 
+        {/* Payment note for client — editable, shown to payer on the pay page */}
+        <div className="mb-4 space-y-1.5">
+          <label className="text-xs font-medium text-muted-foreground" htmlFor="pay-memo">
+            Payment note for client
+          </label>
+          <input
+            id="pay-memo"
+            type="text"
+            value={invoice.memo ?? ""}
+            placeholder={`${invoice.number} — ${invoice.client.name}`}
+            onChange={(e) => updateInvoice(id, { memo: e.target.value })}
+            className="flex h-9 w-full rounded-md border border-input bg-input px-3 py-1 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+          />
+          <p className="text-[11px] text-muted-foreground">
+            Shown to the client on the payment page. Leave blank to use the invoice number and client name.
+          </p>
+        </div>
+
+        {total <= 0 && (
+          <div className="mb-4 flex items-start gap-2 rounded-md border p-3 text-sm" style={{ borderColor: "color-mix(in oklab, var(--primary) 40%, transparent)", backgroundColor: "color-mix(in oklab, var(--primary) 10%, transparent)", color: "var(--primary)" }}>
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+            <span>Add at least one item with a price before generating a payment link.</span>
+          </div>
+        )}
+
         {!invoice.paymentRequest ? (
-          <Button onClick={() => ln.mutate()} disabled={ln.isPending || walletMissing} className="w-full sm:w-auto"
-            title={walletMissing ? "Connect your wallet in Settings first" : undefined}>
+          <Button onClick={() => ln.mutate()} disabled={ln.isPending || walletMissing || total <= 0} className="w-full sm:w-auto"
+            title={walletMissing ? "Connect your wallet in Settings first" : total <= 0 ? "Add at least one item with a price" : undefined}>
             {ln.isPending ? "Generating…" : "Generate Lightning Invoice"}
           </Button>
         ) : (
