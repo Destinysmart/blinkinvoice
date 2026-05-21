@@ -68,6 +68,8 @@ function InvoicesPage() {
       const overdue = isOverdue(inv);
       if (filter === "overdue" && !overdue) return false;
       if (filter !== "all" && filter !== "overdue" && inv.status !== filter) return false;
+      // Hide zero-total invoices from "All" — they only show under "Draft".
+      if (filter === "all" && invoiceTotal(inv).total <= 0) return false;
       if (q && !(`${inv.number} ${inv.client.name} ${inv.client.email}`.toLowerCase().includes(q.toLowerCase()))) return false;
       return true;
     });
