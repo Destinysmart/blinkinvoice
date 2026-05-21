@@ -440,7 +440,7 @@ function InvoiceDetailPage() {
               <div>
                 <p className="text-xs uppercase tracking-wider text-muted-foreground">Amount</p>
                 <p className="font-mono text-2xl font-bold text-primary">
-                  {invoice.satoshis?.toLocaleString()} sats
+                  {fmt(total)}
                 </p>
               </div>
               <div>
