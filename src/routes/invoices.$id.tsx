@@ -70,8 +70,8 @@ function InvoiceDetailPage() {
       if (!total || total <= 0) throw new Error("Add at least one item with a price before generating a payment link.");
       const fallbackMemo = `${invoice.number} — ${invoice.client.name}`;
       const memo = (invoice.memo && invoice.memo.trim()) ? invoice.memo.trim() : fallbackMemo;
-      // BTC invoices: pass sats. USD invoices: pass cents.
-      const amount = invoice.currency === "USD" ? Math.round(total * 100) : Math.round(total);
+      // lightningconnect expects USD in dollars and BTC in sats.
+      const amount = invoice.currency === "USD" ? total : Math.round(total);
       // Persist the memo we actually used so the pay page shows the same text.
       if (!invoice.memo || !invoice.memo.trim()) {
         updateInvoice(id, { memo: fallbackMemo });
