@@ -223,13 +223,12 @@ function Dashboard() {
       )}
 
       {/* KPIs */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Kpi
           icon={DollarSign}
           label="Total invoiced"
           value={fmtCombined(stats.total)}
           onClick={() => setShowUsd((v) => !v)}
-          accent
           hint="All invoice amounts across every status, combined. Click to toggle between sats and the USD value recorded when each payment came in."
         />
         <Kpi
@@ -387,7 +386,7 @@ function Dashboard() {
 }
 
 function Kpi({
-  label, value, tone, pulse, hint, icon: Icon, trend, onClick, accent,
+  label, value, tone, pulse, hint, icon: Icon, trend, onClick,
 }: {
   label: string;
   value: string;
@@ -397,7 +396,6 @@ function Kpi({
   icon?: React.ComponentType<{ className?: string }>;
   trend?: number | null;
   onClick?: () => void;
-  accent?: boolean;
 }) {
   const color =
     tone === "success" ? "text-success"
@@ -411,7 +409,7 @@ function Kpi({
     : "bg-foreground/10 text-muted-foreground";
   return (
     <div
-      className={`rounded-xl border border-border bg-card p-5 transition hover:border-border/80 ${accent ? "border-l-[3px] border-l-primary" : ""} ${onClick ? "cursor-pointer select-none active:scale-[0.99]" : ""}`}
+      className={`rounded-xl border border-border bg-card p-5 transition hover:border-border/80 ${onClick ? "cursor-pointer select-none active:scale-[0.99]" : ""}`}
       onClick={onClick}
       role={onClick ? "button" : undefined}
       tabIndex={onClick ? 0 : undefined}
@@ -427,7 +425,7 @@ function Kpi({
           {hint && <InfoHint text={hint} />}
         </div>
       </div>
-      <p className={`mt-3 font-mono text-3xl font-bold tracking-tight ${color}`}>{value}</p>
+      <p className={`mt-3 font-mono text-2xl font-semibold tracking-tight ${color}`}>{value}</p>
       {trend !== undefined && trend !== null && (
         <p className={`mt-1 text-[11px] font-medium ${trend >= 0 ? "text-success" : "text-destructive"}`}>
           {trend >= 0 ? "▲" : "▼"} {Math.abs(trend).toFixed(0)}% vs last month
