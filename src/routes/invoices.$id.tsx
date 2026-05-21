@@ -67,7 +67,12 @@ function InvoiceDetailPage() {
       if (!invoice) throw new Error("Invoice not found");
       if (!isConnected) throw new Error("Connect your wallet in Settings first");
       const { total } = invoiceTotal(invoice);
-      const memo = `${invoice.number} — ${invoice.client.name}`;
+      if (!invoice.items.length || total <= 0) {
+        throw new Error("Add at least one item with a price before generating a payment link.");
+      }
+      const memo = (invoice.memo && invoice.memo.trim())
+        ? invoice.memo.trim()
+        : `${invoice.number} — ${invoice.client.name}`;
       // BTC invoices: pass sats. USD invoices: pass cents.
       const amount = invoice.currency === "USD" ? Math.round(total * 100) : Math.round(total);
       return makeInvoice(amount, invoice.currency, memo);
@@ -82,7 +87,13 @@ function InvoiceDetailPage() {
       });
       toast.success("Lightning invoice generated");
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => {
+      // Friendly fallback — never surface raw BOLT11/wallet errors.
+      const msg = e.message?.includes("item with a price") || e.message?.includes("Settings")
+        ? e.message
+        : "Couldn't generate a payment link right now. Please try again.";
+      toast.error(msg);
+    },
   });
 
   const [shareOpen, setShareOpen] = useState(false);
@@ -171,6 +182,10 @@ function InvoiceDetailPage() {
 
   const lnUri = invoice.paymentRequest ? `lightning:${invoice.paymentRequest}` : "";
   const walletMissing = !isConnected;
+  const hasAmount = invoice.items.length > 0 && total > 0;
+  const memoForClient = (invoice.memo && invoice.memo.trim())
+    ? invoice.memo.trim()
+    : `${invoice.number} — ${invoice.client.name}`;
 
   const download = async () => {
     setDownloading(true);
@@ -394,9 +409,44 @@ function InvoiceDetailPage() {
           </div>
         )}
 
+        {!hasAmount && !invoice.paymentRequest && (
+          <div className="mb-4 flex items-start gap-3 rounded-lg border border-primary/30 bg-primary/10 p-4 text-sm">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+            <div className="space-y-1">
+              <p className="font-medium text-foreground">No amount set yet</p>
+              <p className="text-muted-foreground">Add at least one item with a price before generating a payment link.</p>
+            </div>
+          </div>
+        )}
+
+        {/* Payment note for client — editable, defaults to invoice number + client name */}
+        {!invoice.paymentRequest && (
+          <div className="mb-4 space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground">Payment note for client</label>
+            <input
+              type="text"
+              value={invoice.memo ?? ""}
+              onChange={(e) => updateInvoice(id, { memo: e.target.value })}
+              placeholder={`${invoice.number} — ${invoice.client.name}`}
+              className="w-full rounded-md border border-border bg-input px-3 py-2 text-sm placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/40"
+            />
+            <p className="text-[11px] text-muted-foreground">
+              Shown on the payment page and in the Lightning invoice memo. Leave blank to auto-fill with the invoice number and client name.
+            </p>
+          </div>
+        )}
+
         {!invoice.paymentRequest ? (
-          <Button onClick={() => ln.mutate()} disabled={ln.isPending || walletMissing} className="w-full sm:w-auto"
-            title={walletMissing ? "Connect your wallet in Settings first" : undefined}>
+          <Button
+            onClick={() => ln.mutate()}
+            disabled={ln.isPending || walletMissing || !hasAmount}
+            className="w-full sm:w-auto"
+            title={
+              walletMissing ? "Connect your wallet in Settings first"
+              : !hasAmount ? "Add at least one item with a price"
+              : undefined
+            }
+          >
             {ln.isPending ? "Generating…" : "Generate Lightning Invoice"}
           </Button>
         ) : (

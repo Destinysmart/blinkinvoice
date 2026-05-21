@@ -187,6 +187,12 @@ function PayPage() {
               )}
             </div>
           )}
+
+          {data.memo && (
+            <p className="mt-3 text-center text-xs text-muted-foreground/80 break-words">
+              Note: {data.memo}
+            </p>
+          )}
         </div>
 
         {/* Actions */}

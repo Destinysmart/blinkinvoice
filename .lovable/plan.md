@@ -1,35 +1,53 @@
-## Blink connection settings — redesign
+# BlinkInvoice — Fixes & Modern Refresh
 
-Reshape the "Blink Lightning" card in `src/routes/settings.tsx` only. No backend or business-logic changes.
+Focused, surgical changes. I'm prioritizing the items that actually move the needle (per your own assessment at the bottom of the brief) over a full UI rewrite — the existing layout/cards are already on-brand. We can do a deeper redesign as a follow-up if you want.
 
-### New layout (top to bottom)
+## 1. Dark mode as default
 
-1. **Wallet Name** — text input above API key. Friendly label for this connection (e.g. "Main BTC wallet"). Stored locally in settings as `walletName`; purely cosmetic, shown next to the connected indicator.
-2. **API Key** — input with a clipboard **Paste** button inside on the right (alongside the existing show/hide eye toggle). Clicking it calls `navigator.clipboard.readText()` and fills the field, with a toast on success/failure.
-3. **Inline "How to get your API key" guide** — compact 3-step list rendered directly under the input:
-   1. Go to [dashboard.blink.sv](https://dashboard.blink.sv) and sign in
-   2. Open [API Keys](https://dashboard.blink.sv/api-keys) and click "Create API Key"
-   3. Copy the key and paste it above
-   Each step links to the relevant page on dashboard.blink.sv (opens in a new tab).
-4. **Encryption note** — small muted text: *"Your API key is encrypted and stored securely."*
-5. **Test connection** button + connected wallets list (unchanged behavior).
+- In `src/lib/theme.ts`, change `getInitialTheme()` to return `"dark"` when nothing is stored (ignore `prefers-color-scheme`).
+- Tighten dark tokens in `src/styles.css` to the requested palette:
+  - `--background: #0A0A0A`, `--surface: #141414`, `--card: #1A1A1A`, `--border: #242424`
+  - `--foreground: #F2F2F2`, `--muted-foreground: #666666`
+  - Keep `--primary` = `#F7931A`
+- Light theme and the toggle stay intact.
 
-### Wallet ID — remove from UI
+## 2. Friendly "missing amount" warning
 
-The Wallet ID field is removed from the settings form. It's still required at invoice-creation time, so we auto-populate it:
+- In `src/routes/invoices.$id.tsx`, before calling `makeInvoice()`:
+  - Compute total from line items.
+  - If no items or total ≤ 0, render a warm orange warning card above the "Generate payment link" button: *"Add at least one item with a price before generating a payment link."*
+  - Disable the generate button in that state. No toast, no raw BOLT11 errors surfaced.
+- Wrap the `makeInvoice()` call in try/catch and swallow technical messages into a generic friendly fallback.
 
-- After **Test connection** succeeds, automatically set `form.walletId` to the BTC wallet's id (falling back to the first wallet). User no longer needs to copy/paste it.
-- On initial load, if `apiKey` exists but `walletId` is empty, trigger a silent fetch to populate it.
-- The underlying `walletId` field in `Settings` type and store remains intact (used by `invoices.$id.tsx`, `pay.functions.ts`).
+## 3. Business info no longer resets on wallet connect
 
-### Non-goals
+- Audit `src/routes/settings.tsx`: today `useState(settings)` initializes once but `useWalletConnect()` re-renders can interact with the store's `saveSettings`/refetch pattern.
+- Fix by:
+  - Decoupling the form: seed `form` from `settings` via a `useEffect` that only syncs when `settings.id`/timestamp changes — never on wallet state.
+  - Ensuring `useWalletConnect` is read in a sibling component (extract `<WalletCard />`) so its re-renders don't bubble into the business form.
+- Confirm business profile loads from Supabase independently of wallet hook.
 
-- No changes to `src/lib/store.ts`, `src/lib/blink.ts`, `src/lib/types.ts` (beyond adding optional `walletName?: string` to `Settings`).
-- No changes to invoice creation flow.
-- Save button behavior unchanged.
+## 4. Payment note / memo for clients
 
-### Files touched
+- Add a "Payment note for client" textarea in the invoice editor (`src/routes/invoices.$id.tsx` / `invoices.new.tsx`), bound to the existing `memo` column.
+- When generating the Lightning invoice, pass `memo` to `makeInvoice({ memo })`. Default memo when blank: `${invoice.number} — ${clientName}`.
+- Pay page (`src/routes/pay.$token.tsx`): below the QR, show `Note: {memo}` in muted style.
+- Invoice PDF (`src/components/InvoicePDF.tsx`): render the memo in the footer/notes area.
+- No DB migration needed — `invoices.memo` already exists.
 
-- `src/routes/settings.tsx` — UI rework of the Blink Lightning card
-- `src/lib/types.ts` — add optional `walletName?: string` to `Settings`
-- `src/lib/store.ts` — persist/load `walletName` (map to a profile column or keep client-only; will use existing settings persistence path)
+## 5. Targeted UX fixes from your second list
+
+- **Dashboard stat cards** (`src/routes/index.tsx`): single column on mobile (`grid-cols-1 sm:grid-cols-2 lg:grid-cols-4`), numbers bumped to `text-3xl font-bold`, add `border-l-2 border-primary` on the "Total Invoiced" card.
+- **Invoice list** (`src/routes/invoices.index.tsx`): in the default "All" filter, hide invoices where total = 0 (still visible under "Draft"). Add a subtle `<Separator />` between unpaid and paid groups.
+- **Settings page**: make the section header (`<h2>` inside `Card`) `sticky top-0` with a `bg-card/95 backdrop-blur` band; reduce `space-y-4` → `space-y-3` inside sections.
+- **Sidebar active state** (`src/components/Sidebar.tsx`): add a 3px orange left border indicator on the active item instead of (or in addition to) the pale fill.
+
+## What I'm intentionally NOT doing
+
+- A full rip-and-replace UI overhaul. Your own notes call out that the cards, status pills, and wallet connection UI already work. A blanket redesign risks regressions on the things that are working. If after the above you still want the full 2026 redesign, I'll generate 3 design directions for you to pick from.
+
+## Technical notes
+
+- No schema changes. `memo` and existing tables cover everything.
+- `lightningconnect`'s `makeInvoice` already accepts a `memo` arg per its 0.1.0 API.
+- Theme change is a one-line default + token swap; existing `useTheme` persistence keeps user choice sticky after first toggle.
