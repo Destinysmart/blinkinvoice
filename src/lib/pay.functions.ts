@@ -60,6 +60,7 @@ function publicInvoice(row: any, profile: any) {
     expiresAt: normalizeExpiresAtMs(row.expires_at),
     verifyUrl: (row.verify_url as string | null) ?? null,
     paidAt: row.paid_at as string | null,
+    memo: (row.memo as string) ?? "",
     businessName: (profile?.business_name as string) || "BlinkInvoice",
     logoUrl: (profile?.logo_url as string) || null,
   };
