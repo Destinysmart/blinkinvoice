@@ -327,8 +327,6 @@ export type Database = {
       profiles: {
         Row: {
           address: string | null
-          blink_api_key: string | null
-          btc_wallet_id: string | null
           business_email: string | null
           business_name: string | null
           city: string | null
@@ -348,13 +346,10 @@ export type Database = {
           phone: string | null
           show_advanced: boolean
           updated_at: string
-          usd_wallet_id: string | null
           vat_number: string | null
         }
         Insert: {
           address?: string | null
-          blink_api_key?: string | null
-          btc_wallet_id?: string | null
           business_email?: string | null
           business_name?: string | null
           city?: string | null
@@ -374,13 +369,10 @@ export type Database = {
           phone?: string | null
           show_advanced?: boolean
           updated_at?: string
-          usd_wallet_id?: string | null
           vat_number?: string | null
         }
         Update: {
           address?: string | null
-          blink_api_key?: string | null
-          btc_wallet_id?: string | null
           business_email?: string | null
           business_name?: string | null
           city?: string | null
@@ -400,7 +392,6 @@ export type Database = {
           phone?: string | null
           show_advanced?: boolean
           updated_at?: string
-          usd_wallet_id?: string | null
           vat_number?: string | null
         }
         Relationships: []
