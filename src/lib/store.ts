@@ -111,6 +111,7 @@ function rowToInvoice(r: any): Invoice {
     satoshis: r.satoshis != null ? Number(r.satoshis) : null,
     expiresAt: r.expires_at != null ? Number(r.expires_at) : null,
     verifyUrl: r.verify_url ?? null,
+    lnAddress: r.ln_address ?? null,
     payToken: r.pay_token ?? undefined,
     activity: Array.isArray(r.activity) ? r.activity : [],
     createdAt: r.created_at ?? new Date().toISOString(),
