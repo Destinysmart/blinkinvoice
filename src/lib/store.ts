@@ -111,6 +111,7 @@ function rowToInvoice(r: any): Invoice {
     satoshis: r.satoshis != null ? Number(r.satoshis) : null,
     expiresAt: r.expires_at != null ? Number(r.expires_at) : null,
     verifyUrl: r.verify_url ?? null,
+    lnAddress: r.ln_address ?? null,
     payToken: r.pay_token ?? undefined,
     activity: Array.isArray(r.activity) ? r.activity : [],
     createdAt: r.created_at ?? new Date().toISOString(),
@@ -135,6 +136,7 @@ function invoiceToRow(inv: Invoice, userId: string) {
     satoshis: inv.satoshis,
     expires_at: inv.expiresAt,
     verify_url: inv.verifyUrl ?? null,
+    ln_address: inv.lnAddress ?? null,
     activity: inv.activity ?? [],
     created_at: inv.createdAt,
   };
@@ -156,6 +158,7 @@ function invoicePatchToRow(patch: Partial<Invoice>) {
   if (patch.satoshis !== undefined) out.satoshis = patch.satoshis;
   if (patch.expiresAt !== undefined) out.expires_at = patch.expiresAt;
   if (patch.verifyUrl !== undefined) out.verify_url = patch.verifyUrl;
+  if (patch.lnAddress !== undefined) out.ln_address = patch.lnAddress;
   if (patch.activity !== undefined) out.activity = patch.activity;
   return out;
 }

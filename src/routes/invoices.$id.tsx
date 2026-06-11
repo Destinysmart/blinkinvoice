@@ -35,7 +35,7 @@ function InvoiceDetailPage() {
   const deleteInvoice = useAppStore((s) => s.deleteInvoice);
   const addInvoice = useAppStore((s) => s.addInvoice);
 
-  const { isConnected, makeInvoice, lookupInvoice, connect } = useWalletConnect();
+  const { isConnected, makeInvoice, lookupInvoice, connect, walletInfo, connectionType } = useWalletConnect();
 
   const sendAgain = () => {
     if (!invoice) return;
@@ -85,6 +85,10 @@ function InvoiceDetailPage() {
         satoshis: inv.amount,
         expiresAt: inv.expiresAt * 1000,
         verifyUrl: (inv as any).verify ?? null,
+        // Persist the lightning address so the pay page can auto-mint a
+        // new BOLT11 (via LNURL) once this one expires, without needing
+        // the merchant's wallet to be online.
+        lnAddress: connectionType === "blink-address" && walletInfo?.address ? walletInfo.address : null,
       });
       toast.success("Lightning invoice generated");
     },

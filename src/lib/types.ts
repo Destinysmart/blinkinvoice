@@ -24,6 +24,7 @@ export interface Invoice {
   satoshis: number | null;
   expiresAt: number | null;
   verifyUrl?: string | null;
+  lnAddress?: string | null;
   payToken?: string;
   activity?: { at: string; text: string }[];
   createdAt: string;
