@@ -205,6 +205,7 @@ export type Database = {
           id: string
           issue_date: string | null
           items: Json
+          ln_address: string | null
           memo: string | null
           number: string
           paid_at: string | null
@@ -230,6 +231,7 @@ export type Database = {
           id?: string
           issue_date?: string | null
           items?: Json
+          ln_address?: string | null
           memo?: string | null
           number: string
           paid_at?: string | null
@@ -255,6 +257,7 @@ export type Database = {
           id?: string
           issue_date?: string | null
           items?: Json
+          ln_address?: string | null
           memo?: string | null
           number?: string
           paid_at?: string | null
