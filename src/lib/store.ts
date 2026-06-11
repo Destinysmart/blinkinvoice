@@ -158,6 +158,7 @@ function invoicePatchToRow(patch: Partial<Invoice>) {
   if (patch.satoshis !== undefined) out.satoshis = patch.satoshis;
   if (patch.expiresAt !== undefined) out.expires_at = patch.expiresAt;
   if (patch.verifyUrl !== undefined) out.verify_url = patch.verifyUrl;
+  if (patch.lnAddress !== undefined) out.ln_address = patch.lnAddress;
   if (patch.activity !== undefined) out.activity = patch.activity;
   return out;
 }
