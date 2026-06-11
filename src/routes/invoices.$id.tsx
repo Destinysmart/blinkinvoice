@@ -35,7 +35,7 @@ function InvoiceDetailPage() {
   const deleteInvoice = useAppStore((s) => s.deleteInvoice);
   const addInvoice = useAppStore((s) => s.addInvoice);
 
-  const { isConnected, makeInvoice, lookupInvoice, connect } = useWalletConnect();
+  const { isConnected, makeInvoice, lookupInvoice, connect, walletInfo, connectionType } = useWalletConnect();
 
   const sendAgain = () => {
     if (!invoice) return;
