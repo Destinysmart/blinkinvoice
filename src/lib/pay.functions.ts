@@ -26,7 +26,7 @@ function normalizeExpiresAtMs(v: unknown): number | null {
 async function loadByToken(token: string) {
   const { data, error } = await supabaseAdmin
     .from("invoices")
-    .select("id, user_id, number, client_snapshot, items, currency, tax, memo, status, issue_date, due_date, payment_request, payment_hash, satoshis, expires_at, verify_url, paid_at, pay_token, activity")
+    .select("id, user_id, number, client_snapshot, items, currency, tax, memo, status, issue_date, due_date, payment_request, payment_hash, satoshis, expires_at, verify_url, paid_at, pay_token, activity, ln_address")
     .eq("pay_token", token)
     .maybeSingle();
   if (error) throw new Error(error.message);
