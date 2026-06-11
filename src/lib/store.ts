@@ -136,6 +136,7 @@ function invoiceToRow(inv: Invoice, userId: string) {
     satoshis: inv.satoshis,
     expires_at: inv.expiresAt,
     verify_url: inv.verifyUrl ?? null,
+    ln_address: inv.lnAddress ?? null,
     activity: inv.activity ?? [],
     created_at: inv.createdAt,
   };
