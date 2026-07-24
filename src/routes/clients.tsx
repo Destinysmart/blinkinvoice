@@ -190,7 +190,7 @@ function ClientsPage() {
                 {rows.map((c) => (
                   <tr key={c.id ?? c.name} className="border-b border-border last:border-0 hover:bg-[var(--surface)]">
                     <td className="px-4 py-3">
-                      <div className="flex items-center gap-3">
+                      <Link to="/clients/$name" params={{ name: encodeURIComponent(c.name) }} className="flex items-center gap-3 hover:underline">
                         <span className="grid h-8 w-8 place-items-center rounded-full bg-primary/15 font-mono text-xs font-bold text-primary">
                           {initials(c.name)}
                         </span>
@@ -198,7 +198,7 @@ function ClientsPage() {
                           <span className="text-sm font-medium">{c.name}</span>
                           {!c.saved && <span className="text-[10px] uppercase tracking-wider text-muted-foreground">From invoice</span>}
                         </div>
-                      </div>
+                      </Link>
                     </td>
                     <td className="px-4 py-3 text-sm text-muted-foreground">{c.email || "—"}</td>
                     <td className="px-4 py-3 text-right font-mono text-sm">{fmtUsd(c.total)}</td>
