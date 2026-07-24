@@ -24,6 +24,7 @@ import { Route as InvoicesIndexRouteImport } from './routes/invoices.index'
 import { Route as PayTokenRouteImport } from './routes/pay.$token'
 import { Route as InvoicesNewRouteImport } from './routes/invoices.new'
 import { Route as InvoicesIdRouteImport } from './routes/invoices.$id'
+import { Route as ClientsNameRouteImport } from './routes/clients.$name'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 
 const SignupRoute = SignupRouteImport.update({
@@ -101,6 +102,11 @@ const InvoicesIdRoute = InvoicesIdRouteImport.update({
   path: '/invoices/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ClientsNameRoute = ClientsNameRouteImport.update({
+  id: '/$name',
+  path: '/$name',
+  getParentRoute: () => ClientsRoute,
+} as any)
 const LovableEmailQueueProcessRoute =
   LovableEmailQueueProcessRouteImport.update({
     id: '/lovable/email/queue/process',
@@ -110,7 +116,7 @@ const LovableEmailQueueProcessRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/clients': typeof ClientsRoute
+  '/clients': typeof ClientsRouteWithChildren
   '/expenses': typeof ExpensesRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
@@ -120,6 +126,7 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
   '/signup': typeof SignupRoute
+  '/clients/$name': typeof ClientsNameRoute
   '/invoices/$id': typeof InvoicesIdRoute
   '/invoices/new': typeof InvoicesNewRoute
   '/pay/$token': typeof PayTokenRoute
@@ -128,7 +135,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/clients': typeof ClientsRoute
+  '/clients': typeof ClientsRouteWithChildren
   '/expenses': typeof ExpensesRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
@@ -138,6 +145,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
   '/signup': typeof SignupRoute
+  '/clients/$name': typeof ClientsNameRoute
   '/invoices/$id': typeof InvoicesIdRoute
   '/invoices/new': typeof InvoicesNewRoute
   '/pay/$token': typeof PayTokenRoute
@@ -147,7 +155,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/clients': typeof ClientsRoute
+  '/clients': typeof ClientsRouteWithChildren
   '/expenses': typeof ExpensesRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
@@ -157,6 +165,7 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
   '/signup': typeof SignupRoute
+  '/clients/$name': typeof ClientsNameRoute
   '/invoices/$id': typeof InvoicesIdRoute
   '/invoices/new': typeof InvoicesNewRoute
   '/pay/$token': typeof PayTokenRoute
@@ -177,6 +186,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/settings'
     | '/signup'
+    | '/clients/$name'
     | '/invoices/$id'
     | '/invoices/new'
     | '/pay/$token'
@@ -195,6 +205,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/settings'
     | '/signup'
+    | '/clients/$name'
     | '/invoices/$id'
     | '/invoices/new'
     | '/pay/$token'
@@ -213,6 +224,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/settings'
     | '/signup'
+    | '/clients/$name'
     | '/invoices/$id'
     | '/invoices/new'
     | '/pay/$token'
@@ -222,7 +234,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  ClientsRoute: typeof ClientsRoute
+  ClientsRoute: typeof ClientsRouteWithChildren
   ExpensesRoute: typeof ExpensesRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
@@ -346,6 +358,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InvoicesIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/clients/$name': {
+      id: '/clients/$name'
+      path: '/$name'
+      fullPath: '/clients/$name'
+      preLoaderRoute: typeof ClientsNameRouteImport
+      parentRoute: typeof ClientsRoute
+    }
     '/lovable/email/queue/process': {
       id: '/lovable/email/queue/process'
       path: '/lovable/email/queue/process'
@@ -356,9 +375,20 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface ClientsRouteChildren {
+  ClientsNameRoute: typeof ClientsNameRoute
+}
+
+const ClientsRouteChildren: ClientsRouteChildren = {
+  ClientsNameRoute: ClientsNameRoute,
+}
+
+const ClientsRouteWithChildren =
+  ClientsRoute._addFileChildren(ClientsRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  ClientsRoute: ClientsRoute,
+  ClientsRoute: ClientsRouteWithChildren,
   ExpensesRoute: ExpensesRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
