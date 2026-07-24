@@ -131,7 +131,11 @@ function ClientsPage() {
           <ul className="space-y-2 md:hidden">
             {rows.map((c) => (
               <li key={c.id ?? c.name} className="rounded-lg border border-border bg-card p-3">
-                <div className="flex items-start gap-3">
+                <Link
+                  to="/clients/$name"
+                  params={{ name: encodeURIComponent(c.name) }}
+                  className="flex items-start gap-3"
+                >
                   <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary/15 font-mono text-xs font-bold text-primary">
                     {initials(c.name)}
                   </span>
@@ -144,7 +148,7 @@ function ClientsPage() {
                       {c.outstanding > 0 && <span className="text-primary">{fmtUsd(c.outstanding)} due</span>}
                     </div>
                   </div>
-                </div>
+                </Link>
                 <div className="mt-2 flex items-center justify-end gap-1 border-t border-border/50 pt-2">
                   <Button variant="ghost" size="sm" onClick={() => newInvoiceFor(c)} aria-label="New invoice">
                     <FilePlus2 className="h-4 w-4" />
