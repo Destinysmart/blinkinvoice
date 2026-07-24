@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { Users, Plus, FilePlus2, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/clients")({
@@ -131,7 +131,11 @@ function ClientsPage() {
           <ul className="space-y-2 md:hidden">
             {rows.map((c) => (
               <li key={c.id ?? c.name} className="rounded-lg border border-border bg-card p-3">
-                <div className="flex items-start gap-3">
+                <Link
+                  to="/clients/$name"
+                  params={{ name: encodeURIComponent(c.name) }}
+                  className="flex items-start gap-3"
+                >
                   <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary/15 font-mono text-xs font-bold text-primary">
                     {initials(c.name)}
                   </span>
@@ -144,7 +148,7 @@ function ClientsPage() {
                       {c.outstanding > 0 && <span className="text-primary">{fmtUsd(c.outstanding)} due</span>}
                     </div>
                   </div>
-                </div>
+                </Link>
                 <div className="mt-2 flex items-center justify-end gap-1 border-t border-border/50 pt-2">
                   <Button variant="ghost" size="sm" onClick={() => newInvoiceFor(c)} aria-label="New invoice">
                     <FilePlus2 className="h-4 w-4" />
@@ -186,7 +190,7 @@ function ClientsPage() {
                 {rows.map((c) => (
                   <tr key={c.id ?? c.name} className="border-b border-border last:border-0 hover:bg-[var(--surface)]">
                     <td className="px-4 py-3">
-                      <div className="flex items-center gap-3">
+                      <Link to="/clients/$name" params={{ name: encodeURIComponent(c.name) }} className="flex items-center gap-3 hover:underline">
                         <span className="grid h-8 w-8 place-items-center rounded-full bg-primary/15 font-mono text-xs font-bold text-primary">
                           {initials(c.name)}
                         </span>
@@ -194,7 +198,7 @@ function ClientsPage() {
                           <span className="text-sm font-medium">{c.name}</span>
                           {!c.saved && <span className="text-[10px] uppercase tracking-wider text-muted-foreground">From invoice</span>}
                         </div>
-                      </div>
+                      </Link>
                     </td>
                     <td className="px-4 py-3 text-sm text-muted-foreground">{c.email || "—"}</td>
                     <td className="px-4 py-3 text-right font-mono text-sm">{fmtUsd(c.total)}</td>
