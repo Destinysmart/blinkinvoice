@@ -201,12 +201,12 @@ function AppFrame() {
   useEffect(() => {
     if (loading) return;
     if (isPublicRoute) return;
-    if (!isAuthenticated && !isAuthRoute) {
+    if (!isAuthenticated && !guest && !isAuthRoute && !isGuestSession()) {
       navigate({ to: "/login" });
-    } else if (isAuthenticated && isAuthRoute && location.pathname !== "/reset-password") {
+    } else if ((isAuthenticated || guest) && isAuthRoute && location.pathname !== "/reset-password") {
       navigate({ to: "/" });
     }
-  }, [loading, isAuthenticated, isAuthRoute, isPublicRoute, location.pathname, navigate]);
+  }, [loading, isAuthenticated, guest, isAuthRoute, isPublicRoute, location.pathname, navigate]);
 
   if (loading && !isPublicRoute) {
     return (
