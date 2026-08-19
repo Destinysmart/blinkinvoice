@@ -52,6 +52,8 @@ export function Sidebar() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { theme, toggle: toggleTheme } = useTheme();
+  const guest = useAppStore((s) => s.guest);
+  const exitGuest = useAppStore((s) => s.exitGuest);
 
   const handleSignOut = async () => {
     await signOut();
