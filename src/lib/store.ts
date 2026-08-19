@@ -12,6 +12,8 @@ interface AppState {
   hydrated: boolean;
   hydrating: boolean;
   userId: string | null;
+  guest: boolean;
+
 
   addInvoice: (i: Invoice) => void;
   updateInvoice: (id: string, patch: Partial<Invoice>) => void;
