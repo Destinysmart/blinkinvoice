@@ -261,6 +261,32 @@ export function MobileBar() {
                 ))}
               </nav>
 
+              {!user && guest && (
+                <div className="border-t border-border p-4 space-y-2">
+                  <div className="text-xs text-muted-foreground">
+                    Guest mode — saved on this device.
+                  </div>
+                  <Link
+                    to="/signup"
+                    onClick={() => setOpen(false)}
+                    className="flex w-full items-center justify-center rounded-md bg-primary px-3 py-2 text-xs font-medium text-primary-foreground"
+                  >
+                    Create a free account
+                  </Link>
+                  <button
+                    onClick={() => {
+                      exitGuest();
+                      setOpen(false);
+                      toast.success("Guest session cleared");
+                      navigate({ to: "/login" });
+                    }}
+                    className="flex w-full items-center gap-2 rounded-md border border-border px-3 py-2 text-xs text-muted-foreground transition hover:text-foreground"
+                  >
+                    <LogOut className="h-3.5 w-3.5" /> Exit guest mode
+                  </button>
+                </div>
+              )}
+
               {user && (
                 <div className="border-t border-border p-4">
                   <div className="mb-2 truncate text-xs text-muted-foreground">{user.email}</div>
