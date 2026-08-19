@@ -59,6 +59,28 @@ function LoginPage() {
           {loading ? "Signing in…" : "Sign in"}
         </Button>
       </form>
+
+      <div className="my-5 flex items-center gap-3">
+        <span className="h-px flex-1 bg-border" />
+        <span className="text-[11px] uppercase tracking-widest text-muted-foreground">or</span>
+        <span className="h-px flex-1 bg-border" />
+      </div>
+
+      <Button
+        type="button"
+        variant="outline"
+        className="w-full"
+        onClick={() => {
+          enterGuest();
+          toast.success("Guest mode — invoices are saved on this device");
+          navigate({ to: "/" });
+        }}
+      >
+        Continue without an account
+      </Button>
+      <p className="mt-2 text-center text-xs text-muted-foreground">
+        Draft invoices instantly. Data stays on this device.
+      </p>
     </AuthShell>
   );
 }
