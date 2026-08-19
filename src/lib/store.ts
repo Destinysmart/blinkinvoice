@@ -306,7 +306,7 @@ export const useAppStore = create<AppState>()((set, get) => ({
 
   hydrate: async (userId) => {
     if (get().hydrating) return;
-    set({ hydrating: true, userId });
+    set({ hydrating: true, userId, guest: false });
     try {
       const [profileRes, clientsRes, invoicesRes] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
