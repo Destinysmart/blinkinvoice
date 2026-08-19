@@ -13,11 +13,12 @@ import { Toaster, toast } from "sonner";
 import { useEffect } from "react";
 import { InstallBanner } from "@/components/InstallBanner";
 import { OfflineBar } from "@/components/OfflineBar";
+import { GuestBanner } from "@/components/GuestBanner";
 
 import appCss from "../styles.css?url";
 import { Sidebar, MobileBar } from "../components/Sidebar";
 import { useAuth } from "@/lib/auth";
-import { useAppStore } from "@/lib/store";
+import { useAppStore, isGuestSession, GUEST_FLAG_KEY } from "@/lib/store";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -163,6 +164,21 @@ function AppFrame() {
   const resetStore = useAppStore((s) => s.reset);
   const hydratedUserId = useAppStore((s) => s.userId);
   const hydrated = useAppStore((s) => s.hydrated);
+  const guest = useAppStore((s) => s.guest);
+  const enterGuest = useAppStore((s) => s.enterGuest);
+
+  // Restore a previously chosen guest session (local-only, no account)
+  useEffect(() => {
+    if (loading || isAuthenticated || guest) return;
+    if (isGuestSession()) enterGuest();
+  }, [loading, isAuthenticated, guest, enterGuest]);
+
+  // Signing in ends guest mode
+  useEffect(() => {
+    if (isAuthenticated && typeof window !== "undefined") {
+      try { window.localStorage.removeItem(GUEST_FLAG_KEY); } catch { /* ignore */ }
+    }
+  }, [isAuthenticated]);
 
   // Invalidate cache + sync local store on auth state change
   useEffect(() => {
@@ -186,12 +202,12 @@ function AppFrame() {
   useEffect(() => {
     if (loading) return;
     if (isPublicRoute) return;
-    if (!isAuthenticated && !isAuthRoute) {
+    if (!isAuthenticated && !guest && !isAuthRoute && !isGuestSession()) {
       navigate({ to: "/login" });
-    } else if (isAuthenticated && isAuthRoute && location.pathname !== "/reset-password") {
+    } else if ((isAuthenticated || guest) && isAuthRoute && location.pathname !== "/reset-password") {
       navigate({ to: "/" });
     }
-  }, [loading, isAuthenticated, isAuthRoute, isPublicRoute, location.pathname, navigate]);
+  }, [loading, isAuthenticated, guest, isAuthRoute, isPublicRoute, location.pathname, navigate]);
 
   if (loading && !isPublicRoute) {
     return (
@@ -208,7 +224,7 @@ function AppFrame() {
     return <Outlet />;
   }
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated && !guest) {
     return (
       <div className="grid min-h-screen place-items-center bg-background">
         <p className="text-sm text-muted-foreground">Redirecting…</p>
@@ -227,6 +243,7 @@ function AppFrame() {
       <Sidebar />
       <div className="flex-1 min-w-0 flex flex-col">
         <MobileBar />
+        <GuestBanner />
         <main className="flex-1 px-4 py-5 md:px-10 md:py-10 animate-in fade-in duration-200">
           <div className="mx-auto max-w-6xl">
             <Outlet />

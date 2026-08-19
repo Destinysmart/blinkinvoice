@@ -52,6 +52,8 @@ export function Sidebar() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { theme, toggle: toggleTheme } = useTheme();
+  const guest = useAppStore((s) => s.guest);
+  const exitGuest = useAppStore((s) => s.exitGuest);
 
   const handleSignOut = async () => {
     await signOut();
@@ -121,6 +123,36 @@ export function Sidebar() {
             <span className="text-[11px] font-medium">{connected ? "Connected" : "Not connected"}</span>
           </div>
         </HintWrap>
+
+        {!user && guest && (
+          <div className="flex items-center justify-between gap-2 px-1 pt-1">
+            <Link to="/signup" className="min-w-0 flex-1 truncate text-[11px] font-medium text-primary hover:underline">
+              Guest — create account
+            </Link>
+            <HintWrap hint={`Switch to ${theme === "dark" ? "light" : "dark"} theme`} side="top">
+              <button
+                onClick={toggleTheme}
+                className="rounded p-1.5 text-muted-foreground transition hover:bg-foreground/5 hover:text-foreground"
+                aria-label="Toggle theme"
+              >
+                {theme === "dark" ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
+              </button>
+            </HintWrap>
+            <HintWrap hint="Exit guest mode — clears invoices stored on this device" side="top">
+              <button
+                onClick={() => {
+                  exitGuest();
+                  toast.success("Guest session cleared");
+                  navigate({ to: "/login" });
+                }}
+                className="rounded p-1.5 text-muted-foreground transition hover:bg-foreground/5 hover:text-foreground"
+                aria-label="Exit guest mode"
+              >
+                <LogOut className="h-3.5 w-3.5" />
+              </button>
+            </HintWrap>
+          </div>
+        )}
 
         {user && (
           <div className="flex items-center justify-between gap-2 px-1 pt-1">
@@ -228,6 +260,32 @@ export function MobileBar() {
                   </div>
                 ))}
               </nav>
+
+              {!user && guest && (
+                <div className="border-t border-border p-4 space-y-2">
+                  <div className="text-xs text-muted-foreground">
+                    Guest mode — saved on this device.
+                  </div>
+                  <Link
+                    to="/signup"
+                    onClick={() => setOpen(false)}
+                    className="flex w-full items-center justify-center rounded-md bg-primary px-3 py-2 text-xs font-medium text-primary-foreground"
+                  >
+                    Create a free account
+                  </Link>
+                  <button
+                    onClick={() => {
+                      exitGuest();
+                      setOpen(false);
+                      toast.success("Guest session cleared");
+                      navigate({ to: "/login" });
+                    }}
+                    className="flex w-full items-center gap-2 rounded-md border border-border px-3 py-2 text-xs text-muted-foreground transition hover:text-foreground"
+                  >
+                    <LogOut className="h-3.5 w-3.5" /> Exit guest mode
+                  </button>
+                </div>
+              )}
 
               {user && (
                 <div className="border-t border-border p-4">

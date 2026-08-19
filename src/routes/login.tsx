@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useAppStore } from "@/lib/store";
 import { AuthShell } from "@/components/AuthShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +15,7 @@ export const Route = createFileRoute("/login")({
 
 function LoginPage() {
   const navigate = useNavigate();
+  const enterGuest = useAppStore((s) => s.enterGuest);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [show, setShow] = useState(false);
@@ -59,6 +61,28 @@ function LoginPage() {
           {loading ? "Signing in…" : "Sign in"}
         </Button>
       </form>
+
+      <div className="my-5 flex items-center gap-3">
+        <span className="h-px flex-1 bg-border" />
+        <span className="text-[11px] uppercase tracking-widest text-muted-foreground">or</span>
+        <span className="h-px flex-1 bg-border" />
+      </div>
+
+      <Button
+        type="button"
+        variant="outline"
+        className="w-full"
+        onClick={() => {
+          enterGuest();
+          toast.success("Guest mode — invoices are saved on this device");
+          navigate({ to: "/" });
+        }}
+      >
+        Continue without an account
+      </Button>
+      <p className="mt-2 text-center text-xs text-muted-foreground">
+        Draft invoices instantly. Data stays on this device.
+      </p>
     </AuthShell>
   );
 }
