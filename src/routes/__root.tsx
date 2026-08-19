@@ -223,7 +223,7 @@ function AppFrame() {
     return <Outlet />;
   }
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated && !guest) {
     return (
       <div className="grid min-h-screen place-items-center bg-background">
         <p className="text-sm text-muted-foreground">Redirecting…</p>
