@@ -329,6 +329,39 @@ export const useAppStore = create<AppState>()((set, get) => ({
     }
   },
 
+  enterGuest: () => {
+    unsubscribeRealtime();
+    if (typeof window !== "undefined") {
+      try { window.localStorage.setItem(GUEST_FLAG_KEY, "1"); } catch { /* ignore */ }
+    }
+    const data = readGuestData();
+    set({
+      ...data,
+      userId: null,
+      guest: true,
+      hydrated: true,
+      hydrating: false,
+    });
+  },
+
+  exitGuest: () => {
+    if (typeof window !== "undefined") {
+      try {
+        window.localStorage.removeItem(GUEST_FLAG_KEY);
+        window.localStorage.removeItem(GUEST_DATA_KEY);
+      } catch { /* ignore */ }
+    }
+    set({
+      invoices: [],
+      clients: [],
+      settings: defaultSettings,
+      guest: false,
+      hydrated: false,
+      hydrating: false,
+      userId: null,
+    });
+  },
+
   reset: () => {
     unsubscribeRealtime();
     set({
@@ -338,6 +371,7 @@ export const useAppStore = create<AppState>()((set, get) => ({
       hydrated: false,
       hydrating: false,
       userId: null,
+      guest: false,
     });
   },
 
