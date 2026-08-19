@@ -163,6 +163,21 @@ function AppFrame() {
   const resetStore = useAppStore((s) => s.reset);
   const hydratedUserId = useAppStore((s) => s.userId);
   const hydrated = useAppStore((s) => s.hydrated);
+  const guest = useAppStore((s) => s.guest);
+  const enterGuest = useAppStore((s) => s.enterGuest);
+
+  // Restore a previously chosen guest session (local-only, no account)
+  useEffect(() => {
+    if (loading || isAuthenticated || guest) return;
+    if (isGuestSession()) enterGuest();
+  }, [loading, isAuthenticated, guest, enterGuest]);
+
+  // Signing in ends guest mode
+  useEffect(() => {
+    if (isAuthenticated && typeof window !== "undefined") {
+      try { window.localStorage.removeItem(GUEST_FLAG_KEY); } catch { /* ignore */ }
+    }
+  }, [isAuthenticated]);
 
   // Invalidate cache + sync local store on auth state change
   useEffect(() => {
