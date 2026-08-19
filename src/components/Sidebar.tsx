@@ -122,6 +122,36 @@ export function Sidebar() {
           </div>
         </HintWrap>
 
+        {!user && guest && (
+          <div className="flex items-center justify-between gap-2 px-1 pt-1">
+            <Link to="/signup" className="min-w-0 flex-1 truncate text-[11px] font-medium text-primary hover:underline">
+              Guest — create account
+            </Link>
+            <HintWrap hint={`Switch to ${theme === "dark" ? "light" : "dark"} theme`} side="top">
+              <button
+                onClick={toggleTheme}
+                className="rounded p-1.5 text-muted-foreground transition hover:bg-foreground/5 hover:text-foreground"
+                aria-label="Toggle theme"
+              >
+                {theme === "dark" ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
+              </button>
+            </HintWrap>
+            <HintWrap hint="Exit guest mode — clears invoices stored on this device" side="top">
+              <button
+                onClick={() => {
+                  exitGuest();
+                  toast.success("Guest session cleared");
+                  navigate({ to: "/login" });
+                }}
+                className="rounded p-1.5 text-muted-foreground transition hover:bg-foreground/5 hover:text-foreground"
+                aria-label="Exit guest mode"
+              >
+                <LogOut className="h-3.5 w-3.5" />
+              </button>
+            </HintWrap>
+          </div>
+        )}
+
         {user && (
           <div className="flex items-center justify-between gap-2 px-1 pt-1">
             <div className="min-w-0 flex-1">
