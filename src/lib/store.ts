@@ -283,6 +283,7 @@ export const useAppStore = create<AppState>()((set, get) => ({
 
   deleteClient: (id) => {
     set({ clients: get().clients.filter((x) => x.id !== id) });
+    if (!get().userId) return;
     supabase.from("clients").delete().eq("id", id).then(({ error }) => {
       if (error) console.error("Failed to delete client", error);
     });
