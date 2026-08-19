@@ -167,6 +167,48 @@ function invoicePatchToRow(patch: Partial<Invoice>) {
   return out;
 }
 
+// ---------- Guest (local-only, no account) ----------
+
+export const GUEST_FLAG_KEY = "bi.guest";
+const GUEST_DATA_KEY = "bi.guest.data";
+
+export function isGuestSession() {
+  if (typeof window === "undefined") return false;
+  try {
+    return window.localStorage.getItem(GUEST_FLAG_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function readGuestData(): { invoices: Invoice[]; clients: Client[]; settings: Settings } {
+  if (typeof window === "undefined") return { invoices: [], clients: [], settings: defaultSettings };
+  try {
+    const raw = window.localStorage.getItem(GUEST_DATA_KEY);
+    if (!raw) return { invoices: [], clients: [], settings: defaultSettings };
+    const parsed = JSON.parse(raw);
+    return {
+      invoices: Array.isArray(parsed.invoices) ? parsed.invoices : [],
+      clients: Array.isArray(parsed.clients) ? parsed.clients : [],
+      settings: { ...defaultSettings, ...(parsed.settings ?? {}) },
+    };
+  } catch {
+    return { invoices: [], clients: [], settings: defaultSettings };
+  }
+}
+
+function writeGuestData(state: { invoices: Invoice[]; clients: Client[]; settings: Settings }) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(
+      GUEST_DATA_KEY,
+      JSON.stringify({ invoices: state.invoices, clients: state.clients, settings: state.settings }),
+    );
+  } catch {
+    /* quota / private mode — ignore */
+  }
+}
+
 // ---------- Store ----------
 
 export const useAppStore = create<AppState>()((set, get) => ({
@@ -176,6 +218,8 @@ export const useAppStore = create<AppState>()((set, get) => ({
   hydrated: false,
   hydrating: false,
   userId: null,
+  guest: false,
+
 
   addInvoice: (i) => {
     set({ invoices: [i, ...get().invoices] });
