@@ -24,6 +24,8 @@ interface AppState {
   saveSettings: (s: Partial<Settings>) => void;
 
   hydrate: (userId: string) => Promise<void>;
+  enterGuest: () => void;
+  exitGuest: () => void;
   reset: () => void;
 
   // Back-compat no-op (legacy demo seeder).
