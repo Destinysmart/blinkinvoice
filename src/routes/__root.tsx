@@ -13,6 +13,7 @@ import { Toaster, toast } from "sonner";
 import { useEffect } from "react";
 import { InstallBanner } from "@/components/InstallBanner";
 import { OfflineBar } from "@/components/OfflineBar";
+import { GuestBanner } from "@/components/GuestBanner";
 
 import appCss from "../styles.css?url";
 import { Sidebar, MobileBar } from "../components/Sidebar";
