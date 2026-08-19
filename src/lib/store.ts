@@ -463,3 +463,11 @@ export function genInvoiceNumber(existing: string[], prefix = "INV", next?: numb
   const nextN = (nums.length ? Math.max(...nums) : 0) + 1;
   return `${fullPrefix}${String(nextN).padStart(4, "0")}`;
 }
+
+// ---------- Guest persistence ----------
+
+// Persist guest data to localStorage on every change while in guest mode.
+useAppStore.subscribe((state) => {
+  if (!state.guest) return;
+  writeGuestData({ invoices: state.invoices, clients: state.clients, settings: state.settings });
+});
