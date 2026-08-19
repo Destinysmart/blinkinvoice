@@ -243,6 +243,7 @@ export const useAppStore = create<AppState>()((set, get) => ({
 
   deleteInvoice: (id) => {
     set({ invoices: get().invoices.filter((x) => x.id !== id) });
+    if (!get().userId) return;
     supabase.from("invoices").delete().eq("id", id).then(({ error }) => {
       if (error) console.error("Failed to delete invoice", error);
     });
