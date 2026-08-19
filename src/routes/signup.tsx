@@ -42,7 +42,7 @@ function SignupPage() {
     <AuthShell
       title="Create your account"
       subtitle="Start invoicing in Bitcoin"
-      footer={<>Already have an account? <Link to="/login" className="text-primary font-medium hover:underline">Sign in</Link></>}
+      footer={<>Already have an account? <Link to="/login" className="text-primary font-medium hover:underline">Sign in</Link> · <Link to="/login" className="text-primary font-medium hover:underline">Use without an account</Link></>}
     >
       <form onSubmit={submit} className="space-y-4">
         <div>
