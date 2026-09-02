@@ -204,7 +204,7 @@ function AppFrame() {
     if (isPublicRoute) return;
     if (!isAuthenticated && !guest && !isAuthRoute && !isGuestSession()) {
       navigate({ to: "/login" });
-    } else if ((isAuthenticated || guest) && isAuthRoute && location.pathname !== "/reset-password") {
+    } else if (isAuthenticated && isAuthRoute && location.pathname !== "/reset-password") {
       navigate({ to: "/" });
     }
   }, [loading, isAuthenticated, guest, isAuthRoute, isPublicRoute, location.pathname, navigate]);
