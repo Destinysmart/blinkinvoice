@@ -192,6 +192,8 @@ export function MobileBar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { theme, toggle: toggleTheme } = useTheme();
   const { user } = useAuth();
+  const guest = useAppStore((s) => s.guest);
+  const exitGuest = useAppStore((s) => s.exitGuest);
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
