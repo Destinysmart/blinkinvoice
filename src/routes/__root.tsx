@@ -14,6 +14,7 @@ import { useEffect } from "react";
 import { InstallBanner } from "@/components/InstallBanner";
 import { OfflineBar } from "@/components/OfflineBar";
 import { GuestBanner } from "@/components/GuestBanner";
+import { MobileTabBar } from "@/components/MobileTabBar";
 
 import appCss from "../styles.css?url";
 import { Sidebar, MobileBar } from "../components/Sidebar";
@@ -244,11 +245,12 @@ function AppFrame() {
       <div className="flex-1 min-w-0 flex flex-col">
         <MobileBar />
         <GuestBanner />
-        <main className="flex-1 px-4 py-5 md:px-10 md:py-10 animate-in fade-in duration-200">
+        <main className="flex-1 px-4 pb-28 pt-4 md:px-10 md:py-10 animate-in fade-in duration-200">
           <div className="mx-auto max-w-6xl">
             <Outlet />
           </div>
         </main>
+        <MobileTabBar />
       </div>
     </div>
   );
