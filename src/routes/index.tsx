@@ -161,7 +161,7 @@ function Dashboard() {
     "there";
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-5 md:space-y-8">
       <PageHeader
         title={`Welcome back, ${displayName}`}
         subtitle="Here's a snapshot of your business today."
@@ -180,7 +180,7 @@ function Dashboard() {
       {/* Onboarding checklist */}
       {!allDone && (
         <div className="rounded-xl border border-border bg-card overflow-hidden">
-          <div className="flex items-center justify-between border-b border-border bg-[var(--surface)] px-5 py-3">
+          <div className="flex items-center justify-between border-b border-border bg-[var(--surface)] px-4 py-2.5 md:px-5 md:py-3">
             <div>
               <div className="text-sm font-semibold">Get set up</div>
               <div className="text-xs text-muted-foreground">
@@ -199,18 +199,18 @@ function Dashboard() {
               <li key={s.label}>
                 <Link
                   to={s.to}
-                  className="group flex items-center gap-4 px-5 py-3.5 transition hover:bg-foreground/[0.03]"
+                  className="group flex items-center gap-3 px-4 py-2.5 transition hover:bg-foreground/[0.03] md:gap-4 md:px-5 md:py-3.5"
                 >
                   {s.done ? (
-                    <CheckCircle2 className="h-5 w-5 shrink-0 text-success" />
+                    <CheckCircle2 className="h-4 w-4 shrink-0 text-success md:h-5 md:w-5" />
                   ) : (
-                    <Circle className="h-5 w-5 shrink-0 text-muted-foreground/40" />
+                    <Circle className="h-4 w-4 shrink-0 text-muted-foreground/40 md:h-5 md:w-5" />
                   )}
                   <div className="min-w-0 flex-1">
-                    <div className={`text-sm font-medium ${s.done ? "text-muted-foreground line-through" : ""}`}>
+                    <div className={`text-[13px] font-medium md:text-sm ${s.done ? "text-muted-foreground line-through" : ""}`}>
                       {s.label}
                     </div>
-                    <div className="text-xs text-muted-foreground">{s.desc}</div>
+                    <div className="hidden text-xs text-muted-foreground md:block">{s.desc}</div>
                   </div>
                   {!s.done && (
                     <ArrowUpRight className="h-4 w-4 shrink-0 text-muted-foreground transition group-hover:text-primary" />
@@ -409,7 +409,7 @@ function Kpi({
     : "bg-foreground/10 text-muted-foreground";
   return (
     <div
-      className={`rounded-xl border border-border bg-card p-5 transition hover:border-border/80 ${onClick ? "cursor-pointer select-none active:scale-[0.99]" : ""}`}
+      className={`rounded-xl border border-border bg-card p-3.5 transition hover:border-border/80 md:p-5 ${onClick ? "cursor-pointer select-none active:scale-[0.99]" : ""}`}
       onClick={onClick}
       role={onClick ? "button" : undefined}
       tabIndex={onClick ? 0 : undefined}
@@ -417,15 +417,15 @@ function Kpi({
     >
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-2">
-          {Icon && <span className={`grid h-7 w-7 place-items-center rounded-md ${iconBg}`}><Icon className="h-3.5 w-3.5" /></span>}
-          <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{label}</p>
+          {Icon && <span className={`grid h-6 w-6 shrink-0 place-items-center rounded-md md:h-7 md:w-7 ${iconBg}`}><Icon className="h-3.5 w-3.5" /></span>}
+          <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground md:text-[11px]">{label}</p>
         </div>
         <div className="flex items-center gap-1.5">
           {pulse && <span className="h-1.5 w-1.5 rounded-full bg-destructive animate-pulse" />}
           {hint && <InfoHint text={hint} />}
         </div>
       </div>
-      <p className={`mt-3 font-mono text-2xl font-semibold tracking-tight ${color}`}>{value}</p>
+      <p className={`mt-2 truncate font-mono text-base font-semibold tracking-tight md:mt-3 md:text-2xl ${color}`}>{value}</p>
       {trend !== undefined && trend !== null && (
         <p className={`mt-1 text-[11px] font-medium ${trend >= 0 ? "text-success" : "text-destructive"}`}>
           {trend >= 0 ? "▲" : "▼"} {Math.abs(trend).toFixed(0)}% vs last month
