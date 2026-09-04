@@ -62,6 +62,10 @@ const styles = StyleSheet.create({
     fontSize: 20, letterSpacing: 2,
   },
 
+  // Blink gradient strip (approximated with stepped bands: #FFBE0B -> #FB5607)
+  gradientBar: { flexDirection: "row", height: 4 },
+  gradientSeg: { flex: 1, height: 4 },
+
   // ---------- Meta band ----------
   metaBand: {
     flexDirection: "row",
@@ -97,7 +101,7 @@ const styles = StyleSheet.create({
   itemsHeader: {
     flexDirection: "row", backgroundColor: INK,
     paddingVertical: 10, paddingHorizontal: 12,
-    borderBottomWidth: 2, borderBottomColor: ORANGE,
+    borderBottomWidth: 2, borderBottomColor: ORANGE_LIGHT,
   },
   th: {
     fontSize: 8.5, fontFamily: "IBMPlexSans", fontWeight: 600, color: "#fff",
@@ -250,6 +254,13 @@ export function InvoicePDF({
             </View>
           </View>
           <Text style={styles.wordmark}>INVOICE</Text>
+        </View>
+
+        {/* Blink gradient strip */}
+        <View style={styles.gradientBar} fixed>
+          {["#FFBE0B", "#FDA80A", "#FC9209", "#FC7C08", "#FB6607", ORANGE].map((c) => (
+            <View key={c} style={[styles.gradientSeg, { backgroundColor: c }]} />
+          ))}
         </View>
 
         {/* Meta band */}
