@@ -12,6 +12,7 @@ import type { Invoice, Settings } from "@/lib/types";
 import { invoiceTotal } from "@/lib/store";
 import { sendInvoiceEmail, listInvoiceEmailLogs } from "@/lib/email.functions";
 import { fmtDate } from "@/lib/format";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Props {
   open: boolean;
