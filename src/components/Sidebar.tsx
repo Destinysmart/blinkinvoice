@@ -186,134 +186,21 @@ export function Sidebar() {
   );
 }
 
-// Mobile top bar: hamburger -> full sidebar drawer + quick new invoice CTA.
+// Mobile top bar: brand + theme toggle. Navigation lives in MobileTabBar.
 export function MobileBar() {
-  const [open, setOpen] = useState(false);
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { theme, toggle: toggleTheme } = useTheme();
-  const { user } = useAuth();
-  const guest = useAppStore((s) => s.guest);
-  const exitGuest = useAppStore((s) => s.exitGuest);
-  const navigate = useNavigate();
-
-  const handleSignOut = async () => {
-    await signOut();
-    toast.success("Signed out");
-    setOpen(false);
-    navigate({ to: "/login" });
-  };
-
-  const groups = useNavGroups();
-
-  const isActive = (to: string, exact?: boolean) =>
-    exact ? pathname === to : pathname === to || pathname.startsWith(to + "/");
 
   return (
     <header className="md:hidden sticky top-0 z-40 flex h-14 items-center justify-between border-b border-border bg-surface px-4">
-      <div className="flex items-center gap-2">
-        <Sheet open={open} onOpenChange={setOpen}>
-          <SheetTrigger asChild>
-            <button
-              aria-label="Open menu"
-              className="grid h-9 w-9 place-items-center rounded-md border border-border bg-card text-foreground transition active:scale-95"
-            >
-              <Menu className="h-4 w-4" />
-            </button>
-          </SheetTrigger>
-          <SheetContent side="left" className="w-[280px] border-r border-border bg-surface p-0">
-            <div className="flex h-full flex-col">
-              <div className="px-5 pt-6 pb-5">
-                <Link to="/" onClick={() => setOpen(false)} className="flex items-center gap-2.5">
-                  <img src={logoUrl} alt="BlinkInvoice" className="h-9 w-9 object-contain" />
-                  <div>
-                    <div className="font-display text-[15px] font-semibold leading-none tracking-tight">BlinkInvoice</div>
-                  </div>
-                </Link>
-              </div>
-
-
-              <nav className="flex-1 overflow-y-auto px-3">
-                {groups.map((g) => (
-                  <div key={g.label} className="mb-5">
-                    <div className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/60">
-                      {g.label}
-                    </div>
-                    <ul className="space-y-0.5">
-                      {g.items.map((it) => {
-                        const active = isActive(it.to, (it as any).exact);
-                        return (
-                          <li key={it.to}>
-                            <Link
-                              to={it.to}
-                              onClick={() => setOpen(false)}
-                              className={`flex items-center gap-2.5 rounded-md px-3 py-2.5 text-sm font-medium transition ${
-                                active
-                                  ? "bg-primary/10 text-primary"
-                                  : "text-muted-foreground hover:bg-foreground/5 hover:text-foreground"
-                              }`}
-                            >
-                              <it.icon className="h-4 w-4" />
-                              <span>{it.label}</span>
-                            </Link>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </div>
-                ))}
-              </nav>
-
-              {!user && guest && (
-                <div className="border-t border-border p-4 space-y-2">
-                  <div className="text-xs text-muted-foreground">
-                    Guest mode — saved on this device.
-                  </div>
-                  <Link
-                    to="/signup"
-                    onClick={() => setOpen(false)}
-                    className="flex w-full items-center justify-center rounded-md bg-primary px-3 py-2 text-xs font-medium text-primary-foreground"
-                  >
-                    Create a free account
-                  </Link>
-                  <button
-                    onClick={() => {
-                      exitGuest();
-                      setOpen(false);
-                      toast.success("Guest session cleared");
-                      navigate({ to: "/login" });
-                    }}
-                    className="flex w-full items-center gap-2 rounded-md border border-border px-3 py-2 text-xs text-muted-foreground transition hover:text-foreground"
-                  >
-                    <LogOut className="h-3.5 w-3.5" /> Exit guest mode
-                  </button>
-                </div>
-              )}
-
-              {user && (
-                <div className="border-t border-border p-4">
-                  <div className="mb-2 truncate text-xs text-muted-foreground">{user.email}</div>
-                  <button
-                    onClick={handleSignOut}
-                    className="flex w-full items-center gap-2 rounded-md border border-border px-3 py-2 text-xs text-muted-foreground transition hover:text-foreground"
-                  >
-                    <LogOut className="h-3.5 w-3.5" /> Sign out
-                  </button>
-                </div>
-              )}
-            </div>
-          </SheetContent>
-        </Sheet>
-
-        <Link to="/" className="flex items-center gap-2">
-          <img src={logoUrl} alt="BlinkInvoice" className="h-8 w-8 object-contain" />
-          <span className="font-display text-base font-semibold">BlinkInvoice</span>
-        </Link>
-      </div>
+      <Link to="/" className="flex items-center gap-2">
+        <img src={logoUrl} alt="BlinkInvoice" className="h-8 w-8 object-contain" />
+        <span className="font-display text-base font-semibold">BlinkInvoice</span>
+      </Link>
 
       <HintWrap hint={`Switch to ${theme === "dark" ? "light" : "dark"} theme`} side="bottom">
         <button
           onClick={toggleTheme}
-          className="grid h-9 w-9 place-items-center rounded-md border border-border bg-card text-foreground transition active:scale-95"
+          className="grid h-9 w-9 place-items-center rounded-full border border-border bg-card text-foreground transition active:scale-95"
           aria-label="Toggle theme"
         >
           {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
