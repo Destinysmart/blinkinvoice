@@ -40,9 +40,10 @@ function InvoicesPage() {
   const { data: emailStatusData } = useQuery({
     queryKey: ["invoices_email_status", invoiceIds],
     queryFn: () => fetchEmailStatuses({ data: { invoiceIds } }),
-    enabled: invoiceIds.length > 0,
+    enabled: isAuthenticated && invoiceIds.length > 0,
     refetchInterval: 15_000,
     staleTime: 10_000,
+    retry: false,
   });
   const emailStatusByInvoice = emailStatusData?.byInvoice ?? {};
 
