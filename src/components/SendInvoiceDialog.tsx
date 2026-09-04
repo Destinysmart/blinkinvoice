@@ -12,6 +12,8 @@ import type { Invoice, Settings } from "@/lib/types";
 import { invoiceTotal } from "@/lib/store";
 import { sendInvoiceEmail, listInvoiceEmailLogs } from "@/lib/email.functions";
 import { fmtDate } from "@/lib/format";
+import { useAuth } from "@/lib/auth";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Props {
   open: boolean;
@@ -109,6 +111,10 @@ export function SendInvoiceDialog({ open, onOpenChange, invoice, settings, onSen
   const send = useMutation({
     mutationFn: async () => {
       if (!to || !/^\S+@\S+\.\S+$/.test(to)) throw new Error("Enter a valid recipient email");
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) {
+        throw new Error("Create a free account or sign in to email invoices. You can still download or share the PDF.");
+      }
       const [{ pdf }, { InvoicePDF }, QR] = await Promise.all([
         import("@react-pdf/renderer"),
         import("./InvoicePDF"),
@@ -186,9 +192,12 @@ export function SendInvoiceDialog({ open, onOpenChange, invoice, settings, onSen
 
 export function EmailHistory({ invoiceId }: { invoiceId: string }) {
   const listFn = useServerFn(listInvoiceEmailLogs);
+  const { isAuthenticated } = useAuth();
   const { data, isLoading } = useQuery({
     queryKey: ["email_logs", invoiceId],
     queryFn: () => listFn({ data: { invoiceId } }),
+    enabled: isAuthenticated,
+    retry: false,
   });
   const logs = data?.logs ?? [];
   if (isLoading) return null;

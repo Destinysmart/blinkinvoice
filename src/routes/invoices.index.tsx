@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getInvoicesEmailStatus } from "@/lib/email.functions";
+import { useAuth } from "@/lib/auth";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -28,6 +29,7 @@ export const Route = createFileRoute("/invoices/")({
 type Filter = "all" | "draft" | "pending" | "paid" | "overdue";
 
 function InvoicesPage() {
+  const { isAuthenticated } = useAuth();
   const invoices = useAppStore((s) => s.invoices);
   const seedDemo = useAppStore((s) => s.seedDemo);
   const updateInvoice = useAppStore((s) => s.updateInvoice);
@@ -40,9 +42,10 @@ function InvoicesPage() {
   const { data: emailStatusData } = useQuery({
     queryKey: ["invoices_email_status", invoiceIds],
     queryFn: () => fetchEmailStatuses({ data: { invoiceIds } }),
-    enabled: invoiceIds.length > 0,
+    enabled: isAuthenticated && invoiceIds.length > 0,
     refetchInterval: 15_000,
     staleTime: 10_000,
+    retry: false,
   });
   const emailStatusByInvoice = emailStatusData?.byInvoice ?? {};
 
