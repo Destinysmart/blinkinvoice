@@ -1,20 +1,40 @@
-import { Document, Page, View, Text, Image, StyleSheet } from "@react-pdf/renderer";
+import { Document, Page, View, Text, Image, StyleSheet, Font } from "@react-pdf/renderer";
 import QRCode from "qrcode";
 import type { Invoice, Settings } from "@/lib/types";
 import { invoiceTotal } from "@/lib/store";
 
-const ORANGE = "#F7931A";
-const INK = "#0F0F10";
-const TEXT = "#1f1f22";
-const MUTED = "#8a8a90";
-const SOFT = "#bdbdc4";
-const HAIR = "#e6e6ea";
-const PANEL = "#F3F3F0";
+// ---- Blink brand system ----
+const ORANGE = "#FB5607";      // _primary2
+const ORANGE_LIGHT = "#FFBE0B"; // _primary1
+const INK = "#1D1D1D";         // dark ground (never pure black)
+const TEXT = "#3A3C51";        // grey0
+const MUTED = "#9292A0";       // grey2
+const SOFT = "#AEAEB8";        // grey3
+const HAIR = "#E2E2E4";        // grey4
+const PANEL = "#F2F2F4";       // grey5
+const RAISED = "#E7E7E7";      // grey6
+const GREEN = "#00A700";
+
+const FONT_CDN = "https://cdn.jsdelivr.net/fontsource/fonts";
+Font.register({
+  family: "IBMPlexSans",
+  fonts: [
+    { src: `${FONT_CDN}/ibm-plex-sans@latest/latin-400-normal.ttf`, fontWeight: 400 },
+    { src: `${FONT_CDN}/ibm-plex-sans@latest/latin-500-normal.ttf`, fontWeight: 500 },
+    { src: `${FONT_CDN}/ibm-plex-sans@latest/latin-600-normal.ttf`, fontWeight: 600 },
+    { src: `${FONT_CDN}/ibm-plex-sans@latest/latin-700-normal.ttf`, fontWeight: 700 },
+  ],
+});
+Font.register({
+  family: "IBMPlexMono",
+  fonts: [{ src: `${FONT_CDN}/ibm-plex-mono@latest/latin-400-normal.ttf`, fontWeight: 400 }],
+});
+Font.registerHyphenationCallback((word) => [word]);
 
 const styles = StyleSheet.create({
   page: {
     fontSize: 10,
-    fontFamily: "Helvetica",
+    fontFamily: "IBMPlexSans",
     color: TEXT,
     lineHeight: 1.45,
   },
@@ -31,16 +51,20 @@ const styles = StyleSheet.create({
   headerLeft: { flexDirection: "row", alignItems: "center" },
   logo: { width: 38, height: 38, objectFit: "contain", marginRight: 12 },
   logoMark: {
-    width: 38, height: 38, borderRadius: 6, backgroundColor: ORANGE,
+    width: 38, height: 38, borderRadius: 8, backgroundColor: ORANGE,
     alignItems: "center", justifyContent: "center", marginRight: 12,
   },
-  logoMarkText: { color: "#fff", fontFamily: "Helvetica-Bold", fontSize: 18 },
-  bizNameHeader: { color: "#fff", fontFamily: "Helvetica-Bold", fontSize: 14 },
-  bizTagHeader: { color: "#9a9aa0", fontSize: 9, marginTop: 1 },
+  logoMarkText: { color: "#fff", fontFamily: "IBMPlexSans", fontWeight: 600, fontSize: 18 },
+  bizNameHeader: { color: "#fff", fontFamily: "IBMPlexSans", fontWeight: 600, fontSize: 14 },
+  bizTagHeader: { color: "#CCCCCC", fontSize: 9, marginTop: 1 },
   wordmark: {
-    color: ORANGE, fontFamily: "Helvetica-Bold",
+    color: ORANGE, fontFamily: "IBMPlexSans", fontWeight: 600,
     fontSize: 20, letterSpacing: 2,
   },
+
+  // Blink gradient strip (approximated with stepped bands: #FFBE0B -> #FB5607)
+  gradientBar: { flexDirection: "row", height: 4, backgroundColor: ORANGE },
+  gradientSeg: { flexGrow: 1, height: 4, marginRight: -1 },
 
   // ---------- Meta band ----------
   metaBand: {
@@ -54,10 +78,10 @@ const styles = StyleSheet.create({
     fontSize: 7.5, color: MUTED, textTransform: "uppercase",
     letterSpacing: 1, marginBottom: 5,
   },
-  metaValue: { fontSize: 11, fontFamily: "Helvetica-Bold", color: INK },
+  metaValue: { fontSize: 11, fontFamily: "IBMPlexSans", fontWeight: 600, color: INK },
   statusPill: {
     paddingHorizontal: 12, paddingVertical: 3,
-    borderRadius: 999, fontSize: 9, fontFamily: "Helvetica-Bold",
+    borderRadius: 999, fontSize: 9, fontFamily: "IBMPlexSans", fontWeight: 600,
     textTransform: "uppercase", letterSpacing: 0.8,
   },
 
@@ -70,17 +94,17 @@ const styles = StyleSheet.create({
     fontSize: 7.5, color: MUTED, textTransform: "uppercase",
     letterSpacing: 1, marginBottom: 6,
   },
-  partyName: { fontSize: 12, fontFamily: "Helvetica-Bold", color: INK, marginBottom: 3 },
+  partyName: { fontSize: 12, fontFamily: "IBMPlexSans", fontWeight: 600, color: INK, marginBottom: 3 },
   partyLine: { fontSize: 9.5, color: TEXT, marginBottom: 1 },
 
   // ---------- Items ----------
   itemsHeader: {
     flexDirection: "row", backgroundColor: INK,
     paddingVertical: 10, paddingHorizontal: 12,
-    borderBottomWidth: 2, borderBottomColor: ORANGE,
+    borderBottomWidth: 2, borderBottomColor: ORANGE_LIGHT,
   },
   th: {
-    fontSize: 8.5, fontFamily: "Helvetica-Bold", color: "#fff",
+    fontSize: 8.5, fontFamily: "IBMPlexSans", fontWeight: 600, color: "#fff",
     textTransform: "uppercase", letterSpacing: 0.8,
   },
   itemRow: {
@@ -88,7 +112,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1, borderBottomColor: HAIR,
   },
   td: { fontSize: 10, color: TEXT },
-  tdBold: { fontSize: 10, color: INK, fontFamily: "Helvetica-Bold" },
+  tdBold: { fontSize: 10, color: INK, fontFamily: "IBMPlexSans", fontWeight: 600 },
   colDesc: { flex: 3 },
   colNum: { flex: 1, textAlign: "right" },
 
@@ -105,13 +129,13 @@ const styles = StyleSheet.create({
     marginTop: 4, paddingTop: 8, paddingHorizontal: 12,
     borderTopWidth: 1, borderTopColor: HAIR,
   },
-  amountDueLabel: { fontSize: 12, fontFamily: "Helvetica-Bold", color: INK },
-  amountDueValue: { fontSize: 14, fontFamily: "Helvetica-Bold", color: ORANGE },
+  amountDueLabel: { fontSize: 12, fontFamily: "IBMPlexSans", fontWeight: 600, color: INK },
+  amountDueValue: { fontSize: 14, fontFamily: "IBMPlexSans", fontWeight: 600, color: ORANGE },
 
   // ---------- Lightning ----------
   lightningCard: {
     marginTop: 26,
-    borderWidth: 1, borderColor: HAIR, borderRadius: 4,
+    borderWidth: 1, borderColor: HAIR, borderRadius: 8,
     overflow: "hidden",
   },
   lightningHead: {
@@ -122,18 +146,18 @@ const styles = StyleSheet.create({
   lightningHeadLeft: { flexDirection: "row", alignItems: "center" },
   lightningDot: {
     width: 10, height: 10, backgroundColor: ORANGE,
-    marginRight: 8, borderRadius: 2,
+    marginRight: 8, borderRadius: 8,
   },
   lightningTitle: {
-    fontSize: 10, fontFamily: "Helvetica-Bold", color: ORANGE,
+    fontSize: 10, fontFamily: "IBMPlexSans", fontWeight: 600, color: ORANGE,
     letterSpacing: 1.2, textTransform: "uppercase",
   },
-  lightningHint: { fontSize: 8.5, color: "#9a9aa0" },
+  lightningHint: { fontSize: 8.5, color: "#CCCCCC" },
 
   lightningBody: { flexDirection: "row", padding: 14, gap: 14 },
   qrBox: {
     padding: 6, backgroundColor: "#fff",
-    borderWidth: 1, borderColor: HAIR, borderRadius: 4,
+    borderWidth: 1, borderColor: HAIR, borderRadius: 8,
   },
   qrImage: { width: 110, height: 110 },
   lightningInfo: { flex: 1 },
@@ -147,8 +171,8 @@ const styles = StyleSheet.create({
     letterSpacing: 1, marginBottom: 4,
   },
   bolt11: {
-    fontFamily: "Courier", fontSize: 7.5, color: "#3a3a3a",
-    backgroundColor: "#f5f5f1", padding: 6, borderRadius: 3,
+    fontFamily: "IBMPlexMono", fontSize: 7.5, color: TEXT,
+    backgroundColor: PANEL, padding: 6, borderRadius: 8,
     lineHeight: 1.4,
   },
   bolt11Hint: { fontSize: 8, color: MUTED, marginTop: 5 },
@@ -171,9 +195,9 @@ const styles = StyleSheet.create({
 });
 
 const STATUS_STYLES: Record<string, { bg: string; color: string }> = {
-  paid:    { bg: "#E9F7EF", color: "#1B7F47" },
-  pending: { bg: "#FFF3E0", color: "#B26A00" },
-  draft:   { bg: "#EFEFEF", color: "#555" },
+  paid:    { bg: "#E6F6E6", color: GREEN },
+  pending: { bg: "#FFF3D6", color: "#8A5A00" },
+  draft:   { bg: RAISED, color: TEXT },
 };
 
 function fmtMoney(n: number, currency: "USD" | "BTC") {
@@ -230,6 +254,13 @@ export function InvoicePDF({
             </View>
           </View>
           <Text style={styles.wordmark}>INVOICE</Text>
+        </View>
+
+        {/* Blink gradient strip */}
+        <View style={styles.gradientBar} fixed>
+          {["#FFBE0B", "#FDA80A", "#FC9209", "#FC7C08", "#FB6607", ORANGE].map((c) => (
+            <View key={c} style={[styles.gradientSeg, { backgroundColor: c }]} />
+          ))}
         </View>
 
         {/* Meta band */}
