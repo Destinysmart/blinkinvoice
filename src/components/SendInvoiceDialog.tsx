@@ -191,9 +191,12 @@ export function SendInvoiceDialog({ open, onOpenChange, invoice, settings, onSen
 
 export function EmailHistory({ invoiceId }: { invoiceId: string }) {
   const listFn = useServerFn(listInvoiceEmailLogs);
+  const { isAuthenticated } = useAuth();
   const { data, isLoading } = useQuery({
     queryKey: ["email_logs", invoiceId],
     queryFn: () => listFn({ data: { invoiceId } }),
+    enabled: isAuthenticated,
+    retry: false,
   });
   const logs = data?.logs ?? [];
   if (isLoading) return null;
