@@ -109,6 +109,10 @@ export function SendInvoiceDialog({ open, onOpenChange, invoice, settings, onSen
   const send = useMutation({
     mutationFn: async () => {
       if (!to || !/^\S+@\S+\.\S+$/.test(to)) throw new Error("Enter a valid recipient email");
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) {
+        throw new Error("Create a free account or sign in to email invoices. You can still download or share the PDF.");
+      }
       const [{ pdf }, { InvoicePDF }, QR] = await Promise.all([
         import("@react-pdf/renderer"),
         import("./InvoicePDF"),
