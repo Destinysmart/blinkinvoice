@@ -1,10 +1,22 @@
 import { Link } from "@tanstack/react-router";
-import { Laptop } from "lucide-react";
+import { Laptop, X } from "lucide-react";
+import { useState } from "react";
 import { useAppStore } from "@/lib/store";
+
+const DISMISS_KEY = "bi.guest.banner.dismissed";
 
 export function GuestBanner() {
   const guest = useAppStore((s) => s.guest);
-  if (!guest) return null;
+  const [dismissed, setDismissed] = useState(() => {
+    try { return window.localStorage.getItem(DISMISS_KEY) === "1"; } catch { return false; }
+  });
+
+  if (!guest || dismissed) return null;
+
+  const dismiss = () => {
+    try { window.localStorage.setItem(DISMISS_KEY, "1"); } catch { /* ignore */ }
+    setDismissed(true);
+  };
 
   return (
     <div className="border-b border-border bg-primary/5 px-4 py-2 md:px-10">
@@ -25,6 +37,13 @@ export function GuestBanner() {
         >
           Create a free account
         </Link>
+        <button
+          onClick={dismiss}
+          aria-label="Dismiss guest banner"
+          className="grid h-6 w-6 shrink-0 place-items-center rounded-full text-muted-foreground transition hover:bg-foreground/5 hover:text-foreground"
+        >
+          <X className="h-3.5 w-3.5" />
+        </button>
       </div>
     </div>
   );
