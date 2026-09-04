@@ -1,17 +1,15 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import {
   LayoutDashboard, FileText, Users,
-  Package, FolderKanban, BarChart3, Settings, LogOut, Plus, Menu, Boxes, Sun, Moon,
+  Package, FolderKanban, BarChart3, Settings, LogOut, Plus, Boxes, Sun, Moon,
 } from "lucide-react";
 import logoUrl from "@/assets/blinkinvoice-logo.png";
-import { useState } from "react";
 import { useAppStore } from "@/lib/store";
 import { useWalletConnect } from "lightningconnect";
 import { useAuth, signOut } from "@/lib/auth";
 import { useTheme } from "@/lib/theme";
 import { toast } from "sonner";
 import { HintWrap } from "./InfoHint";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 const baseGroups = [
   {
