@@ -28,6 +28,7 @@ export const Route = createFileRoute("/invoices/")({
 type Filter = "all" | "draft" | "pending" | "paid" | "overdue";
 
 function InvoicesPage() {
+  const { isAuthenticated } = useAuth();
   const invoices = useAppStore((s) => s.invoices);
   const seedDemo = useAppStore((s) => s.seedDemo);
   const updateInvoice = useAppStore((s) => s.updateInvoice);
