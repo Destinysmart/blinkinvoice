@@ -1,7 +1,7 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import {
   LayoutDashboard, FileText, Users,
-  Package, FolderKanban, BarChart3, Settings, LogOut, Plus, Boxes, Sun, Moon,
+  Package, FolderKanban, BarChart3, Settings, LogOut, Boxes, Sun, Moon,
 } from "lucide-react";
 import logoUrl from "@/assets/blinkinvoice-logo.png";
 import { useAppStore } from "@/lib/store";
