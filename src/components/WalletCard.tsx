@@ -46,8 +46,8 @@ export function WalletCard() {
       ) : (
         <div className="space-y-3">
           <p className="text-sm text-muted-foreground">
-            Connect a Lightning wallet to start accepting Bitcoin payments on your invoices.
-            Supports Blink Lightning Address, Nostr Wallet Connect (NWC), and Blink API key.
+            Connect any Lightning wallet to start accepting Bitcoin payments on your invoices.
+            Supports Lightning Address and Nostr Wallet Connect (NWC).
           </p>
           <Button onClick={connect} className="w-full sm:w-auto">
             <Zap className="mr-1.5 h-4 w-4" /> Connect wallet
