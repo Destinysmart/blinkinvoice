@@ -386,7 +386,7 @@ export function InvoicePDF({
 
         {/* Footer */}
         <View style={styles.footerBar} fixed>
-          <Text style={styles.footerText}>Payment powered by Blink Bitcoin Wallet · blink.sv</Text>
+          <Text style={styles.footerText}>Payments over the Bitcoin Lightning Network</Text>
           <Text style={styles.footerText}>
             {settings.invoiceFooter || `Thank you for your business, ${businessName}.`}
           </Text>
