@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
 
   // Blink gradient strip (approximated with stepped bands: #FFBE0B -> #FB5607)
   gradientBar: { flexDirection: "row", height: 4, backgroundColor: ORANGE },
-  gradientSeg: { flexGrow: 1, height: 4, marginRight: -1 },
+  gradientSeg: { width: "20%", height: 4 },
 
   // ---------- Meta band ----------
   metaBand: {
@@ -364,9 +364,7 @@ export function InvoicePDF({
                 ) : null}
                 <View style={styles.lightningInfo}>
                   <Text style={styles.walletsLabel}>Works with</Text>
-                  <Text style={styles.walletList}>
-                    Blink · Zeus · Phoenix · Muun · Blue Wallet · Wallet of Satoshi
-                  </Text>
+                  <Text style={styles.walletList}>Any Lightning wallet</Text>
                   <Text style={styles.bolt11Label}>Lightning Invoice (BOLT11)</Text>
                   <Text style={styles.bolt11}>{chunkBolt11(invoice.paymentRequest)}</Text>
                   <Text style={styles.bolt11Hint}>
@@ -388,7 +386,7 @@ export function InvoicePDF({
 
         {/* Footer */}
         <View style={styles.footerBar} fixed>
-          <Text style={styles.footerText}>Payment powered by Blink Bitcoin Wallet · blink.sv</Text>
+          <Text style={styles.footerText}>Payments over the Bitcoin Lightning Network</Text>
           <Text style={styles.footerText}>
             {settings.invoiceFooter || `Thank you for your business, ${businessName}.`}
           </Text>
