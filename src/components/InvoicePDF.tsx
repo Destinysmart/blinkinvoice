@@ -364,9 +364,7 @@ export function InvoicePDF({
                 ) : null}
                 <View style={styles.lightningInfo}>
                   <Text style={styles.walletsLabel}>Works with</Text>
-                  <Text style={styles.walletList}>
-                    Blink · Zeus · Phoenix · Muun · Blue Wallet · Wallet of Satoshi
-                  </Text>
+                  <Text style={styles.walletList}>Any Lightning wallet</Text>
                   <Text style={styles.bolt11Label}>Lightning Invoice (BOLT11)</Text>
                   <Text style={styles.bolt11}>{chunkBolt11(invoice.paymentRequest)}</Text>
                   <Text style={styles.bolt11Hint}>
