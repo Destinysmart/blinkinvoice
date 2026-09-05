@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
 
   // Blink gradient strip (approximated with stepped bands: #FFBE0B -> #FB5607)
   gradientBar: { flexDirection: "row", height: 4, backgroundColor: ORANGE },
-  gradientSeg: { flexGrow: 1, height: 4, marginRight: -1 },
+  gradientSeg: { width: "20%", height: 4 },
 
   // ---------- Meta band ----------
   metaBand: {
